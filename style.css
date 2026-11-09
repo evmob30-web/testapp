@@ -30,3 +30,15 @@ header #sound{font-size:10px}#equip{color:#bde9d2;border:1px solid #a1cbb670;bor
 #customize{display:block;padding:11px 14px;color:#f2d9b6;border:1px solid #c5a76c88;border-radius:5px;margin:14px 0;background:#2b3f33;cursor:pointer}
 #creator-preview-error{color:#ffe0bd}
 @media(max-width:700px){.creator-layout{grid-template-columns:1fr}.creator-view{max-width:350px;margin:auto;width:100%}#class-select>div.creator-modal{padding:18px}#creator-canvas{max-height:260px;width:auto}#class-select .class-options{grid-template-columns:1fr 1fr}#class-select .modal h2{font-size:25px}}
+
+/* Modular armor inventory. Prevent long loot lists from exceeding viewport. */
+#inventory>div{max-height:92svh;overflow:auto;width:min(760px,94vw)}
+#armor-equipment{margin:18px 0;padding:14px;background:#142e28;border:1px solid #d2b8774d;border-radius:8px}
+#armor-equipment h3{font:19px Georgia,serif;color:#f5daaa;margin:12px 0 8px}
+#armor-stats,.armor-hint{font-size:12px;color:#bdddc1;line-height:1.6}
+.armor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.armor-slot,.armor-item{font-size:11px;line-height:1.6;text-align:left;padding:10px 11px;background:#263f36;border:1px solid #e1c48d55;color:#f1e4ce;border-radius:5px;white-space:normal}
+.armor-slot:not(:disabled):hover,.armor-item:not(:disabled):hover{background:#3b5643;border-color:#f5ce8b}
+.armor-slot:disabled,.armor-item:disabled{opacity:.5;cursor:default}
+.armor-buy{border-color:#76b1a275}
+@media(max-width:560px){.armor-grid{grid-template-columns:1fr}#armor-equipment{padding:10px}}
