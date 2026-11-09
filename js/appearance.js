@@ -1,4 +1,4 @@
-/* Emberwild character customization. All shapes are original procedural meshes.
+/* Emberwild character customization. Original hair attachments and GLB preview.
  * Works on the shared Three.js Bone rig for both player and preview.
  */
 (function(root){
@@ -82,13 +82,16 @@ function createPreview(T,canvas){
  const light=new T.DirectionalLight('#ffd6a2',3);light.position.set(-3,7,5);scene.add(light);
  const rig=root.EmberCharacterRig.create(T);
  const flame=root.EmberFlameGuardian.decorate(T,rig);
- const look=attach(T,rig,flame);scene.add(rig.group);
+ const look=attach(T,rig,flame);
+ const assets=root.EmberModelAssets?.attach(T,rig,flame,look);scene.add(rig.group);
+ assets?.ready.then(()=>{canvas.dataset.characterModel=assets.status;});
  let angle=.35;
  function select(skinId,appearance){
   const isFlame=skinId==='flame_guardian';
   flame.setVisible(isFlame);
   rig.setSkin(isFlame?'flame_guardian':'guardian');
   look.apply(skinId,appearance);
+  assets?.setLook(skinId,appearance);
  }
  function rotate(delta){angle+=delta;}
  function update(time){
@@ -96,9 +99,10 @@ function createPreview(T,canvas){
   rig.animate(time,false,0);
   flame.animate(time,{moving:false});
   look.animate(time);
+  assets?.animate(time);
   renderer.render(scene,camera);
  }
- return {select,rotate,update,renderer,rig};
+ return {select,rotate,update,renderer,rig,assets};
 }
 root.EmberAppearance={attach,createPreview,hairColors,skinColors,eyeColors,styles};
 })(typeof window==='undefined'?globalThis:window);

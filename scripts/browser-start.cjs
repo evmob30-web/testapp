@@ -2,6 +2,13 @@ const { chromium } = require('playwright');
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
  const page=await browser.newPage();
+ // Observe the real production controllers without adding game-only test APIs.
+ await page.addInitScript(()=>{
+  Object.defineProperty(window,'EmberModelAssets',{configurable:true,set(api){
+   const attach=api.attach;api.attach=(...args)=>{const controller=attach(...args);(window.__modelInstances??=[]).push({controller,rig:args[1]});return controller;};
+   Object.defineProperty(window,'EmberModelAssets',{value:api,writable:true,configurable:true});
+  }});
+ });
  const errors=[];
  page.on('pageerror',e=>errors.push(e.stack||e.message));
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -16,7 +23,21 @@ const { chromium } = require('playwright');
  await page.locator('#creator-right').click();
  await page.waitForTimeout(180);
  if(!await page.locator('#creator-canvas').isVisible())errors.push('Character preview not visible');
+ await page.waitForFunction(()=>window.__modelInstances?.length>=2&&window.__modelInstances.every(i=>i.controller.status!=='loading'),null,{timeout:30000});
+ const assetState=await page.evaluate(()=>window.__modelInstances.map(({controller,rig})=>{
+  let weighted=0;controller.models.traverse(m=>{if(m.isSkinnedMesh)weighted++;});
+  return {status:controller.status,weighted,skin:rig.group.userData.characterAsset.skin,weaponAttached:rig.blade.parent===rig.joints.weapon_r};
+ }));
+ if(assetState.some(s=>s.status!=='ready'||s.weighted<10||!s.weaponAttached))errors.push('GLB assets did not load/bind: '+JSON.stringify(assetState));
+ if(await page.locator('#creator-canvas').getAttribute('data-character-model')!=='ready')errors.push('Creator GLB is not ready');
+ await page.screenshot({path:'/tmp/emberwild-model-preview.png'});
  await page.locator('#class-start').click();
+ const importedLook=await page.evaluate(()=>{
+  const {controller}=window.__modelInstances[0];const skin=controller.models.getObjectByName('flame_skin');return skin?.material.color.getHexString();
+ });
+ if(importedLook!=='b77a56')errors.push('Saved skin tone did not reach the imported game model');
+ await page.locator('#world').hover();await page.mouse.wheel(0,-400);await page.waitForTimeout(300);
+ await page.screenshot({path:'/tmp/emberwild-model-play.png'});
  // Execute all three melee stages in the actual WebGL game, without needing an enemy.
  for(let step=1;step<=3;step++){
    if(step>1)await page.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});
@@ -86,6 +107,18 @@ const { chromium } = require('playwright');
  const wornAfterReload=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(wornAfterReload?.lootEquipped?.hands!==77)errors.push('Loot item equipment not restored');
 
+
+ // The embedded assets must also work when index.html is opened directly, without HTTP.
+ const offline=await browser.newPage();const offlineErrors=[];
+ offline.on('pageerror',e=>offlineErrors.push(e.message));
+ offline.on('console',m=>{if(m.type()==='error')offlineErrors.push(m.text());});
+ await offline.goto(require('node:url').pathToFileURL(require('node:path').resolve('index.html')).href,{waitUntil:'load'});
+ await offline.waitForFunction(()=>document.getElementById('play').onclick!==null);
+ await offline.locator('#play').click();
+ await offline.waitForFunction(()=>document.getElementById('creator-canvas').dataset.characterModel==='ready',null,{timeout:30000});
+ await offline.locator('#class-start').click();
+ if(!await offline.locator('#overlay').isHidden())errors.push('Direct-file game did not start');
+ errors.push(...offlineErrors.map(e=>'Direct file: '+e));await offline.close();
 
  const fatal=await page.locator('#fatal').evaluate(n=>({hidden:n.hidden,text:n.textContent}));
  const overlay=await page.locator('#overlay').evaluate(n=>n.hidden);

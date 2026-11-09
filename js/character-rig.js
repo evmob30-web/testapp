@@ -1,8 +1,7 @@
 /* Emberwild reusable procedural humanoid rig.
  * Local +Z is forward, +Y up. All proportions in world units.
- * The joints are real THREE.Bone transforms; geometry currently consists of
- * rigid pieces parented to bones, not weight-painted SkinnedMeshes.
- * A future GLB SkinnedMesh can bind to the shared skeleton.
+ * The joints are real THREE.Bone transforms shared by the weighted GLB models,
+ * weapon/equipment attachments and the lightweight procedural fallback.
  */
 (function(root){
 'use strict';

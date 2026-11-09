@@ -1,6 +1,6 @@
-# Emberwild — De laatste vonk · versie 0.5.2
+# Emberwild — De laatste vonk · versie 1.2
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.2 bevat twee classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met een vervormbaar skelet, gezichtsdetails en kledingtextuur. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
@@ -102,7 +102,7 @@ De extra opdracht staat onder ‘Verkenning’ in de HUD en vervangt je hoofdopd
 
 ## Opslag en geluid
 
-Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere opslag van versie 0.1/0.2/0.3/0.4 blijft bruikbaar; hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen.
+Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere saves blijven bruikbaar en worden aangevuld met standaardwaarden voor uiterlijk, pantser en loot. Hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen. De versie van dit opslagformaat staat los van het versienummer van de game.
 
 ‘Ga verder’ verschijnt bij een bruikbare opslag. ‘Nieuw avontuur’ vervangt de voortgang; tijdens spelen wordt hiervoor bevestiging gevraagd. Voortgang is gebonden aan dezelfde browser en hetzelfde site-adres. Bij geblokkeerde opslag blijft spelen mogelijk voor de huidige sessie. Geen cloudopslag of multiplayer.
 
@@ -112,43 +112,55 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 - `index.html`, `style.css`: interface en menu's.
 - `js/core.js`: spelregels, opdrachten, uitrusting, beloningen en opslagvalidatie.
+- `js/character-rig.js`: gedeeld personageskelet, bevestigingspunten en procedurele animaties.
+- `js/flame-guardian.js`: het procedurele Flame Guardian-reservemodel en bron voor het GLB-kostuum.
+- `js/model-assets.js`: GLB laden, gedeelde geometrie, eigen materialen en koppeling aan de spelbotten.
+- `js/character-assets-data.js`: dezelfde GLBs ingesloten voor offline spelen en rechtstreeks openen.
+- `js/appearance.js`: kapsels, kleuren en de afzonderlijke 3D-preview in de character creator.
+- `js/equipment.js`: vijf pantserslots, vaste pantserstukken, aankopen, beloningen en zichtbare uitrusting.
+- `js/loot.js`: willekeurige drops, zeldzaamheden, itemeigenschappen, statvergelijking en verkoop.
 - `js/combat.js`: ontwijkregels, afkoeltijden, eerste projectieltreffers, schildhoeken en begrensd draaien.
+- `js/enemy-ai.js`: vijandprofielen, groepswaarschuwingen, flanken, aanvalsaankondigingen en pijlontwijking.
 - `js/archery.js`: boogmodel, boogpees, herbruikbare pijlmodellen en oefendoelen.
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
 - `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
 - `js/audio.js`: procedurele geluidseffecten, omgevingsgeluid en dempknop.
 - `js/game.js`: camera, invoer, gevechten, gebiedswissels, interacties, HUD en opslag.
-- `vendor/three.min.js`: Three.js 0.160.1, MIT-licentie in `vendor/THREE-LICENSE.txt`.
+- `assets/characters/*.glb`: de twee volledige 3D-personages met skelet, botgewichten en ingesloten PNG-textuur.
+- `scripts/build-character-assets.cjs`: originele model- en textuurgenerator; uitvoeren met Node.js na bronwijzigingen.
+- `vendor/three.min.js`, `vendor/GLTFLoader.js`: Three.js 0.160.1 en de officiële GLTFLoader, MIT-licentie in `vendor/THREE-LICENSE.txt`.
 - `tests/`: Node.js-tests.
+- `scripts/browser-start.cjs`: Playwright-smoketest voor starten, character creator, combo’s, pantser, loot en opslagherstel.
+- `.github/workflows/`: automatische Node.js- en browsercontroles in GitHub Actions.
 
 ## Controle
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-30 tests geslaagd. Ze controleren beide opdrachtketens, kamerbereikbaarheid en deurblokkering, oude en nieuwe opslag, uitrusting, herhaalde beloningen, niveauverhogingen, audio, rollen en projectielbotsingen. De integratietest bouwt de echte Three.js-wereld op en voltooit beide hoofdstukken met gesimuleerde invoer. Hij test ook beide aanvalspatronen van de Wortelmoeder, het amulet, gebiedswissels en doodgaan in de grot, de zijmissie, bereikbare verkenningsplekken, kruiden plukken, drankjes maken en de Woudzegen. Extra controles testen classkeuze en annuleren, legacy-opslag als Wachter, de Woudloper-start, een werkende Vonkpijl, geladen pijlen op echte oefendoelen, boogtraining, schildblokkering en flanktreffers, muisbesturing en het afbreken van laden. Nieuwe regressiecontroles verifiëren verborgen questobjecten vóór aannemen, verschijnen bij voortgang, verborgen interacties/recepten, herstel na gebiedswissels en dat onzichtbare oefendoelen geen pijlen blokkeren. Audiotests controleren ook de omgevingslus, gebiedswissels, pauze en dempen. JavaScript-syntax en relatieve bestandsverwijzingen zijn gecontroleerd.
+De huidige testsuite bevat 59 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
 
-De test vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De voorgeschreven browsertool was niet beschikbaar voor een visuele browsercontrole. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
+De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert daarvoor Playwright en Chromium; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
-Dit is een eerste speelbare RPG met twee gebieden, twee classes, twee korte hoofdstukken en eenvoudige modellen en AI. Nog geen uitgebreide uitrustingssystemen, sprongen, multiplayer of extra kerkers.
+De huidige game heeft twee gebieden, twee classes en twee korte hoofdstukken, met een character creator, modulair pantser, willekeurige loot en tactische vijanden. Meerdere personageslots, sprongen, multiplayer en extra kerkers zijn nog niet geïmplementeerd.
 
-## Herbruikbaar 3D-personageskelet (experimenteel)
+## Herbruikbaar 3D-personageskelet en skins
 
 `js/character-rig.js` biedt `EmberCharacterRig.create(THREE, {skin:'guardian'})`. Het retourneert een `group`, `model`, `joints`, een `THREE.Skeleton`, `animate(time,moving,attacking)` en `setSkin(name)`. De benoemde `THREE.Bone`-gewrichten omvatten heupen, rug, borstkas, nek, hoofd, schouders, ellebogen, handen, dijen, knieën, voeten en `weapon_r` / `back` voor uitrusting.
 
-De bestaande speler gebruikt het skelet. `guardian`, `ranger` en `flame_guardian` zijn **voorlopig kleurvarianten van een eenvoudig opgebouwd prototype**; de gedetailleerde Flame Guardian uit de concepttekening is nog niet gemodelleerd. De huidige meshes zijn star aan de botten bevestigd: dit is dus wel een echte bot-hiërarchie maar nog **geen weight-painted, vervormbare SkinnedMesh**. Voor definitieve GLB-skins zijn mesh, weights, UV/texturen en eventueel animatie-retargeting nodig. Questdata, bestaande saves en besturing blijven onveranderd.
+De speler gebruikt dit gedeelde skelet. Wachter en Woudloper zijn classes; **klassiek** en **Flame Guardian** zijn cosmetische uiterlijkkeuzes. Flame Guardian heeft inmiddels eigen procedureel gemodelleerde pantserdelen, gezichtsdetails, haarlokken, cape en lichtgevende kristallen. Kapsels en kleuren worden door de character creator toegepast; verzameld pantser staat los van het basiskostuum.
 
-Controle: `node --test tests/*.cjs` (ook `tests/character-rig.test.cjs`).
+De twee echte glTF 2.0-bestanden staan in `assets/characters/`: `ember-adventurer.glb` en `flame-guardian.glb`. Het lijf heeft doorlopende geometrie met genormaliseerde botgewichten bij romp, ellebogen en knieën. Gezicht, vingers, kledingnaden, gespen, laarzen en mantel geven meer detail; Flame Guardian heeft een gesmeed pantser, goudranden, gravures, een rode tabberd en lichtgevende kristallen. De kleine stof-/oppervlaktetextuur is in ieder model ingesloten. Dit is originele gestileerde art, gemaakt met de meegeleverde generator.
 
-## Stylized character-upgrade
+`EmberModelAssets` laadt via de lokaal meegeleverde officiële GLTFLoader. De `SkinnedMesh`-geometrie wordt aan de bestaande benoemde botten gekoppeld. De personagepreview en de speler delen onveranderlijke geometrie, maar hebben eigen materialen en botten. Haaropties, wapens, verzameld pantser en het Hartamulet gebruiken hun bestaande bevestigingspunten. Classes, bonussen en het opslagformaat veranderen niet. NPC's en vijanden behouden hun bestaande lichte procedurele modellen.
 
-De speler gebruikt nu gladdere procedurele vormen: ellipsoïden voor gezicht/romp/voeten, taps toelopende cilinders voor ledematen en smooth-shaded materialen. De Flame Guardian heeft rondere bepantsering, nieuwe gezichtsdetails en haarlokken van gebogen buizen. Dit alles gebruikt de bestaande botstructuur en skin-wisselaar; de voortgang en classes blijven gelijk. De personages zijn nog opgebouwd uit rigide delen op botten, niet uit één gewichtsgeschilderde SkinnedMesh of geïmporteerde GLB. Voor naadloze vervorming en hoogwaardige handgeschilderde texturen is een volgende stap met een echt art-asset nodig.
+Voor rechtstreeks openen van `index.html` en offline gebruik bevat `js/character-assets-data.js` dezelfde GLB-bytes. Er zijn geen externe modelverzoeken of extra installaties nodig. Bij een laadprobleem blijft het procedurele reservemodel zichtbaar. De generator maakt zowel de losse GLBs als de identieke offlineversie opnieuw: `node scripts/build-character-assets.cjs`. Zie ook [de assetdocumentatie](assets/characters/README.md).
 
-## Karakteranimaties v0.6
+## Karakteranimaties
 
-Het gedeelde rig-systeem biedt procedurele idle-ademhaling, een zacht gemengde loop- en renbeweging, kniebeweging, armzwaai en een zwaardaanval met follow-through. De Flame Guardian heeft lichte secundaire beweging op haarlokken en cape. Het huidige 3D-model blijft uit losse, aan botten bevestigde onderdelen bestaan; het is nog geen gewichtsgeschilderde SkinnedMesh. De gameplay- en savestructuur veranderen niet.
+De gewogen modellen volgen de bestaande procedurele idle-, loop-, ren-, rol- en drie zwaardaanvalanimaties. Botgewichten laten romp en ledematen meebuigen. Haar en mantel krijgen lichte secundaire beweging. De mantel gebruikt het `back`-bot; harde pantserdelen blijven aan hun betreffende bot bevestigd. Er zijn geen losse externe animatiebestanden nodig.
 
-## Character creator (v0.7)
+## Character creator
 
 Bij een nieuw avontuur open je de character creator na **Kies je class**. In een aparte realtime Three.js-preview kies je een klassiek uiterlijk of Flame Guardian, drie kapsels (kort, lang, vlecht), vijf haarkleuren, vier huidtinten en vier oogkleuren. Met de knoppen onder de preview draai je je personage. De klasse bepaalt de gameplay en blijft losstaan van het cosmetische uiterlijk.
 
@@ -156,7 +168,7 @@ In een bestaand avontuur: druk op **I → Personage aanpassen**. Je kunt daar je
 
 Test lokaal met `node --test tests/*.cjs`. De Playwright-smoketest opent daarnaast de creator en controleert de preview, cosmetische keuzes, bewerken vanuit de inventaris en opslag na herladen.
 
-## Pantser en uitrusting (v0.8)
+## Pantser en uitrusting
 
 Open tijdens het spelen met **I** de inventaris. Onder **Uitrusting** staan vijf losse slots: hoofd, schouders, borst, handschoenen en laarzen. Selecteer een verzameld pantserstuk om het uit te rusten; klik nogmaals of op het bezette slot om het af te doen. Alle stukken zijn zichtbaar op de overeenkomstige botten van het 3D-personage en kunnen worden gedragen met zowel het klassieke uiterlijk als de Flame Guardian.
 
@@ -164,12 +176,12 @@ Er zijn tien verschillende stukken (reizigers- en vonkensets). Je begint met een
 
 Veldnamen voor opslag: `armorOwned` is een opgeschoonde lijst met bekende stuk-IDs; `armorEquipped` is een object van vijf slots naar een stuk-ID of `null`. Ongeldige, niet-bezette en niet-bezittende IDs worden tijdens herstel verwijderd. Bestaande saves krijgen gratis basisstukken, behouden level/quests/uiterlijk en ontvangen reeds verdiende beloningen uit hun voortgang, zonder dat hun bestaande uitrusting automatisch verandert.
 
-De uitrusting is gemodelleerd met lichtgewicht afgeronde meshes die aan de gedeelde botten vastzitten. Dit is nog geen gewichtsgeschilderde SkinnedMesh of apart geïmporteerde GLB.
+Losse uitrustingsstukken blijven lichtgewicht meshes op de gedeelde botten. Ze passen over beide GLB-basismodellen en volgen dezelfde bewegingen.
 
-## Gevechten v0.9 — drie slagen
+## Gevechten — drie slagen
 Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruisslag** (120%) en **Vuurfinish** (165%). De volgende slag moet binnen 0,9 seconde na de vorige worden uitgevoerd en respecteert een eigen cooldown. Daarna begint de keten opnieuw. Rollen, wapens wisselen en magie gebruiken resetten de keten. De HUD laat de actieve combo zien. Boog en boogtraining blijven ongewijzigd. Elk stadium heeft eigen zwaard- en lichaamsanimatie, kleur en slagboog; magie heeft gloeiende inslagen. Vijanden tonen een visuele hitreactie en gewone tegenstanders worden kort onderbroken, zonder eindbaaspatronen te veranderen. De combostatus wordt niet opgeslagen en beïnvloedt bestaande saves niet.
 
-## Vijandelijke AI (v1.0)
+## Vijandelijke AI
 
 - Schemerwolven zoeken een flank en nabijgelegen bondgenoten reageren wanneer een wolf geraakt wordt.
 - Schildwachters houden hun schildgerichte houding, kondigen zware klappen duidelijk aan en kunnen een volgende pijl zijwaarts ontwijken.
@@ -178,7 +190,7 @@ Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruis
 - Verrassingsschoten met een boog blijven raakbaar van buiten detectieafstand. Eerder gealarmeerde vijanden mogen volgende pijlen proberen te ontwijken; botsingen en blokkeringen blijven leidend.
 - De bestaande aanvallen en telegraphs van Doornwachter en Wortelmoeder blijven behouden. Quests, loot en save-indeling veranderen niet. De AI-status bestaat alleen gedurende de huidige speelsessie.
 
-## Loot & Progression v1.1
+## Loot en progressie
 
 Vijanden kunnen bij verslaan willekeurige uitrusting laten vallen. Gewone vijanden hebben ongeveer 57% dropkans; geesten 78%, schildwachters 70% en eindbazen altijd een drop. De verdeling van gewone drops is 55% **gewoon**, 28% **zeldzaam**, 13% **episch** en 4% **legendarisch**. Eindbazen hebben betere kansen op epische of legendarische stukken. Iedere drop combineert een bestaand van vijf armor-slots (helm, schouders, borst, handschoenen, laarzen) met een zeldzaamheid en een willekeurig kenmerk: Levenskracht, Woede, Scherpschutter, Bescherming of Sintelvuur.
 
@@ -187,3 +199,7 @@ Na het verslaan verschijnt een draaiende 3D-kristal op de grond, gekleurd naar z
 De gemaakte combinaties zijn cosmetisch zichtbaar via de reeds bestaande 3D-pantsermodellen, nu met hun zeldzaamheidskleur. Basispantser en unieke loot gebruiken hetzelfde armor-slot, dus bonussen tellen niet dubbel. Extra statistieken naast HP en schade zijn **boogschade** (Scherpschutter / Sintelvuur) en **schadevermindering** (Bescherming). De bestaande vijanden, quests, unieke boss-buit, character creator en opslagsleutel blijven intact. Bij het laden worden items en terreinlocaties strikt gevalideerd; savebestanden kunnen geen willekeurige itemnamen, IDs of statistieken injecteren. De waarde van bonussen komt alleen uit vooraf gedefinieerde itemtemplates, niet uit opgeslagen invoer.
 
 Test met `node --test tests/*.cjs`. De browser-smoketest omvat een echte lootinteractie, het vergelijkingspaneel, uitrusten en opnieuw laden.
+
+## Publiceren via GitHub Pages
+
+Zet de volledige repository op GitHub, inclusief `vendor/`, `js/` en `assets/`. Kies bij **Settings → Pages** voor **Deploy from a branch → main → / (root)** en sla op. Er is geen buildstap. De game staat voor deze repository op https://evmob30-web.github.io/testapp/. Bij een oude gecachete versie helpt **Ctrl+F5**. Publiceren vervangt geen lokale spelersvoortgang.
