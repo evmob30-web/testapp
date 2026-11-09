@@ -6,6 +6,8 @@ const game={level:StarLevel,player:StarPhysics.createPlayer(StarLevel.spawn),cam
 function showRecords(message=''){const r=StarRecords.get();$('records').textContent=(message?message+' · ':'')+(r.bestTime===null?'Jouw eerste record wacht op je.':'Beste tijd '+formatTime(r.bestTime)+' · Meeste sterren '+r.bestStars+' / 12')+(r.persistent?'':' · Alleen deze sessie');}
 function soundButton(){$('sound').textContent=StarAudio.muted?'Geluid uit':'Geluid aan';$('sound').setAttribute('aria-pressed',String(StarAudio.muted));$('sound').setAttribute('aria-label',StarAudio.muted?'Geluid inschakelen':'Geluid dempen');}
 $('sound').onclick=()=>{StarAudio.toggle();soundButton();};soundButton();
+$('sound-test').onclick=async()=>{const ok=await StarAudio.test();soundButton();toast(ok?'Je hoort nu twee tonen. Springen en sterren hebben ook geluid.':'Browseraudio is geblokkeerd. Open het spel rechtstreeks in je browser.');};
+window.addEventListener('pointerdown',()=>{StarAudio.unlock();},{passive:true});
 function clearInput(){keys.clear();jumpPressed=false;}
 function toast(message){$('toast').textContent=message;toastTimer=3;$('toast').style.opacity=1;}
 function reset(){clearInput();game.player=StarPhysics.createPlayer(game.level.spawn);game.collected.clear();game.particles=[];game.camera=0;game.elapsed=0;game.falls=0;updateHud();}
@@ -17,7 +19,7 @@ function setState(next){if(next==='playing')StarAudio.unlock();state=next;clearI
 }
 function start(){showRecords();reset();setState('playing');toast('Volg de sterren naar het portaal.');}
 $('primary').onclick=()=>state==='paused'?setState('playing'):start();$('secondary').onclick=start;$('pause').onclick=()=>{if(state==='playing')setState('paused');else if(state==='paused')setState('playing');};
-function keyDown(code,repeat=false){if(['ArrowLeft','ArrowRight','ArrowUp','Space','KeyW','KeyA','KeyD','Escape','KeyR','Enter'].includes(code)){
+function keyDown(code,repeat=false){StarAudio.unlock();if(['ArrowLeft','ArrowRight','ArrowUp','Space','KeyW','KeyA','KeyD','Escape','KeyR','Enter'].includes(code)){
  if(repeat||keys.has(code))return;
  if(code==='Escape'){if(state==='playing')setState('paused');else if(state==='paused')setState('playing');return;}
  if(code==='KeyR'&&state!=='start'){start();return;}
