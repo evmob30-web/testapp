@@ -17,7 +17,7 @@ test('shared character rig exposes stable named joints and equipment anchors',()
    assert.ok(rig.joints[name].isBone);
  }
  assert.equal(rig.model.parent,rig.group);
- assert.ok(rig.skeleton.isSkeleton);
+ assert.ok(rig.skeleton instanceof THREE.Skeleton);
  assert.ok(rig.blade.parent===rig.joints.weapon_r);
  assert.ok(rig.guard.parent===rig.joints.weapon_r);
  assert.ok(rig.body.isMesh);
