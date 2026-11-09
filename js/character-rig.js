@@ -68,15 +68,58 @@ function create(T, options={}){
     const p=palettes[next]||palettes.guardian;
     body.material.color.set(p.armor);cloth.material.color.set(p.cape);
   }
-  function animate(time,moving,attacking){
-    const step=moving?Math.sin(time*11)*.6:0;
-    left.rotation.x=step;right.rotation.x=-step;
-    kneeL.rotation.x=moving?Math.max(0,-step)*.4:0;
-    kneeR.rotation.x=moving?Math.max(0,step)*.4:0;
-    leftArm.rotation.x=-step*.38;
-    arm.rotation.x=attacking>0?-1.5+attacking*5:step*.38;
-    elbowL.rotation.x=moving?-.09:0;
-    elbowR.rotation.x=attacking>0?-.35:0;
+  // Shared procedural animation: all poses are deterministic and return to rest.
+  // "attacking" is the remaining seconds of the existing 0.3s sword swing.
+  // Do not rotate the root's X axis: dodge rolls are controlled by world.update().
+  let locomotion=0, gaitPhase=0, strikeWeight=0, previousTime=null;
+  function animate(time,moving,attacking,options={}){
+    const dt=previousTime===null?1/60:Math.max(0,Math.min(.05,time-previousTime));
+    previousTime=time;
+    const running=!!options.running&&!!moving;
+    const target=moving?1:0;
+    const blend=1-Math.exp(-dt*12);
+    locomotion+=(target-locomotion)*blend;
+    gaitPhase+=dt*(running?15:9.3);
+    const gait=Math.sin(gaitPhase),opposite=Math.sin(gaitPhase+Math.PI);
+    const stride=locomotion*(running?.83:.48);
+    // A subtle idle breath, plus small counter-rotation of the torso.
+    const breath=Math.sin(time*2.4);
+    spine.rotation.x=.018*breath-locomotion*(running?.13:.055);
+    chest.rotation.y=locomotion*Math.sin(gaitPhase*2)*.06;
+    chest.rotation.z=locomotion*gait*.035;
+    if(body.userData.restY===undefined)body.userData.restY=body.scale.y;
+    body.scale.y=body.userData.restY*(1+.013*breath);
+    hips.rotation.z=locomotion*gait*.045;
+    head.rotation.x=-spine.rotation.x*.5+.025*Math.sin(time*1.2);
+    head.rotation.y=.018*Math.sin(time*.95);
+    // Legs and arms are opposite during walking; knees lift on forward strides.
+    left.rotation.x=gait*stride;
+    right.rotation.x=opposite*stride;
+    kneeL.rotation.x=locomotion*Math.max(0,-gait)*(running?.7:.43);
+    kneeR.rotation.x=locomotion*Math.max(0,-opposite)*(running?.7:.43);
+    footL.rotation.x=-kneeL.rotation.x*.28;
+    footR.rotation.x=-kneeR.rotation.x*.28;
+    const sway=.045*Math.sin(time*1.6);
+    leftArm.rotation.x=-gait*stride*.66-.08+sway;
+    arm.rotation.x=-opposite*stride*.66-.08-sway;
+    elbowL.rotation.x=-.12-locomotion*.08;
+    elbowR.rotation.x=-.10-locomotion*.10;
+    // Wind up, slash and follow-through, with smooth return to the walking pose.
+    const active=attacking>0;
+    const attackPhase=active?Math.max(0,Math.min(1,(.3-attacking)/.3)):1;
+    const targetStrike=active?1:0;
+    strikeWeight+=(targetStrike-strikeWeight)*(1-Math.exp(-dt*(active?25:13)));
+    if(active||strikeWeight>.003){
+      const swing=active?Math.sin(attackPhase*Math.PI):0;
+      arm.rotation.x+=strikeWeight*(-.85-1.45*swing);
+      arm.rotation.z=.17-strikeWeight*(.45+.3*swing);
+      elbowR.rotation.x-=strikeWeight*(.35+.35*swing);
+      chest.rotation.y+=strikeWeight*.2*Math.sin(attackPhase*Math.PI);
+    }else{strikeWeight=0;arm.rotation.z=.17;}
+    leftArm.rotation.z=-.17;
+    if(!active)arm.rotation.z=.17-strikeWeight*.45;
+    // Hair and cloak are animated by external skin attachments, without a simulation.
+    return {locomotion,gaitPhase,running,strikeWeight};
   }
   const skeleton=new T.Skeleton(Object.values(joints));
   setSkin(skin);

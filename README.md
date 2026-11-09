@@ -143,3 +143,7 @@ Controle: `node --test tests/*.cjs` (ook `tests/character-rig.test.cjs`).
 ## Stylized character-upgrade
 
 De speler gebruikt nu gladdere procedurele vormen: ellipsoïden voor gezicht/romp/voeten, taps toelopende cilinders voor ledematen en smooth-shaded materialen. De Flame Guardian heeft rondere bepantsering, nieuwe gezichtsdetails en haarlokken van gebogen buizen. Dit alles gebruikt de bestaande botstructuur en skin-wisselaar; de voortgang en classes blijven gelijk. De personages zijn nog opgebouwd uit rigide delen op botten, niet uit één gewichtsgeschilderde SkinnedMesh of geïmporteerde GLB. Voor naadloze vervorming en hoogwaardige handgeschilderde texturen is een volgende stap met een echt art-asset nodig.
+
+## Karakteranimaties v0.6
+
+Het gedeelde rig-systeem biedt procedurele idle-ademhaling, een zacht gemengde loop- en renbeweging, kniebeweging, armzwaai en een zwaardaanval met follow-through. De Flame Guardian heeft lichte secundaire beweging op haarlokken en cape. Het huidige 3D-model blijft uit losse, aan botten bevestigde onderdelen bestaan; het is nog geen gewichtsgeschilderde SkinnedMesh. De gameplay- en savestructuur veranderen niet.
