@@ -170,7 +170,7 @@ function attack(magic=false){
    const base=RPG.damage(state)+(magic?skill.bonus:0);
    hit(e,move?Math.round(base*move.multiplier):base);
  }else if(!magic)toast('Kom dichter bij een vijand om te raken.');
- if(move)world.slash(state.x,state.z,world.player.group.rotation.y,move.step);
+ if(move){world.slash(state.x,state.z,world.player.group.rotation.y,move.step);updateHud();}
 }
 function offerBowTraining(){const button=$('dialog-extra');button.hidden=false;button.disabled=false;button.textContent=state.bowQuest===2?'Over de boog':state.bowQuest===1&&state.bowPractice.length===3?'Rond boogtraining af':'Boogtraining bij Elin';button.onclick=()=>{
  if(state.bowQuest===0)showDialog('ELIN · BOOGTRAINING','Een nieuw wapen','Probeer de boog op de drie rieten oefendoelen ten noorden van het dorp. Houd links of 1 vast tot de balk vol is, richt met de muis en laat los. Raak ieder doel met een geladen pijl en kom terug. Met rechts slepen draai je de camera.','Begin de boogtraining',()=>{RPG.acceptBow(state);loadout();toast('Boogtraining · Raak drie oefendoelen met een geladen pijl. F wisselt van wapen.');});
