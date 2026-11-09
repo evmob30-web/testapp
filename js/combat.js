@@ -10,9 +10,9 @@ function shieldBlocks(facing,dx,dz){const len=Math.hypot(dx,dz);return len>0&&(-
 // The third strike is a heavier finisher; each consecutive hit must arrive
 // within the chain window. Timing is frame-rate independent and never saved.
 const comboMoves=[
- {step:1,name:'Snelle slag',multiplier:1,cooldown:.36,duration:.3,color:'#ffdb99'},
- {step:2,name:'Kruisslag',multiplier:1.2,cooldown:.34,duration:.3,color:'#ffc27e'},
- {step:3,name:'Vuurfinish',multiplier:1.65,cooldown:.52,duration:.42,color:'#ff8750'}
+ {step:1,name:'Snelle slag',multiplier:1,cooldown:.36,duration:.3,impact:.105,color:'#ffdb99'},
+ {step:2,name:'Kruisslag',multiplier:1.2,cooldown:.34,duration:.3,impact:.105,color:'#ffc27e'},
+ {step:3,name:'Vuurfinish',multiplier:1.65,cooldown:.52,duration:.42,impact:.16,color:'#ff8750'}
 ];
 function createCombo(){return {step:0,window:0};}
 function resetCombo(combo){combo.step=0;combo.window=0;return combo;}

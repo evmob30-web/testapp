@@ -92,3 +92,15 @@ test('heroic proportions keep feet on the original ground and hair is shared wit
  assert.equal(a.look.groups.long.visible,true);assert.equal(b.look.groups.braid.visible,true);
  assert.notEqual(a.look.groups.long.children[0].material.color.getHex(),b.look.groups.braid.children[0].material.color.getHex());
 });
+
+test('rolling keeps the weighted body above the floor',async()=>{
+ const env=environment(),a=avatar(env);await a.assets.ready;
+ for(const skin of ['classic','flame_guardian']){
+  a.assets.setLook(skin,{},'guardian');
+  for(const p of [.05,.2,.4,.6,.8,.95]){
+   a.rig.animate(p,true,0,{roll:p});a.rig.group.updateMatrixWorld(true);let min=Infinity;
+   a.assets.models.getObjectByName(skin==='classic'?'GLB_classic':'GLB_flame_guardian').traverse(m=>{if(!m.isSkinnedMesh||/cape/.test(m.name))return;m.skeleton.update();const point=new THREE.Vector3();for(let i=0;i<m.geometry.attributes.position.count;i++){m.getVertexPosition(i,point);point.applyMatrix4(m.matrixWorld);min=Math.min(min,point.y);}});
+   assert.ok(min>=-.11,'weighted body clears the ground: '+skin+' at '+p);assert.ok(min<.8,'roll remains close to the ground');
+  }
+ }
+});

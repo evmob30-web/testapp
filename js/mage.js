@@ -35,7 +35,7 @@ function markChilled(T,e){
  e.chillHalo.visible=true;
 }
 function attach(T,rig){
- const staff=new T.Group();staff.name='MageStaff';rig.joints.weapon_r.add(staff);staff.position.set(0,-.05,.13);
+ const staff=new T.Group();staff.name='MageStaff';rig.joints.weapon_r.add(staff);staff.position.set(0,.04,.02);
  const gold=new T.MeshStandardMaterial({color:'#d9c6a1',metalness:.48,roughness:.46});
  const wood=new T.MeshStandardMaterial({color:'#45345e',roughness:.78});
  const magic=new T.MeshStandardMaterial({color:'#b8deff',emissive:'#6585ff',emissiveIntensity:1.1,roughness:.4});
@@ -59,20 +59,26 @@ function attach(T,rig){
  function setClass(id){enabled=id==='mage';accents.visible=enabled;staff.visible=enabled&&weapon==='staff';}
  function setWeapon(id){weapon=id;staff.visible=enabled&&weapon==='staff';}
  function cast(kind='bolt'){nova=kind==='frost';castDuration=nova?.5:.34;castTime=castDuration;}
+ const palm=new T.Vector3(),pole=new T.Vector3(),chest=new T.Vector3(),handQ=new T.Quaternion(),yawQ=new T.Quaternion(),tiltQ=new T.Quaternion(),tilt=new T.Euler();
  function update(dt,time,moving=false){
   castTime=Math.max(0,castTime-dt);gem.rotation.y=time*.8;orbit.rotation.z=time*.7;
   magic.emissiveIntensity=.9+Math.sin(time*2)*.12+(castTime>0?.6:0);
-  if(!enabled)return;
-  if(weapon==='staff'){
-   const amount=castTime>0?Math.sin((1-castTime/castDuration)*Math.PI):0;
-   rig.joints.upper_arm_r.rotation.x-=.10+amount*.85;
-   rig.joints.lower_arm_r.rotation.x-=.09+amount*.18;
-   staff.rotation.z=.035*Math.sin(time*1.3)*(moving?.35:1);
+  if(!enabled||weapon!=='staff'||rig.motion.rolling)return;
+  rig.resetUpperPose();
+  const amount=castTime>0?Math.sin((1-castTime/castDuration)*Math.PI):0;
+  rig.joints.chest.rotation.y-=amount*.09;rig.joints.head.rotation.x-=amount*.035;
+  rig.group.updateWorldMatrix(true,true);rig.group.getWorldQuaternion(yawQ);rig.group.worldToLocal(rig.joints.chest.getWorldPosition(chest));
+  handQ.copy(yawQ).multiply(tiltQ.setFromEuler(tilt.set(.08+amount*.30,0,-.07)));
+  palm.set(.59,chest.y-.61+amount*.26,.28+amount*.25).applyMatrix4(rig.group.matrixWorld);pole.set(.95,chest.y-.30,-.35).applyMatrix4(rig.group.matrixWorld);rig.aimArm('r',palm,pole,handQ);
+  staff.rotation.z=.018*Math.sin(time*1.3)*(moving?.35:1);
+  if(nova&&castTime>0){
+   handQ.copy(yawQ).multiply(tiltQ.setFromEuler(tilt.set(-.20,0,-.65*amount)));
+   palm.set(-.62-amount*.28,chest.y-.72+amount*.72,.15+amount*.32).applyMatrix4(rig.group.matrixWorld);pole.set(-1.2,chest.y-.3,-.1).applyMatrix4(rig.group.matrixWorld);rig.aimArm('l',palm,pole,handQ);
   }
-  if(nova&&castTime>0){const amount=Math.sin((1-castTime/castDuration)*Math.PI);rig.joints.upper_arm_l.rotation.z-=amount*.52;rig.joints.upper_arm_l.rotation.x-=amount*.45;}
  }
+ function muzzle(out=new T.Vector3()){rig.group.updateWorldMatrix(true,true);return gem.getWorldPosition(out);}
  setClass('guardian');
- return {staff,accents,gem,setClass,setWeapon,cast,update};
+ return {staff,accents,gem,setClass,setWeapon,cast,update,muzzle};
 }
 root.EmberMage={isMage,spend,regenerate,chill,tickEnemy,movementScale,nearby,bolt,markChilled,attach};
 })(typeof window==='undefined'?globalThis:window);

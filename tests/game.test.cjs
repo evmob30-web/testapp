@@ -36,6 +36,10 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  // A melee attack actually fires while the roll protects the player.
  const wolf=world.enemies.find(e=>e.id==='w1');s.x=-13;s.z=-9;wolf.attack=0;key('Space');tick();assert.ok(wolf.attack>1);assert.equal(wolf.pendingAttack,'melee');assert.equal(wolf.warningMesh.visible,true,'enemy attack must show a ground warning before damage');assert.equal(s.hp,100);assert.ok(combat.remaining>0);tick();assert.notEqual(world.player.model.rotation.x,0);const facing=new RealThree.Vector3(0,0,1).applyQuaternion(world.player.group.quaternion);const headLean=new RealThree.Vector3(0,1,0).applyQuaternion(world.player.model.quaternion).applyQuaternion(world.player.group.quaternion);assert.ok(headLean.dot(facing)>0,'the head leans in the direction of travel during the first part of a forward roll');key('Digit1');assert.equal(wolf.hp,wolf.max);tick(30);key('Space');assert.equal(combat.remaining,0);tick(60);
  s.x=-3;s.z=18;tick();key('KeyE');assert.equal(get('dialog').hidden,false);get('dialog-action').onclick();assert.equal(s.quest,1);
+ // Damage belongs to the strike frame, and a menu cancels a prepared swing.
+ const timingWolf=world.enemies.find(e=>e.id==='w1');s.x=timingWolf.homeX;s.z=timingWolf.homeZ+1;tick();const timingHp=timingWolf.hp;
+ key('Digit1');assert.equal(timingWolf.hp,timingHp,'sword does not hit on keydown');tick(3);assert.equal(timingWolf.hp,timingHp,'windup is visible before impact');key('Escape');tick(20);key('Escape');tick(30);assert.equal(timingWolf.hp,timingHp,'cancelled windup cannot hit after resuming');
+ get('world').events.pointerdown({clientX:640,clientY:360,button:0,pointerId:1});get('world').events.pointerup({button:0,pointerId:1});get('world').events.lostpointercapture();get('world').events.pointerdown({clientX:640,clientY:360,button:2,pointerId:1});get('world').events.pointerup({button:2,pointerId:1});get('world').events.lostpointercapture();tick(7);assert.ok(timingWolf.hp<timingHp,'the swing hits at the strike frame');const onceHp=timingWolf.hp;tick(25);assert.equal(timingWolf.hp,onceHp,'one swing deals damage once');
  // Defeat three wolves with actual attack input and cooldown updates.
  for(const id of ['w1','w2','w3']){const enemy=world.enemies.find(e=>e.id===id);s.x=enemy.homeX;s.z=enemy.homeZ+1;tick();for(let i=0;i<4&&enemy.mesh.visible;i++){key('Digit1');tick(32);}assert.ok(s.kills.includes(id));}
  s.x=-3;s.z=18;tick();key('KeyE');get('dialog-action').onclick();assert.equal(s.quest,2);assert.ok(world.crystals.every(c=>c.mesh.visible));assert.ok(world.crystals.every(c=>mapHas(c.x,c.z)));assert.equal(world.enemies.find(e=>e.id==='boss').mesh.visible,false);
@@ -128,13 +132,13 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  key('Escape');get('new').onclick();get('dialog-action').onclick();get('class-mage').onclick();get('class-start').onclick();tick();
  assert.equal(s.classId,'mage');assert.equal(s.hp,75);assert.equal(s.weapon,'staff');assert.equal(s.mana,100);
  assert.equal(world.mageView.staff.visible,true);assert.equal(world.player.blade.visible,false);assert.equal(archery.bow.visible,false);assert.equal(get('mana-wrap').hidden,false);
- let spells=0;const originalBolt=world.mageBolt;world.mageBolt=(...args)=>{spells++;return originalBolt(...args);};
+ let spells=0,lastBolt;const originalBolt=world.mageBolt;world.mageBolt=(...args)=>{spells++;return lastBolt=originalBolt(...args);};
  const mageWolf=world.enemies.find(e=>e.id==='w1');s.x=-13;s.z=-3;tick(60);aimAt(-13,-8);key('Digit1');tick(40);
  assert.equal(spells,1);assert.equal(mageWolf.hp,mageWolf.max,'unaccepted enemies cannot be hit by magic');
  s.x=-3;s.z=18;tick();key('KeyE');get('dialog-action').onclick();assert.equal(s.quest,1);
  mageWolf.mesh.position.set(0,0,0);mageWolf.homeX=0;mageWolf.homeZ=0;mageWolf.hp=mageWolf.max=300;mageWolf.speed=.001;mageWolf.attack=100;
  s.x=0;s.z=6;s.mana=100;tick(60);aimAt(0,0);const mageDamage=sandbox.RPG.spellDamage(s);key('Digit1');
- assert.equal(s.mana,92);const shotCount=spells;handlers.keydown({code:'Digit1',repeat:true,target:{},preventDefault(){}});assert.equal(spells,shotCount,'key repeat cannot duplicate casts');
+ assert.equal(s.mana,92);assert.ok(lastBolt.position.distanceTo(world.mageView.muzzle())<1e-6,'spell starts at the visible staff crystal');const shotCount=spells;handlers.keydown({code:'Digit1',repeat:true,target:{},preventDefault(){}});assert.equal(spells,shotCount,'key repeat cannot duplicate casts');
  tick(30);assert.equal(mageWolf.hp,300-mageDamage,'spell projectile hits through the real collision loop');assert.ok(s.mana>92&&s.mana<=100);
  key('Escape');const pausedMana=s.mana;tick(120);key('Digit1');assert.equal(s.mana,pausedMana,'menus pause mana regeneration and casting');assert.equal(spells,shotCount);key('Escape');
  s.mana=0;tick(40);const lowMana=s.mana;key('Digit1');assert.equal(s.mana,lowMana);assert.equal(spells,shotCount,'empty mana cannot fire a spell');
@@ -143,6 +147,10 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  assert.equal(s.mana,76);assert.ok(mageWolf.chill>0);assert.equal(mageWolf.chillHalo.visible,true);assert.equal(mageWolf.hp,frostHp-Math.round(mageDamage*.75));
  const novaMana=s.mana;key('Digit2');assert.equal(s.mana,novaMana,'frost cooldown prevents repeat costs');tick(190);assert.equal(mageWolf.chill,0);assert.equal(mageWolf.chillHalo.visible,false);
  tick(310);const behindWallHp=mageWolf.hp;world.colliders.push({x:0,z:4,r:.5});s.mana=100;key('Digit2');assert.equal(mageWolf.hp,behindWallHp,'frost cannot hit through a solid obstacle');assert.equal(mageWolf.chill,0);world.colliders.pop();
+ // A muzzle beyond the player's centre must not skip a close wall or enemy.
+ tick(60);s.x=0;s.z=6;mageWolf.mesh.position.set(0,0,4.5);mageWolf.homeZ=4.5;mageWolf.dodgeCooldown=100;mageWolf.attack=100;s.mana=100;aimAt(0,4.5);
+ world.player.group.rotation.y=Math.PI;world.mageView.update(0,0);const crystal=world.mageView.muzzle(),nearWall={x:(s.x+crystal.x)/2,z:(s.z+crystal.z)/2,r:.18};world.colliders.push(nearWall);const closeHp=mageWolf.hp;
+ key('Digit1');tick(12);assert.equal(mageWolf.hp,closeHp,'first sweep catches a wall between the player and crystal');world.colliders.pop();tick(40);s.mana=100;aimAt(0,4.5);key('Digit1');tick(6);assert.equal(mageWolf.hp,closeHp-mageDamage,'a point-blank enemy cannot be skipped by the muzzle');tick(40);
  // Mage can complete normal bow training and return to the staff explicitly.
  s.x=-3;s.z=18;tick();key('KeyE');get('dialog-extra').onclick();get('dialog-action').onclick();assert.equal(s.weapon,'bow');assert.equal(s.bowQuest,1);assert.equal(world.mageView.staff.visible,false);
  key('KeyF');assert.equal(s.weapon,'staff');key('KeyF');assert.equal(s.weapon,'sword');key('KeyF');assert.equal(s.weapon,'bow');

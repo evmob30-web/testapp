@@ -27,6 +27,12 @@ const { chromium } = require('playwright');
  await page.locator('#class-ranger').click();await page.locator('#appearance-skin').selectOption('classic');
  const rangerColor=await page.evaluate(()=>window.__modelInstances[1].controller.models.getObjectByName('classic_fabric').material.color.getHexString());
  if(rangerColor!=='637e64')errors.push('Ranger preview uses the wrong class colors');
+ await page.waitForFunction(()=>{
+  const rig=window.__modelInstances[1].rig,bow=rig.joints.hand_l.getObjectByName('WoodlandBow'),held=bow?.getObjectByName('NockedArrow');
+  if(!bow?.visible||!held||rig.blade.visible)return false;
+  const nock=held.localToWorld(new THREE.Vector3(0,0,-.45));return rig.palmWorld('r').distanceTo(nock)<.001;
+ },null,{timeout:25000});
+
  await page.locator('#class-guardian').click();
  await page.locator('#appearance-skin').selectOption('flame_guardian');
  await page.locator('#appearance-hairStyle').selectOption('braid');
@@ -127,7 +133,7 @@ const { chromium } = require('playwright');
  await magePage.addInitScript(()=>{
   Object.defineProperty(window,'EmberMage',{configurable:true,set(api){
    const attach=api.attach;api.attach=(...args)=>{const view=attach(...args);(window.__mageViews??=[]).push(view);return view;};
-   const bolt=api.bolt;api.bolt=(...args)=>{window.__mageBolts=(window.__mageBolts||0)+1;return bolt(...args);};
+   const bolt=api.bolt;api.bolt=(...args)=>{window.__mageBolts=(window.__mageBolts||0)+1;return window.__lastMageBolt=bolt(...args);};
    Object.defineProperty(window,'EmberMage',{value:api,writable:true,configurable:true});
   }});
  });
@@ -140,7 +146,8 @@ const { chromium } = require('playwright');
  if(await magePage.locator('#attack-name').textContent()!=='Vonkbol'||await magePage.locator('#skill-name').textContent()!=='Vrieskring')mageErrors.push('Mage abilities missing');
  const mageStart=await magePage.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(mageStart?.classId!=='mage'||mageStart?.weapon!=='staff'||mageStart?.hp!==75)mageErrors.push('Mage start/save incorrect');
- await magePage.locator('#attack').click();
+ const crystalOrigin=await magePage.evaluate(()=>{document.getElementById('attack').click();return window.__lastMageBolt.position.distanceTo(window.__mageViews[0].muzzle());});
+ if(crystalOrigin>.0001)mageErrors.push('Spell did not begin at the staff crystal: '+crystalOrigin);
  await magePage.waitForFunction(()=>window.__mageBolts===1);
  const afterBolt=Number((await magePage.locator('#mana-label').textContent()).split(' / ')[0]);
  if(afterBolt>=100)mageErrors.push('Basic spell did not spend mana');

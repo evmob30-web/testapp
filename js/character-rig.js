@@ -69,68 +69,137 @@ function create(T, options={}){
     const p=palettes[next]||palettes.guardian;
     body.material.color.set(p.armor);cloth.material.color.set(p.cape);
   }
-  // Shared procedural animation: all poses are deterministic and return to rest.
-  // "attacking" is the remaining seconds of the existing 0.3s sword swing.
-  // Do not rotate the root's X axis: dodge rolls are controlled by world.update().
-  let locomotion=0, gaitPhase=0, strikeWeight=0, previousTime=null;
+  // Animation only: rest transforms above and GLB inverse bind matrices stay unchanged.
+  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+  const smooth=v=>{v=clamp(v);return v*v*(3-2*v);};
+  const mix=(a,b,t)=>a+(b-a)*t;
+  function chain(upper,lower,end){return {upper,lower,end,a:lower.position.length(),b:end.position.length(),axisA:lower.position.clone().normalize(),axisB:end.position.clone().normalize(),start:new T.Vector3(),delta:new T.Vector3(),pole:new T.Vector3(),mid:new T.Vector3(),resolved:new T.Vector3(),direction:new T.Vector3(),q:new T.Quaternion(),parentQ:new T.Quaternion()};}
+  const legL=chain(left,kneeL,footL),legR=chain(right,kneeR,footR),armL=chain(leftArm,elbowL,handL),armR=chain(arm,elbowR,handR);
+  function solve(c,target,pole,orientation){
+    c.upper.updateWorldMatrix(true,false);c.start.setFromMatrixPosition(c.upper.matrixWorld);
+    c.delta.copy(target).sub(c.start);const length=clamp(c.delta.length(),.025,c.a+c.b-.0002);c.delta.normalize();c.resolved.copy(c.start).addScaledVector(c.delta,length);
+    c.pole.copy(pole).sub(c.start);c.pole.addScaledVector(c.delta,-c.pole.dot(c.delta));
+    if(c.pole.lengthSq()<1e-8)c.pole.set(0,0,1).addScaledVector(c.delta,-c.delta.z);c.pole.normalize();
+    const along=(c.a*c.a-c.b*c.b+length*length)/(2*length),height=Math.sqrt(Math.max(0,c.a*c.a-along*along));
+    c.mid.copy(c.start).addScaledVector(c.delta,along).addScaledVector(c.pole,height);
+    c.upper.parent.getWorldQuaternion(c.parentQ).invert();c.direction.copy(c.mid).sub(c.start).normalize().applyQuaternion(c.parentQ);
+    c.upper.quaternion.setFromUnitVectors(c.axisA,c.direction);c.upper.updateMatrixWorld(true);
+    c.upper.getWorldQuaternion(c.parentQ).invert();c.direction.copy(c.resolved).sub(c.mid).normalize().applyQuaternion(c.parentQ);
+    c.lower.quaternion.setFromUnitVectors(c.axisB,c.direction);c.lower.updateMatrixWorld(true);
+    if(orientation){c.lower.getWorldQuaternion(c.parentQ).invert();c.end.quaternion.copy(c.parentQ).multiply(orientation);c.end.updateMatrixWorld(true);}
+  }
+  const palmOffset=new T.Vector3(0,-.085,.015),handTarget=new T.Vector3();
+  function aimArm(side,palm,pole,orientation){handTarget.copy(palmOffset).applyQuaternion(orientation);handTarget.subVectors(palm,handTarget);solve(side==='l'?armL:armR,handTarget,pole,orientation);}
+  function palmWorld(side,target=new T.Vector3()){return (side==='l'?handL:handR).localToWorld(target.copy(palmOffset));}
+  const poseBase={chest:new T.Euler(),head:new T.Euler()};
+  function resetUpperPose(){chest.rotation.copy(poseBase.chest);head.rotation.copy(poseBase.head);chest.updateMatrixWorld(true);}
+  const feet=[{side:-1,chain:legL,anchor:new T.Vector3(),target:new T.Vector3(),takeoff:new T.Vector3(),landing:new T.Vector3(),stance:null,offset:0,contact:true},{side:1,chain:legR,anchor:new T.Vector3(),target:new T.Vector3(),takeoff:new T.Vector3(),landing:new T.Vector3(),stance:null,offset:0,contact:true}];
+  const rootPosition=new T.Vector3(),previousPosition=new T.Vector3(),velocity=new T.Vector3(),localTarget=new T.Vector3(),worldTarget=new T.Vector3(),poleTarget=new T.Vector3(),footQ=new T.Quaternion(),groupQ=new T.Quaternion(),pitchQ=new T.Quaternion();
+  const footPitchAxis=new T.Vector3(1,0,0);
+  let locomotion=0,runBlend=0,gaitPhase=.25,previousTime=null,previousYaw=0,initialized=false,wasMoving=false,wasRolling=false;
+  const motion={locomotion:0,gaitPhase:0,running:false,strikeWeight:0,rolling:false,contacts:[true,true],speed:0};
+  function resetMotion(){initialized=false;locomotion=0;runBlend=0;gaitPhase=.25;previousTime=null;wasMoving=false;wasRolling=false;for(const f of feet)f.stance=null;}
+  function restFeet(){
+    group.updateWorldMatrix(true,false);
+    for(const f of feet){f.target.set(f.side*.24,-.02,.08).applyMatrix4(group.matrixWorld);f.anchor.copy(f.target);f.stance=null;f.contact=true;}
+  }
   function animate(time,moving,attacking,options={}){
-    const dt=previousTime===null?1/60:Math.max(0,Math.min(.05,time-previousTime));
-    previousTime=time;
-    const running=!!options.running&&!!moving;
-    const target=moving?1:0;
-    const blend=1-Math.exp(-dt*12);
-    locomotion+=(target-locomotion)*blend;
-    gaitPhase+=dt*(running?15:9.3);
-    const gait=Math.sin(gaitPhase),opposite=Math.sin(gaitPhase+Math.PI);
-    const stride=locomotion*(running?.83:.48);
-    // A subtle idle breath, plus small counter-rotation of the torso.
-    const breath=Math.sin(time*2.4);
-    spine.rotation.x=.018*breath-locomotion*(running?.13:.055);
-    chest.rotation.y=locomotion*Math.sin(gaitPhase*2)*.06;
-    chest.rotation.z=locomotion*gait*.035;
-    if(body.userData.restY===undefined)body.userData.restY=body.scale.y;
-    body.scale.y=body.userData.restY*(1+.013*breath);
-    hips.rotation.z=locomotion*gait*.045;
-    head.rotation.x=-spine.rotation.x*.5+.025*Math.sin(time*1.2);
-    head.rotation.y=.018*Math.sin(time*.95);
-    // Legs and arms are opposite during walking; knees lift on forward strides.
-    left.rotation.x=gait*stride;
-    right.rotation.x=opposite*stride;
-    kneeL.rotation.x=locomotion*Math.max(0,-gait)*(running?.7:.43);
-    kneeR.rotation.x=locomotion*Math.max(0,-opposite)*(running?.7:.43);
-    footL.rotation.x=-kneeL.rotation.x*.28;
-    footR.rotation.x=-kneeR.rotation.x*.28;
-    const sway=.045*Math.sin(time*1.6);
-    leftArm.rotation.x=-gait*stride*.66-.08+sway;
-    arm.rotation.x=-opposite*stride*.66-.08-sway;
-    elbowL.rotation.x=-.12-locomotion*.08;
-    elbowR.rotation.x=-.10-locomotion*.10;
-    // Wind up, slash and follow-through, with smooth return to the walking pose.
-    const active=attacking>0;
-    const comboStep=Math.max(1,Math.min(3,options.comboStep||1));
-    const duration=comboStep===3?.42:.3;
-    const attackPhase=active?Math.max(0,Math.min(1,(duration-attacking)/duration)):1;
-    const targetStrike=active?1:0;
-    strikeWeight+=(targetStrike-strikeWeight)*(1-Math.exp(-dt*(active?25:13)));
-    if(active||strikeWeight>.003){
-      const swing=active?Math.sin(attackPhase*Math.PI):0;
-      // Different silhouettes: diagonal, cross-body return and overhead finisher.
-      const drive=comboStep===3?1.30:comboStep===2?-.88:1;
-      arm.rotation.x+=strikeWeight*(-.65-(comboStep===3?1.9:1.45)*swing);
-      arm.rotation.z=.17-strikeWeight*drive*(.43+.27*swing);
-      elbowR.rotation.x-=strikeWeight*(.3+(comboStep===3?.52:.32)*swing);
-      chest.rotation.y+=strikeWeight*(comboStep===2?-.25:.23)*Math.sin(attackPhase*Math.PI);
-      chest.rotation.z+=strikeWeight*(comboStep===3?-.09:.05)*swing;
-    }else{strikeWeight=0;arm.rotation.z=.17;}
-    leftArm.rotation.z=-.17;
-    if(!active)arm.rotation.z=.17-strikeWeight*.45;
-    // Hair and cloak are animated by external skin attachments, without a simulation.
-    return {locomotion,gaitPhase,running,strikeWeight};
+    const dt=Number.isFinite(options.dt)?clamp(options.dt,0,.05):previousTime===null?1/60:clamp(time-previousTime,1/240,.05);previousTime=time;
+    group.updateWorldMatrix(true,false);rootPosition.setFromMatrixPosition(group.matrixWorld);group.getWorldQuaternion(groupQ);
+    const yaw=group.rotation.y,yawDelta=Math.atan2(Math.sin(yaw-previousYaw),Math.cos(yaw-previousYaw));previousYaw=yaw;
+    velocity.subVectors(rootPosition,previousPosition);const distance=velocity.length();
+    const teleported=!initialized||distance>1.5||Math.abs(yawDelta)>1.2;
+    if(teleported){restFeet();velocity.set(0,0,0);initialized=true;}
+    else velocity.divideScalar(Math.max(.001,dt));
+    previousPosition.copy(rootPosition);
+    const rolling=Number.isFinite(options.roll)&&options.roll>=0,rollProgress=rolling?clamp(options.roll):0;
+    const measured=options.worldMotion?Math.hypot(velocity.x,velocity.z):(moving?(options.running?7.5:5):0);
+    const active=!!moving&&!rolling&&measured>.04;
+    const blend=1-Math.exp(-dt*14);locomotion=mix(locomotion,active?1:0,blend);runBlend=mix(runBlend,active&&options.running&&measured>6.25?1:0,1-Math.exp(-dt*9));
+    const cycle=2.6+runBlend*.7,frequency=Math.min(3.1,measured/cycle);
+    if(active&&!wasMoving){gaitPhase=.25;for(const f of feet)f.stance=null;}
+    if(active)gaitPhase=(gaitPhase+frequency*dt)%1;wasMoving=active;
+    const breath=Math.sin(time*2.15),gait=Math.sin(gaitPhase*Math.PI*2),stepBob=Math.cos(gaitPhase*Math.PI*4);
+    const drop=.025+locomotion*(.17+runBlend*.12);
+    model.rotation.x=rolling?smooth(rollProgress)*Math.PI*2:0;
+    model.position.y=1.2+(rolling?Math.sin(rollProgress*Math.PI)*.24:0);
+    hips.position.set(0,.30-drop+locomotion*.018*stepBob+.003*breath,locomotion*.025);
+    hips.rotation.set(0,locomotion*gait*.025,locomotion*gait*.023+.003*breath);
+    spine.rotation.set(.012*breath+locomotion*(.055+runBlend*.075),0,0);
+    chest.rotation.set(0,-locomotion*gait*.045,-locomotion*gait*.017);
+    neck.rotation.set(0,0,0);head.rotation.set(-spine.rotation.x*.7,.014*Math.sin(time*.8),0);
+    if(body.userData.restY===undefined)body.userData.restY=body.scale.y;body.scale.y=body.userData.restY*(1+.009*breath);
+    leftArm.rotation.set(-.10+gait*locomotion*(.27+runBlend*.16),0,-.17);
+    arm.rotation.set(-.16-gait*locomotion*(.27+runBlend*.16),0,.17);
+    elbowL.rotation.set(-.17-runBlend*.35,0,0);elbowR.rotation.set(-.20-runBlend*.35,0,0);
+    handL.rotation.set(0,0,0);handR.rotation.set(0,0,0);joints.back.scale.set(1,1,1);
+    const attackingNow=attacking>0&&(options.weapon||'sword')==='sword',step=clamp(options.comboStep||1,1,3),duration=step===3?.42:.3;
+    if(attackingNow&&!rolling){
+      const p=clamp((duration-attacking)/duration),impact=step===3?.16/.42:.105/.3;
+      const windup=step===1?[-2.0,-.25,.75,-.95,-.18]:step===2?[-1.8,.40,-.55,-.8,.25]:[-2.65,0,.05,-.8,-.08];
+      const strike=step===1?[-1.2,.15,-.35,-.30,.18]:step===2?[-1.05,-.2,.55,-.35,-.18]:[-1.2,0,.10,-.25,.08];
+      const follow=step===1?[-.20,.25,-.55,-.16,.28]:step===2?[-.40,-.35,.45,-.22,-.25]:[-.25,0,.15,-.30,.05];
+      const base=[arm.rotation.x,0,.17,elbowR.rotation.x,chest.rotation.y];let a,b,t;
+      if(p<.23){a=base;b=windup;t=smooth(p/.23);}else if(p<impact){a=windup;b=strike;t=smooth((p-.23)/(impact-.23));}else if(p<.72){a=strike;b=follow;t=smooth((p-impact)/(.72-impact));}else{a=follow;b=base;t=smooth((p-.72)/.28);}
+      arm.rotation.set(mix(a[0],b[0],t),mix(a[1],b[1],t),mix(a[2],b[2],t));elbowR.rotation.x=mix(a[3],b[3],t);chest.rotation.y=mix(a[4],b[4],t);
+      const weight=Math.sin(p*Math.PI);leftArm.rotation.x-=weight*.4;elbowL.rotation.x-=weight*.5;chest.rotation.x+=(step===3?.11:.035)*weight;motion.strikeWeight=weight;
+    }else motion.strikeWeight=0;
+    if(rolling){
+      const tuck=Math.pow(Math.sin(rollProgress*Math.PI),.65);
+      hips.position.y=.30-.18*tuck;hips.rotation.set(.45*tuck,0,0);spine.rotation.x=.65*tuck;chest.rotation.set(.55*tuck,0,0);neck.rotation.x=.10*tuck;head.rotation.set(.25*tuck,0,0);
+      for(const c of [legL,legR]){c.upper.rotation.set(-1.35*tuck,0,0);c.lower.rotation.set(2.15*tuck,0,0);c.end.rotation.set(-.45*tuck,0,0);}
+      leftArm.rotation.set(-1.4*tuck,0,-.17-.22*tuck);arm.rotation.set(-1.4*tuck,0,.17+.22*tuck);elbowL.rotation.x=elbowR.rotation.x=-1.2*tuck;joints.back.scale.y=1-.45*tuck;
+      group.updateMatrixWorld(true);
+      // Keep the curled body above the floor throughout a full forward tumble.
+      let lowest=Infinity;for(const [bone,radius] of [[head,.32],[chest,.42],[hips,.31],[kneeL,.17],[kneeR,.17],[footL,.23],[footR,.23],[handL,.13],[handR,.13]]){bone.getWorldPosition(worldTarget);lowest=Math.min(lowest,worldTarget.y-radius);}
+      model.position.y+=Math.max(0,rootPosition.y-.095-lowest);model.updateMatrixWorld(true);wasRolling=true;
+      for(const f of feet){f.contact=false;f.stance=null;}
+    }else{
+      if(wasRolling||teleported){restFeet();wasRolling=false;}
+      group.updateMatrixWorld(true);
+      for(const f of feet){
+        const phase=(gaitPhase+(f.side>0?.5:0))%1,stance=phase<.5,halfStep=cycle*.25*locomotion,ground=rootPosition.y-.02;
+        if(locomotion<.035||!active&&locomotion<.30){
+          localTarget.set(f.side*.24,-.02,.08).applyMatrix4(group.matrixWorld);f.target.lerp(localTarget,1-Math.exp(-dt*14));f.target.y=mix(f.target.y,ground,1-Math.exp(-dt*20));f.stance=null;f.contact=Math.abs(f.target.y-ground)<.015;
+        }else if(!options.worldMotion){
+          const t=stance?phase/.5:(phase-.5)/.5;
+          localTarget.set(f.side*.24,-.02+(stance?0:Math.sin(t*Math.PI)*(.15+.12*runBlend)*locomotion),.08+halfStep*(stance?1-2*t:-1+2*smooth(t)));
+          f.target.copy(localTarget).applyMatrix4(group.matrixWorld);f.contact=stance;f.stance=stance;
+        }else if(stance){
+          if(f.stance!==true)f.anchor.copy(f.stance===false?f.landing:f.target);f.target.copy(f.anchor);f.target.y=ground;f.contact=true;f.stance=true;
+        }else{
+          const raw=(phase-.5)/.5;
+          if(f.stance!==false){f.takeoff.copy(f.target);f.offset=raw;f.stance=false;}
+          const t=clamp((raw-f.offset)/Math.max(.01,1-f.offset));
+          localTarget.set(f.side*.24,-.02,.08).applyMatrix4(group.matrixWorld);localTarget.addScaledVector(velocity,halfStep/Math.max(.1,measured));
+          const remaining=(1-phase)/Math.max(.1,frequency);localTarget.addScaledVector(velocity,remaining);
+          f.landing.copy(localTarget);f.target.lerpVectors(f.takeoff,f.landing,smooth(t));f.target.y=ground+Math.sin(t*Math.PI)*(.15+.12*runBlend)*locomotion;f.contact=false;
+        }
+        f.phase=phase;
+      }
+      // A planted foot may briefly trail farther during acceleration or a turn.
+      // Let the pelvis settle enough to reach it instead of sliding the sole.
+      let supportDrop=0;
+      for(const f of feet)if(f.contact){
+        f.chain.upper.getWorldPosition(worldTarget);
+        const horizontal=Math.hypot(worldTarget.x-f.target.x,worldTarget.z-f.target.z),reach=f.chain.a+f.chain.b-.004;
+        supportDrop=Math.max(supportDrop,worldTarget.y-f.target.y-Math.sqrt(Math.max(.01,reach*reach-horizontal*horizontal)));
+      }
+      hips.position.y-=clamp(supportDrop,0,.25);hips.updateMatrixWorld(true);
+      for(const f of feet){
+        poleTarget.set(f.side*.24,.65,.8).applyMatrix4(group.matrixWorld);
+        const swing=f.phase<.5?0:Math.sin((f.phase-.5)/.5*Math.PI),pitch=f.contact?0:-.18*swing;
+        footQ.copy(groupQ).multiply(pitchQ.setFromAxisAngle(footPitchAxis,pitch));solve(f.chain,f.target,poleTarget,footQ);
+      }
+    }
+    poseBase.chest.copy(chest.rotation);poseBase.head.copy(head.rotation);
+    motion.locomotion=locomotion;motion.gaitPhase=gaitPhase;motion.running=runBlend>.5;motion.rolling=rolling;motion.contacts[0]=feet[0].contact;motion.contacts[1]=feet[1].contact;motion.speed=measured;
+    return motion;
   }
   group.updateMatrixWorld(true);
   const skeleton=new T.Skeleton(Object.values(joints));
   setSkin(skin);
-  return {group,model,joints,skeleton,body,cloth,left,right,arm,blade,guard,setSkin,animate};
+  return {group,model,joints,skeleton,body,cloth,left,right,arm,blade,guard,setSkin,animate,aimArm,palmWorld,resetUpperPose,resetMotion,motion};
 }
 root.EmberCharacterRig={create};
 })(typeof window==='undefined'?globalThis:window);

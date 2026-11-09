@@ -1,6 +1,6 @@
-# Emberwild — De laatste vonk · versie 1.4
+# Emberwild — De laatste vonk · versie 1.5
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.4 bevat drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.5 bevat drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
@@ -151,7 +151,7 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-De huidige testsuite bevat 67 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
+De huidige testsuite bevat 73 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert daarvoor Playwright en Chromium; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
@@ -179,7 +179,13 @@ Botnamen, bevestigingspunten en de grondpositie van de voeten blijven bruikbaar 
 
 ## Karakteranimaties
 
-De gewogen modellen volgen de bestaande procedurele idle-, loop-, ren-, rol- en drie zwaardaanvalanimaties. Botgewichten laten romp en ledematen meebuigen. Haar en mantel krijgen lichte secundaire beweging. De mantel gebruikt het `back`-bot; harde pantserdelen blijven aan hun betreffende bot bevestigd. Er zijn geen losse externe animatiebestanden nodig.
+Versie 1.5 gebruikt afstandgestuurde loop- en rencycli, vloeiende overgangen en tweebots-IK: een steunvoet blijft op dezelfde plek in de wereld staan terwijl de knie meebuigt. De heupen volgen het steunbeen. Draaien gaat vloeiend; stilstaan tegen een obstakel speelt geen renanimatie af. Teleports en gebiedswissels resetten de voetankers. De voorwaartse rol vouwt knieën, armen en mantel in en keert daarna terug naar de gewone houding.
+
+De drie zwaardaanvallen hebben een voorbereiding, slag en herstel. Schade, geluid en de slagboog volgen na 0,105 seconde (slag 1/2) of 0,16 seconde (finish). Pauze, rollen en een wapenwissel annuleren een voorbereide slag. Vijanden reageren met een korte, gedempte beweging.
+
+De Woudloper houdt de boog in de linkerhand en trekt met de rechterhand de pees terug; de pijlnok volgt de pees. Bij loslaten verschijnt de vliegende pijl op de plek van de vastgehouden pijl. De Magiër houdt de staf met een gebogen arm vast en spreuken vertrekken uit het kristal. De eerste botsingscontrole omvat ook het stuk tussen speler en wapen, zodat dichtbij gelegen obstakels en vijanden geraakt blijven worden. De character creator toont het juiste startwapen voor iedere class.
+
+De gewogen modellen volgen alle procedurele animaties. Botgewichten laten romp en ledematen meebuigen. Haar en mantel krijgen lichte secundaire beweging. De mantel gebruikt het `back`-bot; harde pantserdelen blijven aan hun betreffende bot bevestigd. Er zijn geen losse externe animatiebestanden nodig.
 
 ## Character creator
 

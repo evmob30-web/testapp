@@ -93,7 +93,8 @@ function createPreview(T,canvas){
  const flame=root.EmberFlameGuardian.decorate(T,rig);
  const look=attach(T,rig,flame);
  const assets=root.EmberModelAssets?.attach(T,rig,flame,look);
- const mageView=root.EmberMage?.attach(T,rig);scene.add(rig.group);
+ const mageView=root.EmberMage?.attach(T,rig),bowView=root.EmberArchery?.attach(T,rig);scene.add(rig.group);
+ let previewWeapon='sword';
  assets?.ready.then(()=>{canvas.dataset.characterModel=assets.status;});
  let angle=.35;
  function select(skinId,appearance,classId='guardian'){
@@ -103,18 +104,19 @@ function createPreview(T,canvas){
   look.apply(skinId,appearance);
   assets?.setLook(skinId,appearance,classId);
   mageView?.setClass(classId);mageView?.setWeapon(classId==='mage'?'staff':'sword');
-  rig.blade.visible=rig.guard.visible=classId!=='mage';
+  previewWeapon=classId==='mage'?'staff':classId==='ranger'?'bow':'sword';rig.group.userData.weapon=previewWeapon;
+  rig.blade.visible=rig.guard.visible=previewWeapon==='sword';if(bowView)bowView.bow.visible=previewWeapon==='bow';
  }
  function rotate(delta){angle+=delta;}
  function update(time){
   rig.group.rotation.y=angle;
-  rig.animate(time,false,0);
+  rig.animate(time,false,0,{weapon:previewWeapon});
   flame.animate(time,{moving:false});
   look.animate(time);
-  assets?.animate(time);mageView?.update(1/60,time);
+  assets?.animate(time);mageView?.update(1/60,time);bowView?.update(0,1/60);
   renderer.render(scene,camera);
  }
- return {select,rotate,update,renderer,rig,assets,mageView};
+ return {select,rotate,update,renderer,rig,assets,mageView,bowView};
 }
 root.EmberAppearance={attach,createPreview,hairColors,skinColors,eyeColors,styles};
 })(typeof window==='undefined'?globalThis:window);
