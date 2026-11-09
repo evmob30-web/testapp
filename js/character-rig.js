@@ -73,7 +73,7 @@ function create(T, options={}){
   // Do not rotate the root's X axis: dodge rolls are controlled by world.update().
   let locomotion=0, gaitPhase=0, strikeWeight=0, previousTime=null;
   function animate(time,moving,attacking,options={}){
-    const dt=previousTime===null?0:Math.max(0,Math.min(.05,time-previousTime));
+    const dt=previousTime===null?1/60:Math.max(0,Math.min(.05,time-previousTime));
     previousTime=time;
     const running=!!options.running&&!!moving;
     const target=moving?1:0;
