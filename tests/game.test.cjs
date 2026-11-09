@@ -82,6 +82,7 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  tick(75);handlers.keyup({code:'Digit1'});tick(48);
  assert.ok(distant.hp<farHp,'arrow must cause damage outside enemy sight radius');
  assert.ok(distant.alertTimer>0,'arrow hit should alert the enemy');
+ tick(25); // Enemy finishes its short hit stagger, then starts chasing.
  assert.ok(distant.mesh.position.z>farZ,'enemy should begin pursuing the distant archer');
  assert.equal(get('enemy-health').style.width,distant.hp/distant.max*100+'%','health bar should show the distant hit');
  distant.alertTimer=0;distant.mesh.position.set(distantHome.x,0,distantHome.z);
