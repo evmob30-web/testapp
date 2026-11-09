@@ -36,3 +36,16 @@ test('skin swaps preserve joint identities and basic animation works',()=>{
  rig.animate(.5,false,.2);
  assert.notEqual(rig.arm.rotation.x,0);
 });
+
+test('shared base uses rounded torso, face and tapered limbs instead of primitive cubes',()=>{
+ const rig=makeRig();
+ assert.equal(rig.body.geometry.type,'SphereGeometry');
+ assert.equal(rig.body.material.flatShading,false);
+ const thigh=rig.joints.upper_leg_l.getObjectByName('thigh_l');
+ assert.equal(thigh.geometry.type,'CylinderGeometry');
+ assert.equal(rig.joints.head.getObjectByName('face').geometry.type,'SphereGeometry');
+ assert.ok(rig.joints.upper_arm_r.getObjectByName('upper_arm_mesh_r').geometry.type==='CylinderGeometry');
+ const attach=rig.joints.weapon_r;
+ rig.animate(.6,true,.25);
+ assert.strictEqual(attach,rig.blade.parent);
+});
