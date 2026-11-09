@@ -1,66 +1,53 @@
-# Star Hopper — versie 0.2.1
+# Emberwild — De laatste vonk
 
-Een originele eerste speelbare 2D-platformgame in Dromervelden. Help Nova, een klein wezen met grote oren, een blauwe sjaal en een lichtgevende ster, over zwevende eilanden naar het sterrenportaal.
+Een originele, kleine singleplayer-actie-RPG in een echte 3D-wereld. Deze eerste versie bevat één vallei, een dorp, een bos en een ruïne. Eigen low-poly graphics en personages; geen Warcraft-assets of verhaal.
 
 ## Starten
 
-Open **index.html** in een recente browser (Chrome, Firefox, Edge of Safari). Geen installatie, internetverbinding, buildstap, backend of API nodig. Laat de mappenstructuur intact. Klik op ‘Begin het avontuur’ of druk op Enter.
-
-Optioneel lokaal serveren: `python3 -m http.server 8000` vanuit deze map en open http://localhost:8000.
+Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Alle bestanden inclusief Three.js worden lokaal meegeleverd; geen backend, account, internetverbinding of buildstap nodig. Ook geschikt voor GitHub Pages op een subpad. Ontwikkeld voor toetsenbord en muis op een laptop/desktop; nog geen mobiele besturing.
 
 ## Besturing
 
-| Toets | Actie |
+| Invoer | Actie |
 | --- | --- |
-| A / D of links / rechts | Lopen |
-| Spatie / W / omhoog | Springen; langer vasthouden voor een hogere sprong |
-| Esc | Pauzeren / hervatten |
-| R | Het hele level opnieuw beginnen |
-| Enter | Starten / hervatten / opnieuw spelen vanuit een menu |
+| WASD / pijltjes | Bewegen ten opzichte van de camera |
+| Shift | Rennen |
+| Muis slepen (links of rechts) | Camera draaien en kantelen |
+| Muiswiel | In- en uitzoomen |
+| 1 / korte linkermuisklik / spatie | Zwaardslag op dichtstbijzijnde vijand binnen 3,1 meter |
+| 2 | Vonkflits op dichtstbijzijnde vijand binnen 13 meter; 3,5 s afkoeltijd |
+| Q | Levensdrank, herstelt tot 70 gezondheid |
+| E | Praten, kristal verzamelen, kist openen |
+| I | Inventaris openen/sluiten |
+| Esc | Pauze / menu sluiten |
 
-Op aanraakschermen verschijnen drie knoppen. Voor de prettigste ervaring op een telefoon: gebruik liggende weergave. De game pauzeert automatisch bij verlies van vensterfocus of wanneer je het tabblad verbergt.
+## Het avontuur
 
-## Doel en spelregels
+1. Praat met Elin bij het kampvuur en aanvaard haar opdracht.
+2. Versla drie schemerwolven ten noorden van het dorp. Kom terug bij Elin voor je beloning.
+3. Verzamel de drie mintgroene kristallen die op de minimap staan. Breng ze naar Elin om het vonkzwaard te krijgen.
+4. Versla de Doornwachter bij de noordelijke ruïne. Ontwijk zijn oranje aanvalscirkel tijdens de voorbereiding van zijn slag.
+5. Keer terug naar Elin om het avontuur te voltooien.
 
-Volg twaalf sterren langs twaalf eilanden naar het portaal rechts aan het einde. Alle sterren verzamelen is optioneel: het portaal is altijd beschikbaar. Na vallen begin je bij het eerste eiland en wordt de sterrenteller geleegd. Je totale speeltijd en aantal valpartijen blijven voor deze poging bewaard. R of ‘Opnieuw beginnen’ wist ook die cijfers. Het voltooiingsscherm toont het resultaat. Na een voltooid level worden je beste tijd en hoogste sterrenscore lokaal in deze browser bewaard. Deze records worden op het start-, pauze- en voltooiingsscherm getoond. Bij geblokkeerde opslag gelden ze alleen voor de huidige sessie. Gebruik ‘Geluid aan/uit’ bovenaan om de originele synthgeluiden te dempen; deze voorkeur wordt ook lokaal bewaard. Geluid start pas na een gebruikersactie. Met ‘Test geluid’ schakel je audio in en hoor je twee testtonen. Versie 0.2.1 heeft duidelijkere geluiden en hervat ook onderbroken browseraudio. Er is nog geen achtergrondmuziek. Er zijn geen trackers of externe audiodiensten.
+Bram verkoopt levensdranken voor 15 goud. Er ligt een verborgen kist ten oosten van het bospad. Rust binnen vijf meter van het kampvuur om te herstellen. Met ervaring stijg je in niveau: je krijgt meer gezondheid en schade. Na een nederlaag keer je terug naar het dorp, verlies je maximaal 10 goud en behoud je opdrachtvoortgang en verzamelde buit. Nog levende vijanden herstellen en keren terug naar hun beginplek.
 
-## Publiceren op GitHub Pages
+## Opslag
 
-1. Maak een nieuwe GitHub-repository, bijvoorbeeld `star-hopper`.
-2. Upload de **inhoud van deze map** naar de hoofdmap van de repository. `index.html` moet direct in de hoofdmap staan, met daarnaast `style.css` en `js/`.
-3. Open **Settings → Pages**.
-4. Kies bij **Build and deployment** de bron **Deploy from a branch**.
-5. Kies branch **main**, map **/ (root)** en klik **Save**.
-6. Wacht tot GitHub de deployment afrondt. De link staat op dezelfde pagina, meestal `https://JOUW-NAAM.github.io/star-hopper/`.
-
-Alle bronverwijzingen zijn relatief, dus ook een GitHub Pages-projectpad werkt. `.nojekyll` voorkomt onnodige Jekyll-verwerking. Publicatie naar een account is niet uitgevoerd.
+Automatische localStorage-opslag elke vijf spelSeconden, bij gesprekken, belangrijke beloningen, pauzeren en verlaten van de pagina. De opslag staat onder een eigen sleutel (`emberwild-save-v1`) en raakt Star Hopper niet. ‘Ga verder’ verschijnt als er een bruikbare opslag is. ‘Nieuw avontuur’ vervangt je voortgang; tijdens een actief avontuur vraagt het spel daarvoor bevestiging. De opslag werkt alleen in dezelfde browser en op dezelfde site. Als opslag geblokkeerd is, blijft spelen mogelijk voor de huidige sessie. Geen cloudopslag of multiplayer.
 
 ## Bestanden
 
-- `index.html` — Canvas, sterrenteller, menu’s en toegankelijke HTML-knoppen.
-- `style.css` — responsieve 16:9-weergave, interface en aanraakknoppen.
-- `js/level.js` — platform-, ster-, start- en portaaldata.
-- `js/physics.js` — beweging, zwaartekracht, variabele sprongen, 110 ms coyote time, 130 ms jump buffering en botsingen.
-- `js/renderer.js` — originele procedurele pixelgraphics, Nova’s vier animatietoestanden, luchtlagen, wolken, eilanden, portaal en effecten.
-- `js/audio.js` — zachte Web Audio-geluiden voor springen, landen, sterren en het portaal; met dempvoorkeur.
-- `js/records.js` — beste tijd en sterrenscore in localStorage, met veilige terugval naar sessiegeheugen.
-- `js/game.js` — invoer, vaste simulatiestap, begrensde vloeiende camera, spelstatus, HUD en deeltjes.
-- `tests/*.test.cjs` — automatische fysica- en spelcyclustests met Node.js.
+- `index.html`, `style.css`: interface, menu's en schermindeling.
+- `js/core.js`: spelregels, opdrachten, beloningen, opslagvalidatie.
+- `js/world.js`: procedureel gebouwde 3D-wereld, modellen en effecten.
+- `js/game.js`: WebGL-weergave, camera, invoer, gevechten, interacties, opslag en UI.
+- `vendor/three.min.js`: lokaal meegeleverde Three.js 0.160.1, MIT-licentie in `vendor/THREE-LICENSE.txt`.
+- `tests/`: Node.js-regressietests.
 
-## Techniek en uitbreiden
+## Controle
 
-De interne Canvas-resolutie is 960 × 540 en schaalt proportioneel met het venster. De simulatie gebruikt 120 vaste stappen per seconde, met begrensde inhaaltijd. De renderer gebruikt requestAnimationFrame; er zijn maximaal 120 kortlevende deeltjes. Canvas-glow wordt gericht gebruikt voor sterren en het portaal.
+Voer uit met Node.js 18+: `node --test tests/*.cjs`.
 
-`drawNova(context, player, time)` is de plek om later spritesheets in te voegen. De speler levert `animation` (`idle`, `run`, `jump`, `fall`) en `facing` aan. Graphics en leveldata zijn onafhankelijk van de fysica. Het project gebruikt klassieke scripts, zodat openen via `file://` werkt zonder ES-module/CORS-problemen.
+Vijf tests geslaagd: volledige opdrachtketen, opslagherstel, ongeldige opslag, niveauverhogingen en een integratietest die de echte Three.js-wereld opbouwt en het volledige avontuur met gesimuleerde invoer voltooit. Daarin worden ook pauze, inventaris, doodgaan en opnieuw beginnen getest. JavaScript-syntax is gecontroleerd. De integratietest vervangt de WebGL-renderer en DOM; hij controleert geen uiteindelijke pixels, geluid of hardwareprestaties. Visuele browser-QA was niet beschikbaar doordat de voorgeschreven browsertool ontbrak.
 
-## Controles
-
-Met Node.js 18 of nieuwer, vanuit de projectmap:
-
-```sh
-node --test tests/*.cjs
-```
-
-Twaalf tests geslaagd: stabiel landen, alle elf opeenvolgende levelsprongen, variabele spronghoogte en geen herhaalsprong bij vasthouden, coyote time en buffering, zij-/onderbotsingen en wereldgrenzen, plus starten/pauzeren/sterren/vallen/portaal/herstarten, blijvende records, geblokkeerde of beschadigde opslag en audiostart/dempen. De integratietest gebruikt een nagebootste DOM en Canvas-context; dit controleert uitvoering en spelstatus, niet de uiteindelijke pixels. JavaScript-syntax is ook gecontroleerd. Visuele controle in een echte browser is niet uitgevoerd: de voorgeschreven browsertool was in de ontwikkelomgeving niet beschikbaar.
-
-Geen externe assets, fonts, libraries of betaalde diensten. Geen extra werelden of complexe systemen.
+Dit is een eerste 3D-prototype: één klasse, één gebied, één korte verhaallijn, eenvoudige modellen en gevechts-AI. Nog geen sprongen, achtergrondmuziek, uitrustingskeuzes, grootschalige open wereld of extra dungeons.
