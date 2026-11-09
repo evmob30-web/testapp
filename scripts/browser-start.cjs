@@ -61,6 +61,31 @@ const { chromium } = require('playwright');
  const restored=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(restored?.appearance?.eyeColor!=='violet')errors.push('Creator appearance not restored after reload');
  if(restored?.armorEquipped?.head!=='ember_helm'||restored?.armorEquipped?.chest!=='wanderer_chest')errors.push('Equipped armor not restored');
+ // Inject a legitimate loot drop into the isolated test save before browser loading.
+ await page.addInitScript(()=>{
+  if(sessionStorage.getItem('loot-seeded'))return;
+  const raw=localStorage.getItem('emberwild-save-v1');if(!raw)return;
+  const save=JSON.parse(raw);save.lootSequence=77;
+  save.lootDrops=[{uid:77,base:'ember_gloves',rarity:'epic',affix:'marksman',x:0,z:22,area:'valley'}];
+  localStorage.setItem('emberwild-save-v1',JSON.stringify(save));
+  sessionStorage.setItem('loot-seeded','1');
+ });
+ await page.reload({waitUntil:'load'});
+ await page.locator('#play').click();
+ await page.waitForTimeout(350);
+ await page.keyboard.press('e');
+ await page.waitForTimeout(180);
+ const picked=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(picked?.lootBag?.length!==1||picked?.lootDrops?.length!==0)errors.push('3D ground loot was not collected with E');
+ await page.locator('#inventory-button').click();
+ if(!await page.locator('#loot-bag .loot-entry').isVisible())errors.push('Loot item comparison missing in inventory');
+ await page.locator('#loot-bag .loot-entry button').first().click();
+ const worn=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(worn?.lootEquipped?.hands!==77)errors.push('Loot item did not equip');
+ await page.reload({waitUntil:'load'});
+ const wornAfterReload=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(wornAfterReload?.lootEquipped?.hands!==77)errors.push('Loot item equipment not restored');
+
 
  const fatal=await page.locator('#fatal').evaluate(n=>({hidden:n.hidden,text:n.textContent}));
  const overlay=await page.locator('#overlay').evaluate(n=>n.hidden);
