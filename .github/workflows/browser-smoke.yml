@@ -16,5 +16,5 @@ jobs:
           node-version: '22'
       - run: npm install --no-save playwright
       - run: npx playwright install --with-deps chromium
-      - run: python3 -m http.server 8765 --bind 127.0.0.1 &
+      - run: nohup python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/emberwild-http.log 2>&1 &
       - run: node scripts/browser-start.cjs
