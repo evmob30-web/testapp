@@ -46,6 +46,21 @@ function buy(s,id){
  if(!Object.hasOwn(items,id)||s.armorOwned.includes(id)||!Number.isFinite(s.gold)||s.gold<items[id].price)return false;
  s.gold-=items[id].price;return grant(s,id);
 }
+function syncRewards(s){
+ clean(s);
+ const unlocked=[];
+ const stages=[
+  [s.chest,'chest'],
+  [Array.isArray(s.kills)&&s.kills.includes('boss'),'boss'],
+  [Array.isArray(s.kills)&&s.kills.includes('rootboss'),'rootboss'],
+  [s.bowQuest===2,'bowQuest'],
+  [s.sideQuest>=3,'sideQuest'],
+  [s.shrineBlessing===true,'shrine'],
+  [s.dungeon>=3,'dungeon']
+ ];
+ for(const [ok,key] of stages)if(ok&&grant(s,rewardItems[key]))unlocked.push(rewardItems[key]);
+ return unlocked;
+}
 function bonuses(s){
  const equipped=s.armorEquipped||{};let hp=0,power=0;
  for(const slot of Object.keys(slots)){
@@ -107,5 +122,5 @@ function attach(T,rig){
  sync(null);
  return {groups,sync};
 }
-root.EmberEquipment={items,slots,freeStarter,rewardItems,clean,grant,equip,buy,bonuses,attach};
+root.EmberEquipment={items,slots,freeStarter,rewardItems,clean,grant,equip,buy,syncRewards,bonuses,attach};
 })(typeof window==='undefined'?globalThis:window);
