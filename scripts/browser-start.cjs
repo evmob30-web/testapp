@@ -25,10 +25,34 @@ const { chromium } = require('playwright');
  await page.locator('#class-start').click();
  const edited=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(edited?.appearance?.eyeColor!=='violet'||edited?.quest!==selected?.quest)errors.push('Appearance editor did not preserve progress');
+ // Armor should equip from owned inventory, affect the save, and survive reload.
+ await page.locator('#inventory-button').click();
+ if(!await page.locator('#armor-slots').isVisible())errors.push('Armor slots missing in inventory');
+ const initialArmor=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(!initialArmor?.armorOwned?.includes('wanderer_chest'))errors.push('Starter chest armor is missing');
+ await page.locator('#armor-bag button').filter({hasText:'Leren borstpantser'}).click();
+ let equipped=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(equipped?.armorEquipped?.chest!=='wanderer_chest')errors.push('Armor slot not equipped');
+ // A shop purchase spends saved gold once, then survives a save round-trip.
+ await page.addInitScript(()=>{
+  if(sessionStorage.getItem('armor-funded')==='1')return;
+  const raw=localStorage.getItem('emberwild-save-v1');
+  if(raw){const save=JSON.parse(raw);save.gold=200;localStorage.setItem('emberwild-save-v1',JSON.stringify(save));sessionStorage.setItem('armor-funded','1');}
+ });
+ await page.reload({waitUntil:'load'});
+ await page.locator('#play').click();
+ await page.locator('#inventory-button').click();
+ const fundedGold=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')).gold);
+ if(fundedGold!==200)errors.push('Funding in browser setup failed: '+fundedGold);
+ await page.locator('#armor-shop button').filter({hasText:'Vonkenhelm'}).click();
+ equipped=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(!equipped?.armorOwned?.includes('ember_helm')||equipped?.gold!==105)errors.push('Armor shop purchase did not save correctly');
+ await page.locator('#armor-bag button').filter({hasText:'Vonkenhelm'}).click();
  await page.reload({waitUntil:'load'});
  await page.waitForTimeout(300);
  const restored=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(restored?.appearance?.eyeColor!=='violet')errors.push('Creator appearance not restored after reload');
+ if(restored?.armorEquipped?.head!=='ember_helm'||restored?.armorEquipped?.chest!=='wanderer_chest')errors.push('Equipped armor not restored');
 
  const fatal=await page.locator('#fatal').evaluate(n=>({hidden:n.hidden,text:n.textContent}));
  const overlay=await page.locator('#overlay').evaluate(n=>n.hidden);

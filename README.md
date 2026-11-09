@@ -155,3 +155,13 @@ Bij een nieuw avontuur open je de character creator na **Kies je class**. In een
 In een bestaand avontuur: druk op **I → Personage aanpassen**. Je kunt daar je uiterlijk bijstellen zonder je klasse, level, quests of uitrusting te verliezen. Wijzigingen worden pas opgeslagen met **Bewaar uiterlijk**; **Terug** annuleert ze. Je oude save wordt automatisch uitgebreid met veilige standaardwaarden. De bestaande `skinId` blijft ondersteund, en aanvullende keuzes worden opgeslagen onder `appearance`. De nieuwe UI gebruikt één gedeelde `EmberAppearance`-module voor gamepersonage en preview; geen buildstap of extra externe dependencies.
 
 Test lokaal met `node --test tests/*.cjs`. De Playwright-smoketest opent daarnaast de creator en controleert de preview, cosmetische keuzes, bewerken vanuit de inventaris en opslag na herladen.
+
+## Pantser en uitrusting (v0.8)
+
+Open tijdens het spelen met **I** de inventaris. Onder **Uitrusting** staan vijf losse slots: hoofd, schouders, borst, handschoenen en laarzen. Selecteer een verzameld pantserstuk om het uit te rusten; klik nogmaals of op het bezette slot om het af te doen. Alle stukken zijn zichtbaar op de overeenkomstige botten van het 3D-personage en kunnen worden gedragen met zowel het klassieke uiterlijk als de Flame Guardian.
+
+Er zijn tien verschillende stukken (reizigers- en vonkensets). Je begint met een borstpantser en laarzen, ontvangt automatisch eenmalige beloningen voor bestaande kisten, vijanden, boogtraining, zijquests, heiligdom en Wortelgrotten en kunt overige stukken met goud kopen in **Bram's pantseraanbod** in je inventaris. Koopbedragen worden maar één keer afgeschreven; een tweede aankoop van hetzelfde stuk is uitgesloten. Pantser verhoogt de maximale gezondheid en/of schade; de boog krijgt dezelfde schadebonus. Hartamulet en wapens blijven aparte systemen.
+
+Veldnamen voor opslag: `armorOwned` is een opgeschoonde lijst met bekende stuk-IDs; `armorEquipped` is een object van vijf slots naar een stuk-ID of `null`. Ongeldige, niet-bezette en niet-bezittende IDs worden tijdens herstel verwijderd. Bestaande saves krijgen gratis basisstukken, behouden level/quests/uiterlijk en ontvangen reeds verdiende beloningen uit hun voortgang, zonder dat hun bestaande uitrusting automatisch verandert.
+
+De uitrusting is gemodelleerd met lichtgewicht afgeronde meshes die aan de gedeelde botten vastzitten. Dit is nog geen gewichtsgeschilderde SkinnedMesh of apart geïmporteerde GLB.
