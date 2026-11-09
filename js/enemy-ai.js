@@ -14,7 +14,7 @@ function ensure(e){
  if(!Number.isFinite(e.dodgeCooldown))e.dodgeCooldown=0;
  if(!Number.isFinite(e.dodgeTime))e.dodgeTime=0;
  if(!Number.isFinite(e.telegraph))e.telegraph=0;
- if(!Number.isFinite(e.flankSide))e.flankSide=(Number(String(e.id).match(/\\d+$/)?.[0]||0)%2)?1:-1;
+ if(!Number.isFinite(e.flankSide))e.flankSide=(Number(String(e.id).match(/\d+$/)?.[0]||0)%2)?1:-1;
 }
 function notifyHit(enemy,enemies,playerX,playerZ){
  ensure(enemy);enemy.alertTimer=10;enemy.attack=Math.min(enemy.attack,.5);
