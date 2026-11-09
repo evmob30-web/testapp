@@ -25,7 +25,7 @@ for(let i=0;i<80;i++){const x=(rand()-.5)*65,z=rand()*90-58;if(Math.abs(x)<3)con
 const ruin=new T.Group();scene.add(ruin);for(const x of [-6,6]){box(1.4,6,1.4,'#899789',x,3,-58);box(2,.6,2,'#acb5a0',x,6,-58);colliders.push({x,z:-58,r:1});}box(14,.9,1.7,'#a4af9a',0,6.6,-58);const sigil=mesh(new T.TorusGeometry(1,.12,5,24),mat('#c59fdf','#9962cf'),0,4.5,-57);animated.push({mesh:sigil,type:'sigil'});for(const x of [-9,9]){const r=box(2,2.4,2,'#899789',x,1.2,-51);r.rotation.y=.3;colliders.push({x,z:-51,r:1.6});}
 // Character models. Facing is towards +Z in local coordinates.
 function humanoid(color,cloak){const g=new T.Group();const body=box(.75,1,.5,color,0,1.45,0,g);body.castShadow=true;sphere(.36,'#dab58d',0,2.25,0,g);sphere(.37,'#584c3d',0,2.44,-.08,g);const cloth=box(.8,.8,.15,cloak,0,1.45,-.33,g);const left=box(.23,.65,.25,'#514f46',-.23,.4,0,g),right=box(.23,.65,.25,'#514f46',.23,.4,0,g);box(.2,.72,.2,color,-.54,1.4,0,g);const arm=new T.Group();arm.position.set(.55,1.7,0);g.add(arm);box(.2,.65,.2,color,0,-.3,0,arm);const blade=box(.1,1.05,.16,'#d1ded5',0,-.1,.55,arm);const guard=box(.5,.1,.18,'#e2bd78',0,-.6,.55,arm);const model=new T.Group();model.position.y=1.2;for(const child of [...g.children]){g.remove(child);child.position.y-=1.2;model.add(child);}g.add(model);return {group:g,left,right,arm,blade,guard,body,cloth,model};}
-const player=EmberCharacterRig.create(T,{skin:'guardian'});player.group.position.set(0,0,22);scene.add(player.group);
+const player=EmberCharacterRig.create(T,{skin:'guardian'});const flameCostume=EmberFlameGuardian.decorate(T,player);player.group.position.set(0,0,22);scene.add(player.group);
 const ornaments=[];for(const side of [-1,1])for(const y of [-.1,.2]){const thorn=cone(.12,.45,mat('#d5eac0','#6fa87d'),side*.13,y,.55,4,player.arm);thorn.rotation.z=-side*.9;thorn.visible=false;ornaments.push(thorn);}
 const ranger=humanoid('#88946a','#566f51');ranger.group.position.set(-3,0,17);ranger.group.rotation.y=.6;scene.add(ranger.group);
 const merchant=humanoid('#b5a57b','#87735f');merchant.group.position.set(8,0,19);merchant.group.rotation.y=-.8;scene.add(merchant.group);
@@ -47,7 +47,8 @@ const pendant=new T.Group();player.model.add(pendant);pendant.position.set(0,.55
 function setAmulet(on){pendant.visible=!!on;}
 function setWeapon(name,weapon='sword'){const thorn=name==='thorn',sword=weapon!=='bow';player.blade.visible=sword;player.guard.visible=sword;player.blade.material=thorn?mat('#ade8c9','#539e7d'):mat('#d1ded5');player.blade.scale.set(thorn?1.8:1,thorn?1.3:1,thorn?1.4:1);for(const part of ornaments)part.visible=thorn&&sword;}
 function setClass(id){player.setSkin(id==='ranger'?'ranger':'guardian');}
-return {scene,colliders,cameraMeshes,sigil,player,ranger,merchant,enemies,crystals,chest,warning,marker,burst,update,firelight,damageText,slash,beam,orb,setWeapon,setClass,setAmulet,effects};
+function setAppearance(id){const flame=id==='flame_guardian';flameCostume.setVisible(flame);player.setSkin(flame?'flame_guardian':'guardian');}
+return {scene,colliders,cameraMeshes,sigil,player,ranger,merchant,enemies,crystals,chest,warning,marker,burst,update,firelight,damageText,slash,beam,orb,setWeapon,setClass,setAppearance,setAmulet,effects};
 }
 window.EmberWorld={createWorld};
 })();
