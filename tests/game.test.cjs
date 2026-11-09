@@ -67,6 +67,27 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  handlers.keydown({code:'Digit1',target:{},preventDefault(){}});tick(75);handlers.keyup({code:'Digit1'});tick(40);assert.match(get('toast').textContent,/al voltooid/);s.x=-3;s.z=18;tick();key('KeyE');get('dialog-extra').onclick();get('dialog-action').onclick();assert.equal(s.bowQuest,2);assert.equal(sandbox.RPG.restore(stored['emberwild-save-v1']).bowQuest,2);
  // Arrow collisions use the shield's facing at impact, with no frontal damage.
  const shield=world.enemies.find(e=>e.shield);shield.attack=100;shield.mesh.rotation.y=0;s.x=shield.mesh.position.x;s.z=shield.mesh.position.z+2.4;s.hp=sandbox.RPG.maxHp(s);tick(60);aimAt(shield.mesh.position.x,shield.mesh.position.z);const shieldHp=shield.hp;key('Digit1');tick(40);assert.equal(shield.hp,shieldHp,'front shield blocks');shield.mesh.rotation.y=0;s.x=shield.mesh.position.x+2.4;s.z=shield.mesh.position.z;tick();aimAt(shield.mesh.position.x,shield.mesh.position.z);key('Digit1');tick(15);assert.ok(shield.hp<shieldHp,'a quick flank shot bypasses the slow-turning shield');const injuredHp=shield.hp;shield.mesh.position.set(shield.homeX,0,shield.homeZ);s.x=shield.homeX+13;s.z=shield.homeZ;tick(15);assert.equal(shield.hp,injuredHp,'arrow damage must persist outside aggro radius even when enemy is home');
+// Shoot an undisturbed enemy from 18 units: no visual aggro beforehand,
+// actual arrow collision must reduce HP and cause a pursuit afterwards.
+ const distant=world.enemies.find(e=>e.id==='w4');
+ const previousColliders=[...world.colliders];world.colliders.length=0;
+ const distantHome={x:distant.homeX,z:distant.homeZ};
+ distant.mesh.position.set(15,0,-34);distant.homeX=15;distant.homeZ=-34;
+ const originalDistantMax=distant.max;distant.hp=300;distant.max=300;distant.attack=100;distant.alertTimer=0;
+ s.x=15;s.z=-16;tick(42); // Let the prior shield-shot cooldown finish.
+ const farHp=distant.hp,farZ=distant.mesh.position.z;
+ assert.equal(distant.alertTimer,0,'enemy starts unalerted beyond 11-unit sight range');
+ aimAt(distant.mesh.position.x,distant.mesh.position.z);
+ handlers.keydown({code:'Digit1',target:{},preventDefault(){}});
+ tick(75);handlers.keyup({code:'Digit1'});tick(48);
+ assert.ok(distant.hp<farHp,'arrow must cause damage outside enemy sight radius');
+ assert.ok(distant.alertTimer>0,'arrow hit should alert the enemy');
+ tick(25); // Enemy finishes its short hit stagger, then starts chasing.
+ assert.ok(distant.mesh.position.z>farZ,'enemy should begin pursuing the distant archer: '+JSON.stringify({from:farZ,to:distant.mesh.position.z,playerZ:s.z,playerHp:s.hp,alert:distant.alertTimer,stagger:distant.stagger,visible:distant.mesh.visible,enemyHp:distant.hp}));
+ assert.equal(get('enemy-health').style.width,distant.hp/distant.max*100+'%','health bar should show the distant hit');
+ distant.alertTimer=0;distant.hp=originalDistantMax;distant.max=originalDistantMax;distant.mesh.position.set(distantHome.x,0,distantHome.z);
+ world.colliders.push(...previousColliders);
+
  key('KeyF');assert.equal(s.weapon,'sword');assert.equal(s.equipped,'thorn');key('KeyF');assert.equal(s.weapon,'bow');
  key('Escape');assert.equal(get('overlay').hidden,false);get('new').onclick();assert.equal(get('dialog').hidden,false);get('dialog-action').onclick();assert.equal(get('class-select').hidden,false);get('class-start').onclick();assert.equal(s.quest,0);assert.equal(s.kills.length,0);
  // Death returns to town, preserves quest, costs only available gold.
