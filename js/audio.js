@@ -1,0 +1,9 @@
+/* Originele procedurele gevechtsgeluiden, zonder downloads of externe diensten. */
+(function(){
+let ctx=null,master=null,muted=false;
+try{muted=localStorage.getItem('emberwild-muted')==='true';}catch{}
+async function unlock(){if(muted)return false;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return false;if(!ctx||ctx.state==='closed'){ctx=new Audio();master=ctx.createGain();master.connect(ctx.destination);}master.gain.setValueAtTime(1,ctx.currentTime);if(ctx.state!=='running')await ctx.resume();return ctx.state==='running';}catch{return false;}}
+function tone(from,to,length,volume=.1,delay=0,type='triangle'){if(muted||!ctx||ctx.state!=='running')return;const t=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(from,t);o.frequency.exponentialRampToValueAtTime(to,t+length);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+length);o.connect(g);g.connect(master);o.start(t);o.stop(t+length+.03);o.onended=()=>{o.disconnect();g.disconnect();};}
+function play(name){try{if(name==='sword')tone(350,90,.16,.1,0,'sawtooth');if(name==='hit')tone(145,55,.12,.15);if(name==='magic'){tone(440,1100,.25,.12);tone(880,420,.25,.07,.08);}if(name==='dodge')tone(220,65,.24,.1);if(name==='hurt')tone(130,65,.2,.13);if(name==='heal'){tone(523,659,.28,.12);tone(784,1047,.32,.1,.13);}if(name==='loot')[523,659,784,1047].forEach((n,i)=>tone(n,n,.4,.1,i*.09));if(name==='test'){tone(659,659,.25,.12);tone(988,988,.3,.12,.14);}}catch{}}
+window.EmberAudio={unlock,play,get muted(){return muted;},toggle(){muted=!muted;if(master)master.gain.setValueAtTime(muted?0:1,ctx.currentTime);try{localStorage.setItem('emberwild-muted',String(muted));}catch{}if(!muted)unlock().then(ok=>{if(ok)play('test');});return muted;}};
+})();
