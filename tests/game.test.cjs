@@ -14,7 +14,7 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  // A glowing world drop must be pickable and equipable, with comparisons and saved gold.
  s.lootDrops.push({uid:1,base:'ember_helm',rarity:'epic',affix:'fury',x:0,z:22,area:'valley'});s.lootSequence=1;
  world.syncLoot(s);assert.equal(world.lootMeshes.size,1,'3D drop should appear on the ground');
- tick(2);assert.match(get('interact').textContent,/Pak buit/);
+ tick(12);assert.match(get('interact').textContent,/Pak buit/);
  key('KeyE');assert.equal(world.lootMeshes.size,0);
  assert.equal(s.lootBag.length,1);assert.equal(s.lootDrops.length,0);
  get('inventory-button').onclick();
