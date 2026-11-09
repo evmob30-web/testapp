@@ -14,7 +14,7 @@ function ensure(e){
  if(!Number.isFinite(e.dodgeCooldown))e.dodgeCooldown=0;
  if(!Number.isFinite(e.dodgeTime))e.dodgeTime=0;
  if(!Number.isFinite(e.telegraph))e.telegraph=0;
- if(!Number.isFinite(e.flankSide))e.flankSide=String(e.id).length%2?1:-1;
+ if(!Number.isFinite(e.flankSide))e.flankSide=(Number(String(e.id).match(/\\d+$/)?.[0]||0)%2)?1:-1;
 }
 function notifyHit(enemy,enemies,playerX,playerZ){
  ensure(enemy);enemy.alertTimer=10;enemy.attack=Math.min(enemy.attack,.5);
@@ -71,7 +71,7 @@ function movement(e,px,pz,neighbors=[]){
  if(e.boss||e.shield||d>8)return {x:towardX,z:towardZ,d};
  if(p.flank){
   const mates=neighbors.filter(n=>n!==e&&n.mesh.visible&&!n.boss&&n.alertTimer>0&&Math.hypot(n.mesh.position.x-pos.x,n.mesh.position.z-pos.z)<6);
-  const flank=d>p.range+.15?.55:.15;
+  const flank=d>p.range+.15?(mates.length?.8:.42):.15;
   const side=e.flankSide||1;
   const x=towardX*(d>p.range?1:.05)+(-towardZ)*side*flank;
   const z=towardZ*(d>p.range?1:.05)+towardX*side*flank;
