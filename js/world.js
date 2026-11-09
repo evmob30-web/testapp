@@ -37,9 +37,33 @@ for(const c of RPG.crystals){const gem=mesh(new T.OctahedronGeometry(.7,0),mat('
 const chest=new T.Group();chest.position.set(24,0,-10);scene.add(chest);box(1.4,.9,1,'#937247',0,.5,0,chest);box(1.5,.12,1.1,'#d8b574',0,.85,0,chest);box(.25,.4,.05,'#edca83',0,.65,.55,chest);
 const warning=mesh(new T.RingGeometry(.1,4.6,40),new T.MeshBasicMaterial({color:'#f0a167',transparent:true,opacity:.4,side:T.DoubleSide,depthWrite:false}),0,.05,-53);warning.rotation.x=-Math.PI/2;warning.visible=false;
 function burst(x,z,color='#ffe0a1',count=12){for(let i=0;i<count&&effects.length<100;i++){const m=sphere(.1+Math.random()*.1,color,x,.8+Math.random(),z);effects.push({mesh:m,vx:(Math.random()-.5)*5,vz:(Math.random()-.5)*5,vy:2+Math.random()*3,life:.6,max:.6});}}
-function update(dt,time,moving,attacking,roll=0,running=false){for(const a of animated){if(a.type==='fire'){a.mesh.scale.y=1+Math.sin(time*9)*.12;a.mesh.rotation.y=time;}else a.mesh.rotation.z=time*.3;}for(const c of crystals){c.mesh.rotation.y=time;c.mesh.position.y=1.5+Math.sin(time*2+c.x)*.15;}player.model.rotation.x=roll>0?(1-roll/.38)*Math.PI*2:0;player.model.position.y=1.2+(roll>0?Math.sin((1-roll/.38)*Math.PI)*.2:0);player.animate(time,moving,attacking,{running});flameCostume.animate?.(time,{moving,running,attacking});appearance.animate(time);marker.position.y=4.3+Math.sin(time*2)*.12;for(let i=effects.length-1;i>=0;i--){const e=effects[i];e.life-=dt;e.mesh.position.x+=e.vx*dt;e.mesh.position.z+=e.vz*dt;e.mesh.position.y+=e.vy*dt;e.vy-=(e.gravity??9)*dt;if(e.kind==='slash')e.mesh.rotation.z+=dt*7;if(e.ownedMaterial)e.mesh.material.opacity=Math.max(0,e.life/e.max);if(!e.kind)e.mesh.scale.setScalar(Math.max(0,e.life/e.max));if(e.life<=0){scene.remove(e.mesh);if(!e.sprite)e.mesh.geometry.dispose();if(e.ownedMaterial){if(e.mesh.material.map)e.mesh.material.map.dispose();e.mesh.material.dispose();}effects.splice(i,1);}}for(const e of enemies)if(e.spirit&&e.mesh.visible)e.mesh.position.y=Math.sin(time*2+e.homeX)*.17;}
+function update(dt,time,moving,attacking,roll=0,running=false){for(const a of animated){if(a.type==='fire'){a.mesh.scale.y=1+Math.sin(time*9)*.12;a.mesh.rotation.y=time;}else a.mesh.rotation.z=time*.3;}for(const c of crystals){c.mesh.rotation.y=time;c.mesh.position.y=1.5+Math.sin(time*2+c.x)*.15;}player.model.rotation.x=roll>0?(1-roll/.38)*Math.PI*2:0;player.model.position.y=1.2+(roll>0?Math.sin((1-roll/.38)*Math.PI)*.2:0);player.animate(time,moving,attacking,{running});flameCostume.animate?.(time,{moving,running,attacking});appearance.animate(time);marker.position.y=4.3+Math.sin(time*2)*.12;for(let i=effects.length-1;i>=0;i--){const e=effects[i];e.life-=dt;e.mesh.position.x+=e.vx*dt;e.mesh.position.z+=e.vz*dt;e.mesh.position.y+=e.vy*dt;e.vy-=(e.gravity??9)*dt;if(e.kind==='slash')e.mesh.rotation.z+=dt*7;if(e.kind==='pulse')e.mesh.scale.multiplyScalar(1+dt*5);if(e.kind==='magic')e.mesh.rotation.y+=dt*7;if(e.ownedMaterial)e.mesh.material.opacity=Math.max(0,e.life/e.max);if(!e.kind)e.mesh.scale.setScalar(Math.max(0,e.life/e.max));if(e.life<=0){scene.remove(e.mesh);if(!e.sprite)e.mesh.geometry.dispose();if(e.ownedMaterial){if(e.mesh.material.map)e.mesh.material.map.dispose();e.mesh.material.dispose();}effects.splice(i,1);}}for(const e of enemies)if(e.spirit&&e.mesh.visible)e.mesh.position.y=Math.sin(time*2+e.homeX)*.17;}
 function damageText(text,x,z,color='#ffe6ad'){if(effects.length>=100)return;const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;const c=canvas.getContext('2d');c.font='bold 35px system-ui';c.textAlign='center';c.lineWidth=5;c.strokeStyle='#192b27';c.strokeText(String(text),128,46);c.fillStyle=color;c.fillText(String(text),128,46);const texture=new T.CanvasTexture(canvas),m=new T.Sprite(new T.SpriteMaterial({map:texture,transparent:true,depthTest:false}));m.position.set(x,2.9,z);m.scale.set(3.2,.8,1);scene.add(m);effects.push({mesh:m,vx:0,vz:0,vy:1.4,gravity:0,life:.85,max:.85,kind:'text',sprite:true,ownedMaterial:true});}
-function slash(x,z,angle){if(effects.length>=100)return;const m=mesh(new T.RingGeometry(1.4,2.5,26,1,0,Math.PI*1.15),new T.MeshBasicMaterial({color:'#ffdf9b',transparent:true,opacity:.8,side:T.DoubleSide,depthWrite:false}),x,1.3,z);m.rotation.set(-Math.PI/2,0,-angle);effects.push({mesh:m,vx:0,vz:0,vy:0,gravity:0,life:.22,max:.22,kind:'slash',ownedMaterial:true});}
+function slash(x,z,angle,step=1){
+ if(effects.length>=95)return;
+ const styles=[{color:'#ffe2aa',outer:2.2,scale:1},{color:'#ffc47c',outer:2.55,scale:1.14},{color:'#ff7839',outer:3.05,scale:1.36}];
+ const style=styles[Math.max(0,Math.min(2,step-1))];
+ const m=mesh(new T.RingGeometry(1.35,style.outer,48,1,0,Math.PI*(step===2?1.3:1.1)),new T.MeshBasicMaterial({color:style.color,transparent:true,opacity:.85,side:T.DoubleSide,depthWrite:false}),x,1.25,z);
+ m.rotation.set(-Math.PI/2,0,-angle+(step===2?.35:step===3?-.2:0));m.scale.setScalar(style.scale);
+ effects.push({mesh:m,vx:0,vz:0,vy:0,gravity:0,life:step===3?.37:.22,max:step===3?.37:.22,kind:'slash',ownedMaterial:true});
+ if(step===3){burst(x+Math.sin(angle)*1.6,z+Math.cos(angle)*1.6,'#ff9750',12);magicImpact(x+Math.sin(angle)*1.7,z+Math.cos(angle)*1.7,'#ff994a',.8);}
+}
+function magicImpact(x,z,color='#ffbd79',radius=1){
+ if(effects.length>=93)return;
+ const ring=mesh(new T.RingGeometry(radius*.46,radius*.58,40),new T.MeshBasicMaterial({color,transparent:true,opacity:.95,side:T.DoubleSide,depthWrite:false}),x,.13,z);
+ ring.rotation.x=-Math.PI/2;
+ effects.push({mesh:ring,vx:0,vz:0,vy:0,gravity:0,life:.48,max:.48,kind:'pulse',ownedMaterial:true});
+ burst(x,z,color,11);
+}
+function magicCast(x,z,tx,tz,color='#ffd58e'){
+ magicImpact(x,z,color,.7);
+ magicImpact(tx,tz,color,1.15);
+ for(let i=0;i<3&&effects.length<94;i++){
+   const height=.6+i*.45;
+   const column=mesh(new T.CylinderGeometry(.13,.31,height,8),new T.MeshBasicMaterial({color,transparent:true,opacity:.7,depthWrite:false}),tx,height*.5,tz);
+   effects.push({mesh:column,vx:0,vz:0,vy:.4+i*.18,gravity:0,life:.32+i*.1,max:.32+i*.1,kind:'magic',ownedMaterial:true});
+ }
+}
 function beam(x,z,tx,tz){const length=Math.hypot(tx-x,tz-z),m=mesh(new T.CylinderGeometry(.07,.13,length,6),new T.MeshBasicMaterial({color:'#b0ffec',transparent:true,opacity:.8,depthWrite:false}),(x+tx)/2,1.5,(z+tz)/2);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),new T.Vector3(tx-x,0,tz-z).normalize());effects.push({mesh:m,vx:0,vz:0,vy:0,gravity:0,life:.18,max:.18,kind:'beam',ownedMaterial:true});}
 const orbGeometry=new T.IcosahedronGeometry(.3,1),orbMaterial=mat('#e4c1fc','#aa69d5');
 function orb(x,z){return mesh(orbGeometry,orbMaterial,x,1.4,z);}
@@ -49,7 +73,7 @@ function setWeapon(name,weapon='sword'){const thorn=name==='thorn',sword=weapon!
 function setClass(id){player.setSkin(id==='ranger'?'ranger':'guardian');}
 function setArmor(state){armorVisual.sync(state);}
 function setAppearance(id,classId='guardian',look){const flame=id==='flame_guardian';flameCostume.setVisible(flame);player.setSkin(flame?'flame_guardian':classId==='ranger'?'ranger':'guardian');appearance.apply(id,look);}
-return {scene,colliders,cameraMeshes,sigil,player,ranger,merchant,enemies,crystals,chest,warning,marker,burst,update,firelight,damageText,slash,beam,orb,setWeapon,setClass,setAppearance,setAmulet,setArmor,effects};
+return {scene,colliders,cameraMeshes,sigil,player,ranger,merchant,enemies,crystals,chest,warning,marker,burst,update,firelight,damageText,slash,beam,magicCast,magicImpact,orb,setWeapon,setClass,setAppearance,setAmulet,setArmor,effects};
 }
 window.EmberWorld={createWorld};
 })();
