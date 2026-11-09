@@ -39,6 +39,7 @@ function equip(s,id){
  if(!Object.hasOwn(items,id)||!s.armorOwned.includes(id))return false;
  const slot=items[id].slot;
  s.armorEquipped[slot]=s.armorEquipped[slot]===id?null:id;
+ if(s.armorEquipped[slot]!==null&&s.lootEquipped)s.lootEquipped[slot]=null;
  return true;
 }
 function buy(s,id){
@@ -65,10 +66,11 @@ function bonuses(s){
  const equipped=s.armorEquipped||{};let hp=0,power=0;
  for(const slot of Object.keys(slots)){
   const id=equipped[slot];
-  if(typeof id==='string'&&Array.isArray(s.armorOwned)&&s.armorOwned.includes(id)&&items[id]&&items[id].slot===slot){
+  if(!s.lootEquipped?.[slot]&&typeof id==='string'&&Array.isArray(s.armorOwned)&&s.armorOwned.includes(id)&&items[id]&&items[id].slot===slot){
    hp+=items[id].hp;power+=items[id].power;
   }
  }
+ const loot=root.EmberLoot?.bonuses(s);if(loot){hp+=loot.hp;power+=loot.power;}
  return {hp,power};
 }
 function attach(T,rig){
@@ -110,13 +112,20 @@ function attach(T,rig){
     group.userData.meshes.push(add(bone,sphere,trim,'boot_trim_'+id+side,0,-.05,.36,.21,.055,.10));
    }
   }
-  for(const mesh of group.userData.meshes)mesh.visible=false;
+  for(const mesh of group.userData.meshes){mesh.visible=false;mesh.userData.armorBaseColor=mesh.material.color.clone();}
  }
  function sync(state){
   const equipped=state&&state.armorEquipped||{};
   for(const [id,group] of Object.entries(groups)){
-   const visible=equipped[items[id].slot]===id;
-   for(const mesh of group.userData.meshes)mesh.visible=visible;
+   const slot=items[id].slot;
+   const loot=root.EmberLoot?.equippedItem(state||{},slot);
+   const visible=loot?loot.base===id:equipped[slot]===id;
+   const rareColor=loot&&root.EmberLoot.rarity[loot.rarity]?.color;
+   for(const mesh of group.userData.meshes){
+    mesh.visible=visible;
+    mesh.material.color.copy(mesh.userData.armorBaseColor);
+    if(visible&&rareColor)mesh.material.color.set(rareColor);
+   }
   }
  }
  sync(null);
