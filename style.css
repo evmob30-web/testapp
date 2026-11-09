@@ -3,3 +3,5 @@
 header #sound{font-size:10px}#equip{color:#bde9d2;border:1px solid #a1cbb670;border-radius:5px;padding:11px 14px;margin:15px 0 0;display:block}.skills button:active{transform:translateY(2px)}@media(max-width:800px){.skills button{width:90px}header #inventory-button{font-size:9px;padding:10px}header{gap:6px}.help{white-space:normal;text-align:center;width:85%;line-height:1.6}}
 
 #amulet-equip{display:block;margin:12px 0 0;padding:11px 14px;color:#c6efd2;border:1px solid #a1cbb670;border-radius:5px}
+
+.side-quest{margin-top:18px;padding-top:14px;border-top:1px solid #d6c18b3b}.side-quest>small{font-size:8px;letter-spacing:2px;color:#bcd3b2}.side-quest h3{font:17px Georgia,serif;margin:9px 0}.side-quest p{font-size:11px;line-height:1.7;color:#c8d7bf}.alternative{display:block;margin-top:12px;background:#b8d1ad;border-color:#d5e4cb}.alternative:disabled{opacity:.45;cursor:default}@media(max-height:650px){.quest{top:88px}.side-quest{margin-top:10px;padding-top:9px}.side-quest h3{font-size:15px}.side-quest p{font-size:10px}.quest h2{font-size:18px}.quest p{line-height:1.5}}

@@ -1,4 +1,4 @@
-# Emberwild — De laatste vonk · versie 0.3
+# Emberwild — De laatste vonk · versie 0.4
 
 Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
@@ -49,13 +49,27 @@ De minimap past zich aan het gebied aan en toont de huidige kamer. Sleutel, deur
 
 Na een nederlaag verlies je maximaal 10 goud. In de vallei keer je terug naar het dorp; in de grot naar de eerste kamer. Opdrachten, gevonden buit en geopende deur blijven behouden.
 
+## Verkenning — De vermiste kruidenzoeker
+
+Deze zijmissie kan op ieder moment en staat los van de hoofdopdracht.
+
+1. Zoek **Mira**, ten zuidoosten van het kampvuur (bij 6, 25), en praat met E. Neem haar opdracht aan.
+2. Zoek **Tovin** met zijn blauwe lantaarn in het westelijke bos (bij -23, -32). Praat met hem; hij vindt de weg terug naar het dorp.
+3. Keer terug naar Mira voor 75 XP, 35 goud en drie kruiden. Tovin is daarna ook in het dorp te vinden.
+4. Volg Tovins aanwijzing en de blauwe bloemen noordwestwaarts naar het **Fluisterheiligdom** (bij -26, -48). Wanneer je dichtbij komt wordt de plek ontdekt en verschijnt hij op de minimap.
+5. Onderzoek het heiligdom met E en ontvang de **Woudzegen**: permanent +20 maximale gezondheid, eenmalig volledig herstel, 50 XP en 25 goud. Dit stapelt met het Hartamulet en hoeft niet apart uitgerust te worden. De beloning kun je maar één keer ontvangen. Je mag het heiligdom ook al vóór de zijmissie ontdekken.
+
+**Kruiden en drankjes:** acht goudbloesemplanten staan verspreid door de vallei. Pluk met E. Nabije planten verschijnen als kleine geelgroene punten op de minimap. Iedere plant geeft één kruid en blijft daarna geplukt in je opslag. In het gesprek met Bram kun je kiezen tussen een levensdrank kopen voor 15 goud en een drank maken van drie kruiden zonder goudkosten. De maakknop is uitgeschakeld als je te weinig kruiden hebt. Inventaris I toont je kruidenvoorraad.
+
+De extra opdracht staat onder ‘Verkenning’ in de HUD en vervangt je hoofdopdracht niet. Verkenningsvoortgang, geplukte planten, kruidenvoorraad en Woudzegen blijven bewaard bij reizen, doodgaan en herladen.
+
 ## Opslag en geluid
 
-Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere opslag van versie 0.1/0.2 blijft bruikbaar; hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen.
+Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere opslag van versie 0.1/0.2/0.3 blijft bruikbaar; hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen.
 
 ‘Ga verder’ verschijnt bij een bruikbare opslag. ‘Nieuw avontuur’ vervangt de voortgang; tijdens spelen wordt hiervoor bevestiging gevraagd. Voortgang is gebonden aan dezelfde browser en hetzelfde site-adres. Bij geblokkeerde opslag blijft spelen mogelijk voor de huidige sessie. Geen cloudopslag of multiplayer.
 
-Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/uit’ kun je dempen; de voorkeur blijft lokaal bewaard. Er is geen achtergrondmuziek.
+Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/uit’ kun je dempen; de voorkeur blijft lokaal bewaard. Er is geen achtergrondmuziek. In de vallei hoor je zachte procedurele wind en vogels; in de Wortelgrotten hoor je zachte ruis en druppels met korte echo’s. Omgevingsgeluid start na gebruikersinvoer, pauzeert tijdens menu’s of verlies van vensterfocus en wordt samen met de effecten gedempt. Eén hergebruikte ruislus en enkele korte tonen houden het audiowerk beperkt.
 
 ## Bestanden
 
@@ -64,7 +78,8 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 - `js/combat.js`: ontwijkregels, afkoeltijden en botsingen voor snelle projectielen.
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
-- `js/audio.js`: procedurele geluidseffecten en dempknop.
+- `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
+- `js/audio.js`: procedurele geluidseffecten, omgevingsgeluid en dempknop.
 - `js/game.js`: camera, invoer, gevechten, gebiedswissels, interacties, HUD en opslag.
 - `vendor/three.min.js`: Three.js 0.160.1, MIT-licentie in `vendor/THREE-LICENSE.txt`.
 - `tests/`: Node.js-tests.
@@ -73,7 +88,7 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-17 tests geslaagd. Ze controleren beide opdrachtketens, kamerbereikbaarheid en deurblokkering, oude en nieuwe opslag, uitrusting, herhaalde beloningen, niveauverhogingen, audio, rollen en projectielbotsingen. De integratietest bouwt de echte Three.js-wereld op en voltooit beide hoofdstukken met gesimuleerde invoer. Hij test ook beide aanvalspatronen van de Wortelmoeder, het amulet, gebiedswissels en doodgaan in de grot. JavaScript-syntax en relatieve bestandsverwijzingen zijn gecontroleerd.
+22 tests geslaagd. Ze controleren beide opdrachtketens, kamerbereikbaarheid en deurblokkering, oude en nieuwe opslag, uitrusting, herhaalde beloningen, niveauverhogingen, audio, rollen en projectielbotsingen. De integratietest bouwt de echte Three.js-wereld op en voltooit beide hoofdstukken met gesimuleerde invoer. Hij test ook beide aanvalspatronen van de Wortelmoeder, het amulet, gebiedswissels en doodgaan in de grot, de zijmissie, bereikbare verkenningsplekken, kruiden plukken, drankjes maken en de Woudzegen. Audiotests controleren ook de omgevingslus, gebiedswissels, pauze en dempen. JavaScript-syntax en relatieve bestandsverwijzingen zijn gecontroleerd.
 
 De test vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De voorgeschreven browsertool was niet beschikbaar voor een visuele browsercontrole. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
