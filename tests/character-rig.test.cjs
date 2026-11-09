@@ -1,0 +1,37 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const THREE=require('../vendor/three.min.js');
+
+function makeRig(){
+ const sandbox={THREE};sandbox.window=sandbox;vm.createContext(sandbox);
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../js/character-rig.js'),'utf8'),sandbox);
+ return sandbox.EmberCharacterRig.create(THREE);
+}
+test('shared character rig exposes stable named joints and equipment anchors',()=>{
+ const rig=makeRig();
+ for(const name of ['root','hips','spine','chest','neck','head','upper_arm_l','lower_arm_l','hand_l','upper_arm_r','lower_arm_r','hand_r','upper_leg_l','lower_leg_l','foot_l','upper_leg_r','lower_leg_r','foot_r','weapon_r','back']){
+   assert.ok(rig.joints[name],name+' is required');
+   assert.ok(rig.joints[name].isGroup);
+ }
+ assert.equal(rig.model.parent,rig.group);
+ assert.ok(rig.blade.parent===rig.joints.weapon_r);
+ assert.ok(rig.guard.parent===rig.joints.weapon_r);
+ assert.ok(rig.body.isMesh);
+});
+test('skin swaps preserve joint identities and basic animation works',()=>{
+ const rig=makeRig();
+ const arm=rig.joints.upper_arm_r;
+ const initial=rig.body.material.color.getHex();
+ rig.setSkin('flame_guardian');
+ assert.notEqual(rig.body.material.color.getHex(),initial);
+ assert.strictEqual(rig.joints.upper_arm_r,arm);
+ rig.animate(.5,true,0);
+ assert.notEqual(rig.left.rotation.x,0);
+ rig.animate(.5,false,0);
+ assert.equal(rig.left.rotation.x,0);
+ rig.animate(.5,false,.2);
+ assert.notEqual(rig.arm.rotation.x,0);
+});
