@@ -70,7 +70,7 @@ test('bad saves cannot inject items, arbitrary bonuses, duplicate IDs or fake sl
  assert.equal(fixed.lootEquipped.chest,1);
  assert.equal(loot.bonuses(fixed).power,loot.itemStats(fixed.lootBag[0]).power);
  assert.equal(fixed.lootSequence,1);
- assert.deepEqual(Object.keys(fixed.lootEquipped),loot.slots);
+ assert.deepEqual(Object.keys(fixed.lootEquipped),Array.from(loot.slots));
 });
 test('inventory stays bounded even after repeated enemy drops',()=>{
  const state=root.RPG.fresh(),enemy={id:'w1',mesh:{position:{x:0,z:0}}};
