@@ -106,15 +106,20 @@ function create(T, options={}){
     elbowR.rotation.x=-.10-locomotion*.10;
     // Wind up, slash and follow-through, with smooth return to the walking pose.
     const active=attacking>0;
-    const attackPhase=active?Math.max(0,Math.min(1,(.3-attacking)/.3)):1;
+    const comboStep=Math.max(1,Math.min(3,options.comboStep||1));
+    const duration=comboStep===3?.42:.3;
+    const attackPhase=active?Math.max(0,Math.min(1,(duration-attacking)/duration)):1;
     const targetStrike=active?1:0;
     strikeWeight+=(targetStrike-strikeWeight)*(1-Math.exp(-dt*(active?25:13)));
     if(active||strikeWeight>.003){
       const swing=active?Math.sin(attackPhase*Math.PI):0;
-      arm.rotation.x+=strikeWeight*(-.85-1.45*swing);
-      arm.rotation.z=.17-strikeWeight*(.45+.3*swing);
-      elbowR.rotation.x-=strikeWeight*(.35+.35*swing);
-      chest.rotation.y+=strikeWeight*.2*Math.sin(attackPhase*Math.PI);
+      // Different silhouettes: diagonal, cross-body return and overhead finisher.
+      const drive=comboStep===3?1.30:comboStep===2?-.88:1;
+      arm.rotation.x+=strikeWeight*(-.65-(comboStep===3?1.9:1.45)*swing);
+      arm.rotation.z=.17-strikeWeight*drive*(.43+.27*swing);
+      elbowR.rotation.x-=strikeWeight*(.3+(comboStep===3?.52:.32)*swing);
+      chest.rotation.y+=strikeWeight*(comboStep===2?-.25:.23)*Math.sin(attackPhase*Math.PI);
+      chest.rotation.z+=strikeWeight*(comboStep===3?-.09:.05)*swing;
     }else{strikeWeight=0;arm.rotation.z=.17;}
     leftArm.rotation.z=-.17;
     if(!active)arm.rotation.z=.17-strikeWeight*.45;

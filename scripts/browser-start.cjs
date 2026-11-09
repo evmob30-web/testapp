@@ -17,6 +17,14 @@ const { chromium } = require('playwright');
  await page.waitForTimeout(180);
  if(!await page.locator('#creator-canvas').isVisible())errors.push('Character preview not visible');
  await page.locator('#class-start').click();
+ // Execute all three melee stages in the actual WebGL game, without needing an enemy.
+ for(let step=1;step<=3;step++){
+   if(step>1)await page.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});
+   await page.locator('#attack').click();
+   await page.waitForFunction(expected=>document.getElementById('combo-indicator').textContent.includes('COMBO '+expected+' / 3'),step,{timeout:25000});
+   const shown=await page.locator('#combo-indicator').textContent();
+   if(!shown.includes('COMBO '+step+' / 3'))errors.push('Combo stage '+step+' was not visible: '+shown);
+ }
  const selected=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(selected?.skinId!=='flame_guardian'||selected?.appearance?.hairStyle!=='braid'||selected?.appearance?.hairColor!=='blonde')errors.push('Creator selection did not save');
  await page.locator('#inventory-button').click();
