@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'js/**'
+      - 'assets/characters/**'
+      - 'vendor/GLTFLoader.js'
       - 'index.html'
       - 'scripts/browser-start.cjs'
       - '.github/workflows/browser-smoke.yml'
@@ -18,3 +20,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/emberwild-http.log 2>&1 &
       - run: node scripts/browser-start.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emberwild-browser-screenshots
+          path: /tmp/emberwild-*.png

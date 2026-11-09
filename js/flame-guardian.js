@@ -1,5 +1,5 @@
-/* Original Emberwild Flame Guardian costume — mesh pieces parented to shared bones.
-   Procedural stylized fantasy preview; not a weight-painted GLB. */
+/* Original Emberwild Flame Guardian procedural fallback and asset source.
+   The weighted GLB replacement shares these bones; attachments stay compatible. */
 (function(root){
 'use strict';
 function decorate(T,rig){

@@ -7,6 +7,9 @@ on:
     paths:
       - 'js/**'
       - 'tests/**'
+      - 'assets/characters/**'
+      - 'scripts/build-character-assets.cjs'
+      - 'vendor/GLTFLoader.js'
       - 'index.html'
       - '.github/workflows/emberwild-tests.yml'
 jobs:
