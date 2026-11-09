@@ -32,7 +32,8 @@ test('skin swaps preserve joint identities and basic animation works',()=>{
  rig.animate(.5,true,0);
  assert.notEqual(rig.left.rotation.x,0);
  for(let i=1;i<=28;i++)rig.animate(.5+i/60,false,0);
- assert.ok(Math.abs(rig.left.rotation.x)<.015,'legs settle when idle');
+ assert.ok(rig.motion.contacts.every(Boolean),'both soles settle on the floor');
+ assert.ok(Math.abs(rig.joints.foot_l.getWorldPosition(new THREE.Vector3()).y+.02)<.001,'idle ankle stays on the ground');
  rig.animate(.5,false,.2);
  assert.notEqual(rig.arm.rotation.x,0);
 });
@@ -67,7 +68,49 @@ test('idle breath, walk/run cadence and attack settle without damaging bone sock
  rig.animate(1.0,true,.21,{running:true});
  assert.ok(arm.rotation.x<-.8,'sword arm swings forward');
  for(let i=1;i<=80;i++)rig.animate(1+i/60,false,0);
- assert.ok(Math.abs(left.rotation.x)<.01,'idle legs return to rest');
+ assert.ok(rig.motion.contacts.every(Boolean),'idle feet return to planted contacts');
+ assert.ok(Math.abs(rig.joints.foot_r.getWorldPosition(new THREE.Vector3()).y+.02)<.001,'breathing does not lift the planted foot');
  assert.ok(Math.abs(arm.rotation.z-.17)<.01,'sword arm returns to rest');
  assert.strictEqual(rig.blade.parent,handSocket);
+});
+
+test('distance-driven feet stay planted through walking, running and gentle turns',()=>{
+ for(const dt of [1/30,1/120])for(const [speed,direction]of [[5,0],[8.25,0],[3.5,Math.PI],[3.5,Math.PI/2]]){
+  const rig=makeRig(),previous=[],wasContact=[];
+  rig.animate(0,false,0,{dt,worldMotion:true});
+  for(let frame=1;frame<180;frame++){
+   rig.group.rotation.y+=.007;
+   rig.group.position.x+=Math.sin(rig.group.rotation.y+direction)*speed*dt;
+   rig.group.position.z+=Math.cos(rig.group.rotation.y+direction)*speed*dt;
+   rig.animate(frame*dt,true,0,{dt,worldMotion:true,running:speed>5});
+   for(const [i,side]of ['l','r'].entries()){
+    const foot=rig.joints['foot_'+side].getWorldPosition(new THREE.Vector3());
+    if(rig.motion.contacts[i]){
+     assert.ok(Math.abs(foot.y+.02)<.012,'support ankle stays at floor height');
+     if(wasContact[i])assert.ok(foot.distanceTo(previous[i])<.025,'support sole does not skate along the ground');
+    }
+    previous[i]=foot;wasContact[i]=rig.motion.contacts[i];
+   }
+  }
+ }
+});
+test('blocked movement settles and teleports reset foot anchors without stretching bones',()=>{
+ const rig=makeRig();for(let i=0;i<80;i++)rig.animate(i/60,true,0,{dt:1/60,worldMotion:true,running:true});
+ assert.equal(rig.motion.speed,0);assert.ok(rig.motion.locomotion<.001,'input against a wall does not run in place');
+ rig.group.position.set(100,0,-60);rig.group.rotation.y=2.5;rig.resetMotion();rig.animate(2,false,0,{dt:1/60,worldMotion:true});
+ for(const side of ['l','r']){
+  const p=rig.group.worldToLocal(rig.joints['foot_'+side].getWorldPosition(new THREE.Vector3()));
+  assert.ok(Math.abs(p.y+.02)<.001);assert.ok(Math.abs(p.z-.08)<.001);
+ }
+});
+test('roll turns forward, tucks limbs and returns to a grounded pose',()=>{
+ const rig=makeRig();let angle=-1;
+ for(let frame=0;frame<=24;frame++){
+  const p=frame/24;rig.animate(frame/60,true,0,{dt:1/60,roll:p});
+  assert.ok(rig.model.rotation.x>=angle,'forward rotation never reverses');angle=rig.model.rotation.x;
+  assert.equal(rig.motion.rolling,true);assert.ok(rig.motion.contacts.every(c=>!c));
+  if(p===.5)assert.ok(rig.joints.lower_leg_l.rotation.x>2,'knees tuck during the roll');
+ }
+ rig.animate(.5,false,0,{dt:1/60});assert.equal(rig.model.rotation.x,0);assert.equal(rig.motion.rolling,false);
+ for(const side of ['l','r'])assert.ok(Math.abs(rig.joints['foot_'+side].getWorldPosition(new THREE.Vector3()).y+.02)<.001);
 });
