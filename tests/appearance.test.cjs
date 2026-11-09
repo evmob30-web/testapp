@@ -1,0 +1,44 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const vm=require('node:vm');
+const fs=require('node:fs');
+const path=require('node:path');
+const THREE=require('../vendor/three.min.js');
+const root={THREE};root.window=root;vm.createContext(root);
+for(const file of ['core','character-rig','flame-guardian','appearance'])
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
+test('creator accepts supported values and clamps bad saved appearance',()=>{
+ const state=root.RPG.fresh('ranger');
+ assert.equal(state.appearance.hairStyle,'short');
+ state.skinId='flame_guardian';
+ state.appearance={hairStyle:'braid',hairColor:'silver',skinTone:'deep',eyeColor:'violet'};
+ const restored=root.RPG.restore(JSON.stringify(state));
+ assert.equal(restored.classId,'ranger');
+ assert.equal(restored.skinId,'flame_guardian');
+ assert.equal(restored.appearance.hairStyle,'braid');
+ assert.equal(restored.appearance.skinTone,'deep');
+ assert.equal(root.RPG.restore(JSON.stringify({...state,appearance:{hairColor:'malicious',hairStyle:'unknown'}})).appearance.hairColor,'auburn');
+ assert.equal(root.RPG.restore(JSON.stringify({...state,appearance:null})).appearance.hairStyle,'short');
+});
+test('hair changes do not replace bones, skins or sword attachment',()=>{
+ const rig=root.EmberCharacterRig.create(THREE);
+ const flame=root.EmberFlameGuardian.decorate(THREE,rig);
+ const editor=root.EmberAppearance.attach(THREE,rig,flame);
+ const hand=rig.joints.weapon_r;
+ flame.setVisible(true);
+ editor.apply('flame_guardian',{hairStyle:'braid',hairColor:'silver',skinTone:'deep',eyeColor:'violet'});
+ assert.equal(editor.groups.braid.visible,true);
+ assert.equal(editor.groups.short.visible,false);
+ assert.equal(rig.joints.head.getObjectByName('face').material.color.getHex(),new THREE.Color('#81513e').getHex());
+ assert.ok(editor.flameHair.every(m=>!m.visible));
+ const eyes=flame.costumeMeshes.find(m=>m.name==='flame_eye_1');
+ assert.equal(eyes.material.color.getHex(),new THREE.Color('#a38bc7').getHex());
+ flame.setVisible(false);
+ editor.apply('classic',{hairStyle:'long',hairColor:'blonde',skinTone:'fair',eyeColor:'blue'});
+ assert.equal(editor.groups.long.visible,true);
+ assert.equal(editor.classicEyes.every(m=>m.visible),true);
+ assert.equal(editor.groups.long.getObjectByName('long_cap').material.color.getHex(),new THREE.Color('#deb96b').getHex());
+ rig.animate(.5,true,0);
+ editor.animate(.5);
+ assert.strictEqual(rig.blade.parent,hand);
+});
