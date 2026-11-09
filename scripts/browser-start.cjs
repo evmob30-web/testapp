@@ -34,10 +34,16 @@ const { chromium } = require('playwright');
  let equipped=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(equipped?.armorEquipped?.chest!=='wanderer_chest')errors.push('Armor slot not equipped');
  // A shop purchase spends saved gold once, then survives a save round-trip.
- await page.evaluate(()=>{const save=JSON.parse(localStorage.getItem('emberwild-save-v1'));save.gold=200;localStorage.setItem('emberwild-save-v1',JSON.stringify(save));});
+ await page.addInitScript(()=>{
+  if(sessionStorage.getItem('armor-funded')==='1')return;
+  const raw=localStorage.getItem('emberwild-save-v1');
+  if(raw){const save=JSON.parse(raw);save.gold=200;localStorage.setItem('emberwild-save-v1',JSON.stringify(save));sessionStorage.setItem('armor-funded','1');}
+ });
  await page.reload({waitUntil:'load'});
  await page.locator('#play').click();
  await page.locator('#inventory-button').click();
+ const fundedGold=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')).gold);
+ if(fundedGold!==200)errors.push('Funding in browser setup failed: '+fundedGold);
  await page.locator('#armor-shop button').filter({hasText:'Vonkenhelm'}).click();
  equipped=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(!equipped?.armorOwned?.includes('ember_helm')||equipped?.gold!==105)errors.push('Armor shop purchase did not save correctly');
