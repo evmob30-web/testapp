@@ -14,9 +14,10 @@ test('shared character rig exposes stable named joints and equipment anchors',()
  const rig=makeRig();
  for(const name of ['root','hips','spine','chest','neck','head','upper_arm_l','lower_arm_l','hand_l','upper_arm_r','lower_arm_r','hand_r','upper_leg_l','lower_leg_l','foot_l','upper_leg_r','lower_leg_r','foot_r','weapon_r','back']){
    assert.ok(rig.joints[name],name+' is required');
-   assert.ok(rig.joints[name].isGroup);
+   assert.ok(rig.joints[name].isBone);
  }
  assert.equal(rig.model.parent,rig.group);
+ assert.ok(rig.skeleton.isSkeleton);
  assert.ok(rig.blade.parent===rig.joints.weapon_r);
  assert.ok(rig.guard.parent===rig.joints.weapon_r);
  assert.ok(rig.body.isMesh);
