@@ -1,4 +1,4 @@
-# Star Hopper
+# Star Hopper — versie 0.2
 
 Een originele eerste speelbare 2D-platformgame in Dromervelden. Help Nova, een klein wezen met grote oren, een blauwe sjaal en een lichtgevende ster, over zwevende eilanden naar het sterrenportaal.
 
@@ -22,7 +22,7 @@ Op aanraakschermen verschijnen drie knoppen. Voor de prettigste ervaring op een 
 
 ## Doel en spelregels
 
-Volg twaalf sterren langs twaalf eilanden naar het portaal rechts aan het einde. Alle sterren verzamelen is optioneel: het portaal is altijd beschikbaar. Na vallen begin je bij het eerste eiland en wordt de sterrenteller geleegd. Je totale speeltijd en aantal valpartijen blijven voor deze poging bewaard. R of ‘Opnieuw beginnen’ wist ook die cijfers. Het voltooiingsscherm toont het resultaat. Er wordt niets opgeslagen na het sluiten of verversen van de pagina.
+Volg twaalf sterren langs twaalf eilanden naar het portaal rechts aan het einde. Alle sterren verzamelen is optioneel: het portaal is altijd beschikbaar. Na vallen begin je bij het eerste eiland en wordt de sterrenteller geleegd. Je totale speeltijd en aantal valpartijen blijven voor deze poging bewaard. R of ‘Opnieuw beginnen’ wist ook die cijfers. Het voltooiingsscherm toont het resultaat. Na een voltooid level worden je beste tijd en hoogste sterrenscore lokaal in deze browser bewaard. Deze records worden op het start-, pauze- en voltooiingsscherm getoond. Bij geblokkeerde opslag gelden ze alleen voor de huidige sessie. Gebruik ‘Geluid aan/uit’ bovenaan om de originele synthgeluiden te dempen; deze voorkeur wordt ook lokaal bewaard. Geluid start pas na een gebruikersactie. Er zijn geen trackers of externe audiodiensten.
 
 ## Publiceren op GitHub Pages
 
@@ -42,6 +42,8 @@ Alle bronverwijzingen zijn relatief, dus ook een GitHub Pages-projectpad werkt. 
 - `js/level.js` — platform-, ster-, start- en portaaldata.
 - `js/physics.js` — beweging, zwaartekracht, variabele sprongen, 110 ms coyote time, 130 ms jump buffering en botsingen.
 - `js/renderer.js` — originele procedurele pixelgraphics, Nova’s vier animatietoestanden, luchtlagen, wolken, eilanden, portaal en effecten.
+- `js/audio.js` — zachte Web Audio-geluiden voor springen, landen, sterren en het portaal; met dempvoorkeur.
+- `js/records.js` — beste tijd en sterrenscore in localStorage, met veilige terugval naar sessiegeheugen.
 - `js/game.js` — invoer, vaste simulatiestap, begrensde vloeiende camera, spelstatus, HUD en deeltjes.
 - `tests/*.test.cjs` — automatische fysica- en spelcyclustests met Node.js.
 
@@ -59,6 +61,6 @@ Met Node.js 18 of nieuwer, vanuit de projectmap:
 node --test tests/*.cjs
 ```
 
-Zes tests geslaagd: stabiel landen, alle elf opeenvolgende levelsprongen, variabele spronghoogte en geen herhaalsprong bij vasthouden, coyote time en buffering, zij-/onderbotsingen en wereldgrenzen, plus starten/pauzeren/sterren/vallen/portaal/herstarten. De integratietest gebruikt een nagebootste DOM en Canvas-context; dit controleert uitvoering en spelstatus, niet de uiteindelijke pixels. JavaScript-syntax is ook gecontroleerd. Visuele controle in een echte browser is niet uitgevoerd: de voorgeschreven browsertool was in de ontwikkelomgeving niet beschikbaar.
+Tien tests geslaagd: stabiel landen, alle elf opeenvolgende levelsprongen, variabele spronghoogte en geen herhaalsprong bij vasthouden, coyote time en buffering, zij-/onderbotsingen en wereldgrenzen, plus starten/pauzeren/sterren/vallen/portaal/herstarten, blijvende records, geblokkeerde of beschadigde opslag en audiostart/dempen. De integratietest gebruikt een nagebootste DOM en Canvas-context; dit controleert uitvoering en spelstatus, niet de uiteindelijke pixels. JavaScript-syntax is ook gecontroleerd. Visuele controle in een echte browser is niet uitgevoerd: de voorgeschreven browsertool was in de ontwikkelomgeving niet beschikbaar.
 
 Geen externe assets, fonts, libraries of betaalde diensten. Geen extra werelden of complexe systemen.
