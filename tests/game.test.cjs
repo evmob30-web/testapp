@@ -74,7 +74,7 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  const distantHome={x:distant.homeX,z:distant.homeZ};
  distant.mesh.position.set(15,0,-34);distant.homeX=15;distant.homeZ=-34;
  distant.attack=100;distant.alertTimer=0;
- s.x=15;s.z=-16;tick(3);
+ s.x=15;s.z=-16;tick(42); // Let the prior shield-shot cooldown finish.
  const farHp=distant.hp,farZ=distant.mesh.position.z;
  assert.equal(distant.alertTimer,0,'enemy starts unalerted beyond 11-unit sight range');
  aimAt(distant.mesh.position.x,distant.mesh.position.z);
