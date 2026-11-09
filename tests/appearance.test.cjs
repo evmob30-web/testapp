@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const THREE=require('../vendor/three.min.js');
 const root={THREE};root.window=root;vm.createContext(root);
-for(const file of ['core','character-rig','flame-guardian','appearance'])
+for(const file of ['core','hero-art','character-rig','flame-guardian','appearance'])
  vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
 test('creator accepts supported values and clamps bad saved appearance',()=>{
  const state=root.RPG.fresh('ranger');

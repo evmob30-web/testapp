@@ -6,7 +6,7 @@
 (function(root){
 'use strict';
 function create(T, options={}){
-  const skin=options.skin||'guardian';
+  const skin=options.skin||'guardian', art=root.EmberHeroArt?.create(T);
   const group=new T.Group();group.name='Character';
   const model=new T.Bone();model.name='rig_root';model.position.y=1.2;group.add(model);
   const joints={root:model};
@@ -16,46 +16,47 @@ function create(T, options={}){
   function ellipsoid(parent,name,w,h,d,x,y,z,color){const m=new T.Mesh(new T.SphereGeometry(1,18,12),material(color));m.name=name;m.scale.set(w/2,h/2,d/2);m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m;}
   function tapered(parent,name,top,bottom,height,x,y,z,color){const m=new T.Mesh(new T.CylinderGeometry(top,bottom,height,14,1),material(color));m.name=name;m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m;}
   const palette=skin==='ranger'?{armor:'#637e64',fabric:'#829b74',cape:'#567357',accent:'#b8c88e'}:{armor:'#626e79',fabric:'#a0b0a3',cape:'#81958a',accent:'#d7ae6b'};
-  const hips=joint('hips',model,0,-.19,0);
+  const hips=joint('hips',model,0,.30,0);
   ellipsoid(hips,'pelvis',.67,.43,.48,0,0,0,palette.armor);
-  const spine=joint('spine',hips,0,.34,0);
-  const chest=joint('chest',spine,0,.38,0);
+  const spine=joint('spine',hips,0,.27,0);
+  const chest=joint('chest',spine,0,.34,0);
   const body=ellipsoid(chest,'body',.86,.97,.59,0,-.09,0,palette.armor);
-  const neck=joint('neck',chest,0,.46,0);
-  const head=joint('head',neck,0,.12,0);
-  ellipsoid(head,'face',.66,.76,.60,0,.15,.06,'#dab58d');
+  const neck=joint('neck',chest,0,.38,0);
+  const head=joint('head',neck,0,.11,0);
+  ellipsoid(head,'face',.45,.49,.43,0,.09,.025,'#dab58d');
   ellipsoid(head,'hair',.7,.41,.63,0,.43,-.07,'#59483b');
   const cloth=ellipsoid(chest,'cloak',.85,1.04,.12,0,-.28,-.33,palette.cape);
-  const left=joint('upper_leg_l',hips,-.24,-.19,0);
-  tapered(left,'thigh_l',.18,.135,.48,0,-.23,0,'#514f46');
-  const kneeL=joint('lower_leg_l',left,0,-.47,0);
-  tapered(kneeL,'shin_l',.145,.11,.40,0,-.19,0,'#514f46');
-  const footL=joint('foot_l',kneeL,0,-.37,.08);
+  const left=joint('upper_leg_l',hips,-.24,-.23,0);
+  tapered(left,'thigh_l',.19,.15,.68,0,-.34,0,'#514f46');
+  const kneeL=joint('lower_leg_l',left,0,-.68,0);
+  tapered(kneeL,'shin_l',.16,.12,.61,0,-.30,0,'#514f46');
+  const footL=joint('foot_l',kneeL,0,-.61,.08);
   ellipsoid(footL,'boot_l',.35,.22,.52,0,-.02,.12,'#393d40');
-  const right=joint('upper_leg_r',hips,.24,-.19,0);
-  tapered(right,'thigh_r',.18,.135,.48,0,-.23,0,'#514f46');
-  const kneeR=joint('lower_leg_r',right,0,-.47,0);
-  tapered(kneeR,'shin_r',.145,.11,.40,0,-.19,0,'#514f46');
-  const footR=joint('foot_r',kneeR,0,-.37,.08);
+  const right=joint('upper_leg_r',hips,.24,-.23,0);
+  tapered(right,'thigh_r',.19,.15,.68,0,-.34,0,'#514f46');
+  const kneeR=joint('lower_leg_r',right,0,-.68,0);
+  tapered(kneeR,'shin_r',.16,.12,.61,0,-.30,0,'#514f46');
+  const footR=joint('foot_r',kneeR,0,-.61,.08);
   ellipsoid(footR,'boot_r',.35,.22,.52,0,-.02,.12,'#393d40');
-  const leftArm=joint('upper_arm_l',chest,-.53,.27,0);
+  const leftArm=joint('upper_arm_l',chest,-.53,.20,0);
   leftArm.rotation.z=-.17;
-  tapered(leftArm,'upper_arm_mesh_l',.155,.115,.46,0,-.23,0,palette.armor);
-  const elbowL=joint('lower_arm_l',leftArm,0,-.45,0);
-  tapered(elbowL,'forearm_l',.135,.105,.40,0,-.18,0,'#514f46');
-  const handL=joint('hand_l',elbowL,0,-.40,0);
+  tapered(leftArm,'upper_arm_mesh_l',.17,.125,.61,0,-.30,0,palette.armor);
+  const elbowL=joint('lower_arm_l',leftArm,0,-.61,0);
+  tapered(elbowL,'forearm_l',.15,.105,.53,0,-.265,0,'#514f46');
+  const handL=joint('hand_l',elbowL,0,-.53,0);
   ellipsoid(handL,'glove_l',.27,.28,.27,0,-.06,0,'#403e40');
-  const arm=joint('upper_arm_r',chest,.53,.27,0);
+  const arm=joint('upper_arm_r',chest,.53,.20,0);
   arm.rotation.z=.17;
-  tapered(arm,'upper_arm_mesh_r',.155,.115,.46,0,-.23,0,palette.armor);
-  const elbowR=joint('lower_arm_r',arm,0,-.45,0);
-  tapered(elbowR,'forearm_r',.135,.105,.40,0,-.18,0,'#514f46');
-  const handR=joint('hand_r',elbowR,0,-.40,0);
+  tapered(arm,'upper_arm_mesh_r',.17,.125,.61,0,-.30,0,palette.armor);
+  const elbowR=joint('lower_arm_r',arm,0,-.61,0);
+  tapered(elbowR,'forearm_r',.15,.105,.53,0,-.265,0,'#514f46');
+  const handR=joint('hand_r',elbowR,0,-.53,0);
   ellipsoid(handR,'glove_r',.27,.28,.27,0,-.06,0,'#403e40');
   // Weapon attaches to the right hand; these references preserve game combat.
   const socket=joint('weapon_r',handR,0,-.14,.05);
-  const blade=tapered(socket,'blade',.072,.115,1.02,0,-.51,.40,'#d1ded5');
-  const guard=cube(socket,'guard',.50,.11,.19,0,-.12,.40,'#e2bd78');
+  const blade=tapered(socket,'blade',.072,.115,1.02,0,-.51,.12,'#d1ded5');
+  const guard=cube(socket,'guard',.50,.11,.19,0,-.12,.12,'#e2bd78');
+  if(art){blade.geometry.dispose();blade.geometry=art.swordBlade();guard.geometry.dispose();guard.geometry=art.plate([[-.24,.045],[-.13,.005],[0,.02],[.13,.005],[.24,.045],[.20,-.035],[.10,-.05],[0,-.025],[-.10,-.05],[-.20,-.035]],.075,.012);}
   // A dedicated back socket can carry bows, backpacks and capes.
   joint('back',chest,0,0,-.38);
   function setSkin(next){
@@ -125,6 +126,7 @@ function create(T, options={}){
     // Hair and cloak are animated by external skin attachments, without a simulation.
     return {locomotion,gaitPhase,running,strikeWeight};
   }
+  group.updateMatrixWorld(true);
   const skeleton=new T.Skeleton(Object.values(joints));
   setSkin(skin);
   return {group,model,joints,skeleton,body,cloth,left,right,arm,blade,guard,setSkin,animate};

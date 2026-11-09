@@ -7,7 +7,7 @@ const THREE=require('../vendor/three.min.js');
 
 function makeRig(){
  const sandbox={THREE};sandbox.window=sandbox;vm.createContext(sandbox);
- vm.runInContext(fs.readFileSync(path.join(__dirname,'../js/character-rig.js'),'utf8'),sandbox);
+ for(const file of ['hero-art','character-rig'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js/'+file+'.js'),'utf8'),sandbox);
  return sandbox.EmberCharacterRig.create(THREE);
 }
 test('shared character rig exposes stable named joints and equipment anchors',()=>{

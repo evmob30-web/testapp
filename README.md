@@ -1,6 +1,6 @@
-# Emberwild — De laatste vonk · versie 1.2
+# Emberwild — De laatste vonk · versie 1.3
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.2 bevat twee classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met een vervormbaar skelet, gezichtsdetails en kledingtextuur. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.3 bevat twee classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
@@ -112,7 +112,8 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 - `index.html`, `style.css`: interface en menu's.
 - `js/core.js`: spelregels, opdrachten, uitrusting, beloningen en opslagvalidatie.
-- `js/character-rig.js`: gedeeld personageskelet, bevestigingspunten en procedurele animaties.
+- `js/character-rig.js`: gedeeld personageskelet, heroïsche verhoudingen, zwaard, bevestigingspunten en procedurele animaties.
+- `js/hero-art.js`: originele geometrie voor gebogen pantserplaten, drie kapsels en de tien verzamelde uitrustingsstukken; gedeeld door de game en modelgenerator.
 - `js/flame-guardian.js`: het procedurele Flame Guardian-reservemodel en bron voor het GLB-kostuum.
 - `js/model-assets.js`: GLB laden, gedeelde geometrie, eigen materialen en koppeling aan de spelbotten.
 - `js/character-assets-data.js`: dezelfde GLBs ingesloten voor offline spelen en rechtstreeks openen.
@@ -138,7 +139,7 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-De huidige testsuite bevat 59 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
+De huidige testsuite bevat 60 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert daarvoor Playwright en Chromium; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
@@ -150,11 +151,19 @@ De huidige game heeft twee gebieden, twee classes en twee korte hoofdstukken, me
 
 De speler gebruikt dit gedeelde skelet. Wachter en Woudloper zijn classes; **klassiek** en **Flame Guardian** zijn cosmetische uiterlijkkeuzes. Flame Guardian heeft inmiddels eigen procedureel gemodelleerde pantserdelen, gezichtsdetails, haarlokken, cape en lichtgevende kristallen. Kapsels en kleuren worden door de character creator toegepast; verzameld pantser staat los van het basiskostuum.
 
-De twee echte glTF 2.0-bestanden staan in `assets/characters/`: `ember-adventurer.glb` en `flame-guardian.glb`. Het lijf heeft doorlopende geometrie met genormaliseerde botgewichten bij romp, ellebogen en knieën. Gezicht, vingers, kledingnaden, gespen, laarzen en mantel geven meer detail; Flame Guardian heeft een gesmeed pantser, goudranden, gravures, een rode tabberd en lichtgevende kristallen. De kleine stof-/oppervlaktetextuur is in ieder model ingesloten. Dit is originele gestileerde art, gemaakt met de meegeleverde generator.
+De twee echte glTF 2.0-bestanden staan in `assets/characters/`: `ember-adventurer.glb` en `flame-guardian.glb`. Het lijf heeft doorlopende geometrie met genormaliseerde botgewichten bij romp, ellebogen en knieën. Gezicht, vingers, kledingnaden, gespen, laarzen en mantel geven meer detail; Flame Guardian heeft een gesmeed pantser, goudranden, gravures, een rode tabberd en lichtgevende kristallen. De originele materiaalatlas van 512 × 256 pixels bevat stof, leer, geborsteld staal, goud en mantelpatronen. Hij is in ieder model ingesloten. Vertexkleuren versterken de vorm met subtiele geschilderde schaduw en highlights. Dit is originele gestileerde art, gemaakt met de meegeleverde generator.
 
 `EmberModelAssets` laadt via de lokaal meegeleverde officiële GLTFLoader. De `SkinnedMesh`-geometrie wordt aan de bestaande benoemde botten gekoppeld. De personagepreview en de speler delen onveranderlijke geometrie, maar hebben eigen materialen en botten. Haaropties, wapens, verzameld pantser en het Hartamulet gebruiken hun bestaande bevestigingspunten. Classes, bonussen en het opslagformaat veranderen niet. NPC's en vijanden behouden hun bestaande lichte procedurele modellen.
 
 Voor rechtstreeks openen van `index.html` en offline gebruik bevat `js/character-assets-data.js` dezelfde GLB-bytes. Er zijn geen externe modelverzoeken of extra installaties nodig. Bij een laadprobleem blijft het procedurele reservemodel zichtbaar. De generator maakt zowel de losse GLBs als de identieke offlineversie opnieuw: `node scripts/build-character-assets.cjs`. Zie ook [de assetdocumentatie](assets/characters/README.md).
+
+## Heroïsche heldenstijl
+
+Versie 1.3 geeft de speler langere benen en armen, een kleiner hoofd, een gevormde kaak/neus en kleine amandelvormige ogen. De reiziger draagt een passend leren vest, een schuine draagriem, een verstevigde schouder, gespen en reistasjes. Flame Guardian draagt een gebogen borstplaat, overlappende buik-/schouder-/armplaten, goudinleg, sintelkristallen en een lange geborduurde mantel. De drie kapsels bestaan uit taps toelopende haarlokken; hun geometrie is per kapsel samengevoegd tot één drawcall en wordt tussen speler en preview gedeeld.
+
+Verzamelde helmen, schouders, borstpantser, handschoenen en laarzen gebruiken dezelfde vormtaal en passen op de nieuwe verhoudingen. Het zwaard heeft een scherpe punt, een geslepen doorsnede en een gevormde pareerstang. De character creator toont de juiste classkleuren met zachter studiolicht en een draaiplateau. Het zijn originele gestileerde fantasy-modellen; de wereld en NPC's behouden hun bestaande stijl.
+
+Botnamen, bevestigingspunten en de grondpositie van de voeten blijven bruikbaar voor de bestaande animaties en uitrusting. De rustverhoudingen en GLB-bindmatrices zijn samen bijgewerkt. Het opslagformaat en de spelregels veranderen niet; een bestaand avontuur kan direct verder.
 
 ## Karakteranimaties
 
@@ -203,3 +212,7 @@ Test met `node --test tests/*.cjs`. De browser-smoketest omvat een echte lootint
 ## Publiceren via GitHub Pages
 
 Zet de volledige repository op GitHub, inclusief `vendor/`, `js/` en `assets/`. Kies bij **Settings → Pages** voor **Deploy from a branch → main → / (root)** en sla op. Er is geen buildstap. De game staat voor deze repository op https://evmob30-web.github.io/testapp/. Bij een oude gecachete versie helpt **Ctrl+F5**. Publiceren vervangt geen lokale spelersvoortgang.
+
+Voor de browser-smoketest kan optioneel `EMBERWILD_CHROMIUM_PATH` naar een bestaande Chromium-installatie verwijzen. Zonder die variabele gebruikt de test de door Playwright geïnstalleerde browser.
+
+Op een beheerde testmachine die `file://`-navigatie blokkeert kan `node scripts/browser-start.cjs --http-only` alleen de HTTP-controles uitvoeren. GitHub Actions gebruikt altijd de volledige test, inclusief rechtstreeks openen.

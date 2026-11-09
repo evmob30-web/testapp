@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const path=require('node:path');
 const THREE=require('../vendor/three.min.js');
 const root={THREE};root.window=root;vm.createContext(root);
-for(const file of ['core','loot','equipment','character-rig','flame-guardian','appearance'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
+for(const file of ['core','loot','equipment','hero-art','character-rig','flame-guardian','appearance'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
 test('armor has five compatible slots, starter items and safe save restoration',()=>{
  const s=root.RPG.fresh('ranger');
  const slots=Object.keys(root.EmberEquipment.slots);
@@ -70,9 +70,10 @@ test('equipped pieces render visibly on correct Three.js bone joints',()=>{
  assert.strictEqual(chest.parent,rig.joints.chest);
  assert.strictEqual(boot.parent,rig.joints.foot_l);
  assert.strictEqual(rig.blade.parent,rig.joints.weapon_r);
- const before=boot.getWorldPosition(new THREE.Vector3());
+ rig.group.updateMatrixWorld(true);const vertex=new THREE.Vector3().fromBufferAttribute(boot.geometry.attributes.position,0);
+ const before=boot.localToWorld(vertex.clone());
  rig.joints.foot_l.rotation.x=.7;rig.group.updateMatrixWorld(true);
- const after=boot.getWorldPosition(new THREE.Vector3());
+ const after=boot.localToWorld(vertex.clone());
  assert.ok(before.distanceTo(after)>.01);
  root.EmberEquipment.equip(s,'wanderer_chest');view.sync(s);
  assert.ok(view.groups.wanderer_chest.userData.meshes.every(m=>!m.visible));
