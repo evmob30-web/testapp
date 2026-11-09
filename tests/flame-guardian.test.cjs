@@ -38,3 +38,20 @@ test('appearance survives old and new saved games independently of class',()=>{
  state.skinId='unknown';
  assert.equal(context.RPG.restore(JSON.stringify(state)).skinId,'classic');
 });
+
+test('sculpted Flame Guardian has curved hair and smooth armor geometry',()=>{
+ const rig=context.EmberCharacterRig.create(THREE);
+ const skin=context.EmberFlameGuardian.decorate(THREE,rig);
+ const named=n=>skin.costumeMeshes.find(m=>m.name==='flame_'+n);
+ assert.equal(named('cuirass').geometry.type,'SphereGeometry');
+ assert.equal(named('pauldron_-1').geometry.type,'SphereGeometry');
+ assert.equal(named('fringe_2').geometry.type,'TubeGeometry');
+ assert.equal(named('long_hair_1').geometry.type,'TubeGeometry');
+ assert.equal(named('face').geometry.type,'SphereGeometry');
+ assert.equal(named('nose').geometry.type,'SphereGeometry');
+ assert.equal(named('cape_panel_1').geometry.type,'SphereGeometry');
+ assert.equal(named('cuirass').material.flatShading,false);
+ skin.setVisible(true);
+ rig.animate(0.3,true,0);
+ assert.ok(skin.costumeMeshes.every(m=>m.visible));
+});

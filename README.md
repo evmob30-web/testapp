@@ -139,3 +139,7 @@ Dit is een eerste speelbare RPG met twee gebieden, twee classes, twee korte hoof
 De bestaande speler gebruikt het skelet. `guardian`, `ranger` en `flame_guardian` zijn **voorlopig kleurvarianten van een eenvoudig opgebouwd prototype**; de gedetailleerde Flame Guardian uit de concepttekening is nog niet gemodelleerd. De huidige meshes zijn star aan de botten bevestigd: dit is dus wel een echte bot-hiërarchie maar nog **geen weight-painted, vervormbare SkinnedMesh**. Voor definitieve GLB-skins zijn mesh, weights, UV/texturen en eventueel animatie-retargeting nodig. Questdata, bestaande saves en besturing blijven onveranderd.
 
 Controle: `node --test tests/*.cjs` (ook `tests/character-rig.test.cjs`).
+
+## Stylized character-upgrade
+
+De speler gebruikt nu gladdere procedurele vormen: ellipsoïden voor gezicht/romp/voeten, taps toelopende cilinders voor ledematen en smooth-shaded materialen. De Flame Guardian heeft rondere bepantsering, nieuwe gezichtsdetails en haarlokken van gebogen buizen. Dit alles gebruikt de bestaande botstructuur en skin-wisselaar; de voortgang en classes blijven gelijk. De personages zijn nog opgebouwd uit rigide delen op botten, niet uit één gewichtsgeschilderde SkinnedMesh of geïmporteerde GLB. Voor naadloze vervorming en hoogwaardige handgeschilderde texturen is een volgende stap met een echt art-asset nodig.
