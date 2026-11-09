@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const path=require('node:path');
 const THREE=require('../vendor/three.min.js');
 const root={THREE};root.window=root;vm.createContext(root);
-for(const file of ['core','equipment','character-rig','flame-guardian','appearance'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
+for(const file of ['core','loot','equipment','character-rig','flame-guardian','appearance'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
 test('armor has five compatible slots, starter items and safe save restoration',()=>{
  const s=root.RPG.fresh('ranger');
  const slots=Object.keys(root.EmberEquipment.slots);

@@ -177,3 +177,13 @@ Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruis
 - Elke gewone melee-aanval toont eerst een gekleurde, pulserende waarschuwingsring op de grond. Beweeg of rol uit het bereik voordat de slag valt; een eigen melee-treffer kan de voorbereiding van de tegenstander onderbreken.
 - Verrassingsschoten met een boog blijven raakbaar van buiten detectieafstand. Eerder gealarmeerde vijanden mogen volgende pijlen proberen te ontwijken; botsingen en blokkeringen blijven leidend.
 - De bestaande aanvallen en telegraphs van Doornwachter en Wortelmoeder blijven behouden. Quests, loot en save-indeling veranderen niet. De AI-status bestaat alleen gedurende de huidige speelsessie.
+
+## Loot & Progression v1.1
+
+Vijanden kunnen bij verslaan willekeurige uitrusting laten vallen. Gewone vijanden hebben ongeveer 57% dropkans; geesten 78%, schildwachters 70% en eindbazen altijd een drop. De verdeling van gewone drops is 55% **gewoon**, 28% **zeldzaam**, 13% **episch** en 4% **legendarisch**. Eindbazen hebben betere kansen op epische of legendarische stukken. Iedere drop combineert een bestaand van vijf armor-slots (helm, schouders, borst, handschoenen, laarzen) met een zeldzaamheid en een willekeurig kenmerk: Levenskracht, Woede, Scherpschutter, Bescherming of Sintelvuur.
+
+Na het verslaan verschijnt een draaiende 3D-kristal op de grond, gekleurd naar zeldzaamheid. Ga binnen 2,5 speleenheden staan en druk op **E** om de buit op te pakken. Buit die nog op de grond ligt, wordt net als de verzamelde loot opgeslagen bij je avontuur en opnieuw getoond na laden. De inventaris onder **I → Gevonden buit** toont statvergelijkingen met het momenteel uitgeruste item, een knop voor uitrusten/afleggen en een verkoopknop. Er passen maximaal 32 gevonden items in je reistas en 32 zichtbare drops in de wereld. Verkoop is onmogelijk zolang een item is uitgerust.
+
+De gemaakte combinaties zijn cosmetisch zichtbaar via de reeds bestaande 3D-pantsermodellen, nu met hun zeldzaamheidskleur. Basispantser en unieke loot gebruiken hetzelfde armor-slot, dus bonussen tellen niet dubbel. Extra statistieken naast HP en schade zijn **boogschade** (Scherpschutter / Sintelvuur) en **schadevermindering** (Bescherming). De bestaande vijanden, quests, unieke boss-buit, character creator en opslagsleutel blijven intact. Bij het laden worden items en terreinlocaties strikt gevalideerd; savebestanden kunnen geen willekeurige itemnamen, IDs of statistieken injecteren. De waarde van bonussen komt alleen uit vooraf gedefinieerde itemtemplates, niet uit opgeslagen invoer.
+
+Test met `node --test tests/*.cjs`. De browser-smoketest omvat een echte lootinteractie, het vergelijkingspaneel, uitrusten en opnieuw laden.
