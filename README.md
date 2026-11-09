@@ -1,4 +1,4 @@
-# Emberwild — De laatste vonk · versie 0.5
+# Emberwild — De laatste vonk · versie 0.5.1
 
 Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
