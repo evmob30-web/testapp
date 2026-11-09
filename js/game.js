@@ -6,23 +6,69 @@ const exploration=EmberExplore.create(world);
 const archery=EmberArchery.create(world);
 const dungeon=EmberDungeon.create(world);
 const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,180),keys=new Set(),raycaster=new THREE.Raycaster(),saveKey='emberwild-save-v1';let state=RPG.fresh(),saved=null,storageOK=true,mode='start',last=0,time=0,yaw=0,pitch=.48,distance=10,attackCD=0,magicCD=0,swing=0,healCD=0,toastTime=0,saveTime=0,hudTime=0,drag=null,moved=false,dialogAction=null,target=null,near=null;
-const combat=EmberCombat.create(),projectiles=[],arrows=[];let charging=false,charge=0,selectedClass='guardian',selectionReturn='start';const aimMouse=new THREE.Vector2(),aimRay=new THREE.Raycaster(),aimPoint=new THREE.Vector3(),aimPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-1.5);let mouseX=innerWidth/2,mouseY=innerHeight/2;
+const combat=EmberCombat.create(),projectiles=[],arrows=[];let charging=false,charge=0,selectedClass='guardian',selectionReturn='start',editingAppearance=false,selectedSkin='classic',selectedAppearance=RPG.defaultAppearance(),creatorPreview=null;const aimMouse=new THREE.Vector2(),aimRay=new THREE.Raycaster(),aimPoint=new THREE.Vector3(),aimPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-1.5);let mouseX=innerWidth/2,mouseY=innerHeight/2;
 try{const raw=localStorage.getItem(saveKey);if(raw)saved=RPG.restore(raw);}catch{storageOK=false;}
 if(saved){$('play').textContent='Ga verder →';$('new').hidden=false;$('save-info').textContent=RPG.classConfig(saved).name+' · Niveau '+saved.level+' · '+RPG.questText(saved)[0]+' · Lokaal opgeslagen';}
 function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}addEventListener('resize',resize);resize();
 function toast(text){$('toast').textContent=text;$('toast').style.opacity='1';toastTime=4;}
 function save(){try{localStorage.setItem(saveKey,JSON.stringify(state));}catch{if(storageOK)toast('Opslaan is geblokkeerd. Je avontuur blijft alleen in deze sessie.');storageOK=false;}}
 function cancelCharge(){charging=false;charge=0;}
-function loadout(){world.setWeapon(state.equipped,state.weapon);world.setClass(state.classId);world.setAppearance(state.skinId,state.classId);archery.sync(state);}
+function loadout(){world.setWeapon(state.equipped,state.weapon);world.setClass(state.classId);world.setAppearance(state.skinId,state.classId,state.appearance);archery.sync(state);}
 function syncQuestObjects(){const v=RPG.questVisibility(state);dungeon.sync(state);exploration.sync(state);archery.sync(state);for(const e of world.enemies)e.mesh.visible=RPG.enemyVisible(state,e);for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&v.crystals&&!state.crystals.includes(c.id);world.sigil.visible=state.area==='valley'&&(v.forestBoss||v.dungeon);if(target&&!target.mesh.visible)target=null;}
 function sync(){cancelCharge();for(const a of arrows)world.scene.remove(a.mesh);arrows.length=0;dungeon.setArea(state.area);dungeon.sync(state);exploration.sync(state);if(state.area==='roots'&&!EmberDungeon.canStand(state.x,state.z,state.gateOpen)){state.x=100;state.z=14;}combat.remaining=0;combat.cooldown=0;for(const p of projectiles)world.scene.remove(p.mesh);projectiles.length=0;world.player.model.rotation.x=0;loadout();world.setAmulet(state.amulet&&state.amuletEquipped);world.player.group.position.set(state.x,0,state.z);for(const e of world.enemies){e.mesh.visible=(e.area||'valley')===state.area&&!state.kills.includes(e.id);e.hp=e.max;e.mesh.position.set(e.homeX,0,e.homeZ);e.attack=1;e.windup=0;e.lastX=e.homeX;e.lastZ=e.homeZ;}for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&!state.crystals.includes(c.id);world.chest.visible=state.area==='valley'&&!state.chest;world.warning.visible=false;syncQuestObjects();}
-function begin(fresh=false,classId='guardian'){EmberAudio.unlock();state=fresh?RPG.fresh(classId):saved?RPG.restore(saved):RPG.fresh(classId);sync();mode='playing';keys.clear();$('overlay').hidden=true;$('hud').hidden=false;canvas.focus?.({preventScroll:true});attackCD=magicCD=healCD=swing=0;yaw=0;pitch=.48;camera.position.set(state.x,7,state.z+10);updateHud();save();toast(state.quest===0?'Welkom in Lindehaard. Zoek Elin. Met spatie rol je uit de weg van aanvallen.':'Welkom terug in de Schemervallei.');if(state.sideQuest===0)toast('Nieuw in Lindehaard: Mira zoekt haar kruidenzoeker. Zoek haar ten zuidoosten van het kampvuur.');else if(state.quest===5&&state.dungeon===0)toast('Nieuw avontuur: Elin heeft een opdracht voor de Wortelgrotten.');else if(state.kills.includes('boss')&&state.equipped!=='thorn')toast('Nieuwe buit beschikbaar: open je inventaris met I en rust Doornlicht uit.');}
+function begin(fresh=false,classId='guardian'){EmberAudio.unlock();state=fresh?RPG.fresh(classId):saved?RPG.restore(saved):RPG.fresh(classId);if(fresh){state.skinId=selectedSkin;state.appearance=RPG.normalizeAppearance(selectedAppearance);}sync();mode='playing';keys.clear();$('overlay').hidden=true;$('hud').hidden=false;canvas.focus?.({preventScroll:true});attackCD=magicCD=healCD=swing=0;yaw=0;pitch=.48;camera.position.set(state.x,7,state.z+10);updateHud();save();toast(state.quest===0?'Welkom in Lindehaard. Zoek Elin. Met spatie rol je uit de weg van aanvallen.':'Welkom terug in de Schemervallei.');if(state.sideQuest===0)toast('Nieuw in Lindehaard: Mira zoekt haar kruidenzoeker. Zoek haar ten zuidoosten van het kampvuur.');else if(state.quest===5&&state.dungeon===0)toast('Nieuw avontuur: Elin heeft een opdracht voor de Wortelgrotten.');else if(state.kills.includes('boss')&&state.equipped!=='thorn')toast('Nieuwe buit beschikbaar: open je inventaris met I en rust Doornlicht uit.');}
 $('play').onclick=()=>mode==='paused'?resume():saved?begin():chooseClass('start');$('new').onclick=()=>{if(mode==='start')chooseClass('start');else showDialog('EEN NIEUW BEGIN','Opnieuw beginnen?','Je opgeslagen avontuur wordt vervangen. Je kunt ook sluiten om je huidige avontuur te behouden.','Begin opnieuw',()=>{$('dialog').hidden=true;chooseClass('playing');});};
-function selectClass(id){const c=RPG.classConfig(id);selectedClass=c.id;for(const candidate of Object.values(RPG.classes))$('class-'+candidate.id).setAttribute('aria-pressed',String(candidate.id===c.id));$('class-start').textContent='Begin als '+c.name;world.setClass(c.id);world.setWeapon('starter',c.starter);archery.bow.visible=c.starter==='bow';}
-function chooseClass(from){selectionReturn=from;mode='class-select';cancelCharge();keys.clear();drag=null;$('overlay').hidden=true;$('dialog').hidden=true;$('class-select').hidden=false;selectClass(state.classId);$('class-'+selectedClass).focus?.();}
-function closeClass(){loadout();$('class-select').hidden=true;if(selectionReturn==='start'){mode='start';$('overlay').hidden=false;}else resume();}
+function selectClass(id){const c=RPG.classConfig(id);selectedClass=c.id;for(const candidate of Object.values(RPG.classes))$('class-'+candidate.id).setAttribute('aria-pressed',String(candidate.id===c.id));$('class-start').textContent='Begin als '+c.name;world.setClass(c.id);world.setWeapon('starter',c.starter);archery.bow.visible=c.starter==='bow';refreshCreator();}
+function initializeCreator(){
+ if(creatorPreview)return;
+ try{creatorPreview=EmberAppearance.createPreview(THREE,$('creator-canvas'));}
+ catch(error){console.warn('De 3D-preview is niet beschikbaar:',error);$('creator-preview-error').hidden=false;}
+}
+function refreshCreator(){
+ if(creatorPreview)creatorPreview.select(selectedSkin,selectedAppearance);
+}
+function showCreatorValues(){
+ $('appearance-skin').value=selectedSkin;
+ for(const key of Object.keys(RPG.defaultAppearance()))$('appearance-'+key).value=selectedAppearance[key];
+ refreshCreator();
+}
+function chooseClass(from){
+ editingAppearance=false;selectionReturn=from;mode='class-select';cancelCharge();keys.clear();drag=null;
+ selectedSkin=state.skinId;selectedAppearance=RPG.normalizeAppearance(state.appearance);
+ $('class-options').hidden=false;$('class-headline').textContent='Kies je class en uiterlijk';
+ $('class-caption').textContent='Je class bepaalt je vaardigheden. Je uiterlijk is cosmetisch en verandert je stats niet.';
+ $('overlay').hidden=true;$('dialog').hidden=true;$('class-select').hidden=false;
+ initializeCreator();selectClass(state.classId);showCreatorValues();$('class-'+selectedClass).focus?.();
+}
+function editAppearance(){
+ if(mode!=='inventory')return;
+ editingAppearance=true;selectionReturn='inventory';mode='class-select';cancelCharge();keys.clear();
+ selectedSkin=state.skinId;selectedAppearance=RPG.normalizeAppearance(state.appearance);selectedClass=state.classId;
+ $('inventory').hidden=true;$('class-options').hidden=true;
+ $('class-headline').textContent='Pas je uiterlijk aan';
+ $('class-caption').textContent='Verander je kapsel en kleuren. Je klasse en avontuur blijven hetzelfde.';
+ $('class-select').hidden=false;initializeCreator();showCreatorValues();
+ $('class-start').textContent='Bewaar uiterlijk';
+}
+function closeClass(){
+ loadout();$('class-select').hidden=true;
+ if(selectionReturn==='start'){mode='start';$('overlay').hidden=false;}
+ else resume();
+ editingAppearance=false;
+}
+for(const key of ['skin',...Object.keys(RPG.defaultAppearance())]){
+ const control=$('appearance-'+key);
+ control.onchange=()=>{
+  if(key==='skin')selectedSkin=control.value==='flame_guardian'?'flame_guardian':'classic';
+  else selectedAppearance=RPG.normalizeAppearance({...selectedAppearance,[key]:control.value});
+  refreshCreator();
+ };
+}
+$('creator-left').onclick=()=>creatorPreview?.rotate(-Math.PI/6);
+$('creator-right').onclick=()=>creatorPreview?.rotate(Math.PI/6);
+$('customize').onclick=editAppearance;
 for(const c of Object.values(RPG.classes)){const b=document.createElement('button');b.type='button';b.id='class-'+c.id;b.className='class-card';b.setAttribute('aria-pressed','false');const name=document.createElement('strong');name.textContent=c.name;const description=document.createElement('span');description.textContent=c.description;const stats=document.createElement('small');stats.textContent=c.hp+' gezondheid · '+c.loadoutDescription;b.appendChild(name);b.appendChild(description);b.appendChild(stats);b.onclick=()=>selectClass(c.id);$('class-options').appendChild(b);}
-$('class-start').onclick=()=>{$('class-select').hidden=true;begin(true,selectedClass);};$('class-back').onclick=closeClass;if(!saved)$('play').textContent='Kies je class →';
+$('class-start').onclick=()=>{if(editingAppearance){state.skinId=selectedSkin;state.appearance=RPG.normalizeAppearance(selectedAppearance);closeClass();loadout();save();return;}$('class-select').hidden=true;begin(true,selectedClass);};$('class-back').onclick=closeClass;if(!saved)$('play').textContent='Kies je class →';
 function switchWeapon(){if(mode!=='playing'&&mode!=='inventory')return;cancelCharge();drag=null;if(!RPG.setWeapon(state,state.weapon==='bow'?'sword':'bow')){toast('Vraag Elin naar boogtraining om de boog te leren.');return;}loadout();updateHud();if(mode==='inventory')renderInventory();save();}
 $('weapon-toggle').onclick=switchWeapon;$('bow-equip').onclick=switchWeapon;
 function pause(){if(mode!=='playing')return;cancelCharge();drag=null;mode='paused';keys.clear();save();$('overlay').hidden=false;$('title').textContent='Even rust';$('intro-text').textContent='De vallei wacht op je. Je voortgang is bewaard in deze browser.';$('play').textContent='Verder spelen →';$('new').hidden=false;$('save-info').textContent=storageOK?'Automatisch opgeslagen':'Opslag geblokkeerd · alleen deze sessie';}
@@ -145,6 +191,6 @@ function drawMap(){map.clearRect(0,0,160,160);map.fillStyle=state.area==='roots'
  else{map.strokeStyle='#a2a07988';map.lineWidth=7;map.beginPath();map.moveTo(80,16);map.lineTo(80,145);map.stroke();dot(-3,17,'#f1d192',4);dot(6,25,'#ecc2a0',3);if(state.sideQuest===1&&Math.hypot(state.x+23,state.z+32)<12)dot(-23,-32,'#9dd9e5',3);if(RPG.questVisibility(state).shrine&&state.shrineSeen)dot(-26,-48,'#c6f4db',3);for(const h of RPG.herbs)if(RPG.questVisibility(state).herbalist&&!state.gathered.includes(h.id)&&Math.hypot(state.x-h.x,state.z-h.z)<13)dot(h.x,h.z,'#d3dda1',2);dot(8,19,'#c8d4c5');if(RPG.questVisibility(state).dungeon)dot(0,-58.5,'#a9d7d1',4);for(const c of world.crystals)if(c.mesh.visible)dot(c.x,c.z,'#97e6cb');}
  if(!inside&&state.bowQuest===1)for(const t of RPG.bowTargets)dot(t.x,t.z,state.bowPractice.includes(t.id)?'#9bd4b2':'#efd795',3);for(const e of world.enemies)if(e.mesh.visible)dot(e.mesh.position.x,e.mesh.position.z,e.boss?'#eeae68':e.spirit?'#d5b1ed':'#c67c71',e.boss?4:2.5);dot(state.x,state.z,'#ffffff',4);map.fillStyle='#eee4bb';map.font='9px system-ui';map.textAlign='center';map.fillText('N',80,10);}
 function updateCamera(dt){const pos=world.player.group.position,aim=new THREE.Vector3(pos.x,1.8,pos.z),offset=new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch)*distance,Math.sin(pitch)*distance,Math.cos(yaw)*Math.cos(pitch)*distance);raycaster.set(aim,offset.clone().normalize());const hit=raycaster.intersectObjects(world.cameraMeshes,false)[0];if(hit&&hit.distance<offset.length())offset.setLength(Math.max(1.2,hit.distance-.5));const desired=aim.clone().add(offset);camera.position.lerp(desired,1-Math.exp(-8*dt));camera.position.y=Math.max(1,camera.position.y);camera.lookAt(aim);}
-function frame(ms){const dt=Math.min((ms-last)/1000||.016,.04);last=ms;time+=dt;if(mode==='playing')update(dt);else if(mode==='start'){yaw=.3+Math.sin(time*.08)*.18;world.update(dt,time,false,0);}if(mode==='playing'||mode==='start')updateCamera(dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)$('toast').style.opacity='0';}const bowMode=mode==='playing'&&state.weapon==='bow';$('aim-reticle').hidden=!bowMode;$('bow-charge').hidden=!bowMode;$('aim-reticle').style.left=mouseX+'px';$('aim-reticle').style.top=mouseY+'px';$('charge-fill').style.width=charge/1.2*100+'%';$('charge-label').textContent=charging?(charge>=1.15?'Geladen! Laat los om te schieten.':'Boog spannen…'):'Richt met muis · Houd klik / 1 vast';canvas.style.cursor=bowMode?'none':'default';EmberAudio.update(dt,state.area,mode==='playing');renderer.render(world.scene,camera);requestAnimationFrame(frame);}
+function frame(ms){const dt=Math.min((ms-last)/1000||.016,.04);last=ms;time+=dt;if(mode==='playing')update(dt);else if(mode==='start'){yaw=.3+Math.sin(time*.08)*.18;world.update(dt,time,false,0);}if(mode==='playing'||mode==='start')updateCamera(dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)$('toast').style.opacity='0';}const bowMode=mode==='playing'&&state.weapon==='bow';$('aim-reticle').hidden=!bowMode;$('bow-charge').hidden=!bowMode;$('aim-reticle').style.left=mouseX+'px';$('aim-reticle').style.top=mouseY+'px';$('charge-fill').style.width=charge/1.2*100+'%';$('charge-label').textContent=charging?(charge>=1.15?'Geladen! Laat los om te schieten.':'Boog spannen…'):'Richt met muis · Houd klik / 1 vast';canvas.style.cursor=bowMode?'none':'default';EmberAudio.update(dt,state.area,mode==='playing');renderer.render(world.scene,camera);if(mode==='class-select')creatorPreview?.update(time);requestAnimationFrame(frame);}
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();pause();toast('De 3D-weergave is onderbroken. Herlaad de pagina om verder te spelen.');});addEventListener('pagehide',()=>{if(mode!=='start')save();});sync();camera.position.set(10,8,33);requestAnimationFrame(frame);
 })();
