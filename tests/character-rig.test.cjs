@@ -31,8 +31,8 @@ test('skin swaps preserve joint identities and basic animation works',()=>{
  assert.strictEqual(rig.joints.upper_arm_r,arm);
  rig.animate(.5,true,0);
  assert.notEqual(rig.left.rotation.x,0);
- rig.animate(.5,false,0);
- assert.equal(rig.left.rotation.x,0);
+ for(let i=1;i<=28;i++)rig.animate(.5+i/60,false,0);
+ assert.ok(Math.abs(rig.left.rotation.x)<.015,'legs settle when idle');
  rig.animate(.5,false,.2);
  assert.notEqual(rig.arm.rotation.x,0);
 });
@@ -48,4 +48,26 @@ test('shared base uses rounded torso, face and tapered limbs instead of primitiv
  const attach=rig.joints.weapon_r;
  rig.animate(.6,true,.25);
  assert.strictEqual(attach,rig.blade.parent);
+});
+
+test('idle breath, walk/run cadence and attack settle without damaging bone sockets',()=>{
+ const rig=makeRig();
+ const initialY=rig.body.scale.y;
+ rig.animate(.016,false,0);
+ rig.animate(.36,false,0);
+ assert.notEqual(rig.body.scale.y,initialY,'subtle breathing while idle');
+ const left=rig.joints.upper_leg_l;
+ const arm=rig.joints.upper_arm_r;
+ for(let i=1;i<=18;i++)rig.animate(.36+i/60,true,0,{running:false});
+ const walking=Math.abs(left.rotation.x);
+ assert.ok(walking>.03,'walk gait swings legs');
+ const handSocket=rig.joints.weapon_r;
+ for(let i=19;i<=36;i++)rig.animate(.36+i/60,true,0,{running:true});
+ assert.ok(Math.abs(left.rotation.x)<=1,'run gait remains bounded');
+ rig.animate(1.0,true,.21,{running:true});
+ assert.ok(arm.rotation.x<-.8,'sword arm swings forward');
+ for(let i=1;i<=80;i++)rig.animate(1+i/60,false,0);
+ assert.ok(Math.abs(left.rotation.x)<.01,'idle legs return to rest');
+ assert.ok(Math.abs(arm.rotation.z-.17)<.01,'sword arm returns to rest');
+ assert.strictEqual(rig.blade.parent,handSocket);
 });
