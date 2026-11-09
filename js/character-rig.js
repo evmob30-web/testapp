@@ -63,6 +63,7 @@ function create(T, options={}){
     const palettes={
       guardian:{armor:'#626e79',cape:'#81958a'},
       ranger:{armor:'#637e64',cape:'#567357'},
+      mage:{armor:'#65558c',cape:'#423768'},
       flame_guardian:{armor:'#48444c',cape:'#932e32'}
     };
     const p=palettes[next]||palettes.guardian;

@@ -6,7 +6,7 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  class Renderer{constructor(){this.shadowMap={};}setPixelRatio(){}setSize(){}render(scene,camera){scene.updateMatrixWorld();camera.updateMatrixWorld();renderedCamera=camera;assert.ok(scene.isScene);assert.ok(camera.isPerspectiveCamera);renderCount++;}}
  const sandbox={console,THREE:{...RealThree,WebGLRenderer:Renderer},devicePixelRatio:1,innerWidth:1280,innerHeight:720,HTMLButtonElement:class{},document:{getElementById:get,createElement:element,addEventListener(n,fn){handlers[n]=fn;}},localStorage:{getItem:k=>stored[k]||null,setItem:(k,v)=>stored[k]=v},requestAnimationFrame:fn=>callback=fn,addEventListener:(n,fn)=>handlers[n]=fn};sandbox.window=sandbox;vm.createContext(sandbox);
  const load=n=>vm.runInContext(fs.readFileSync(path.join(__dirname,'../js/'+n+'.js'),'utf8'),sandbox);
- load('audio');load('combat');load('enemy-ai');const makeCombat=sandbox.EmberCombat.create;sandbox.EmberCombat.create=()=>combat=makeCombat();load('core');load('loot');load('equipment');const fresh=sandbox.RPG.fresh;sandbox.RPG.fresh=(id)=>s=fresh(id);load('hero-art');load('character-rig');load('flame-guardian');load('appearance');load('world');const create=sandbox.EmberWorld.createWorld;sandbox.EmberWorld.createWorld=()=>world=create();load('exploration');const makeExplore=sandbox.EmberExplore.create;sandbox.EmberExplore.create=(...args)=>exploration=makeExplore(...args);load('archery');const makeArchery=sandbox.EmberArchery.create;sandbox.EmberArchery.create=(...args)=>archery=makeArchery(...args);load('dungeon');const makeDungeon=sandbox.EmberDungeon.create;sandbox.EmberDungeon.create=(...args)=>dungeon=makeDungeon(...args);load('game');
+ load('audio');load('combat');load('enemy-ai');const makeCombat=sandbox.EmberCombat.create;sandbox.EmberCombat.create=()=>combat=makeCombat();load('core');load('loot');load('equipment');const fresh=sandbox.RPG.fresh;sandbox.RPG.fresh=(id)=>s=fresh(id);load('mage');load('hero-art');load('character-rig');load('flame-guardian');load('appearance');load('world');const create=sandbox.EmberWorld.createWorld;sandbox.EmberWorld.createWorld=()=>world=create();load('exploration');const makeExplore=sandbox.EmberExplore.create;sandbox.EmberExplore.create=(...args)=>exploration=makeExplore(...args);load('archery');const makeArchery=sandbox.EmberArchery.create;sandbox.EmberArchery.create=(...args)=>archery=makeArchery(...args);load('dungeon');const makeDungeon=sandbox.EmberDungeon.create;sandbox.EmberDungeon.create=(...args)=>dungeon=makeDungeon(...args);load('game');
  // The class selection now offers a second independently rendered 3D preview.
  assert.ok(sandbox.EmberAppearance.createPreview);
  const tick=(n=1)=>{for(let i=0;i<n;i++){ms+=1000/60;callback(ms);}};const key=code=>{handlers.keydown({code,target:{},preventDefault(){}});handlers.keyup({code});};
@@ -123,5 +123,34 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
 
  // Hidden practice props cannot intercept a ranger's arrows before accepting training.
  const behindTarget=world.enemies.find(e=>e.id==='w2');behindTarget.mesh.position.set(0,0,-3);behindTarget.homeX=0;behindTarget.homeZ=-3;behindTarget.speed=.001;behindTarget.attack=100;s.x=0;s.z=3;tick(60);assert.equal(s.bowQuest,0);assert.equal(archery.targetsRoot.visible,false);aimAt(0,-3);const beforeGhostTarget=behindTarget.hp;key('Digit1');tick(30);assert.ok(behindTarget.hp<beforeGhostTarget,'an invisible target must not block an arrow');
+
+ // The mage starts with a staff and bounded mana, while objectives stay gated.
+ key('Escape');get('new').onclick();get('dialog-action').onclick();get('class-mage').onclick();get('class-start').onclick();tick();
+ assert.equal(s.classId,'mage');assert.equal(s.hp,75);assert.equal(s.weapon,'staff');assert.equal(s.mana,100);
+ assert.equal(world.mageView.staff.visible,true);assert.equal(world.player.blade.visible,false);assert.equal(archery.bow.visible,false);assert.equal(get('mana-wrap').hidden,false);
+ let spells=0;const originalBolt=world.mageBolt;world.mageBolt=(...args)=>{spells++;return originalBolt(...args);};
+ const mageWolf=world.enemies.find(e=>e.id==='w1');s.x=-13;s.z=-3;tick(60);aimAt(-13,-8);key('Digit1');tick(40);
+ assert.equal(spells,1);assert.equal(mageWolf.hp,mageWolf.max,'unaccepted enemies cannot be hit by magic');
+ s.x=-3;s.z=18;tick();key('KeyE');get('dialog-action').onclick();assert.equal(s.quest,1);
+ mageWolf.mesh.position.set(0,0,0);mageWolf.homeX=0;mageWolf.homeZ=0;mageWolf.hp=mageWolf.max=300;mageWolf.speed=.001;mageWolf.attack=100;
+ s.x=0;s.z=6;s.mana=100;tick(60);aimAt(0,0);const mageDamage=sandbox.RPG.spellDamage(s);key('Digit1');
+ assert.equal(s.mana,92);const shotCount=spells;handlers.keydown({code:'Digit1',repeat:true,target:{},preventDefault(){}});assert.equal(spells,shotCount,'key repeat cannot duplicate casts');
+ tick(30);assert.equal(mageWolf.hp,300-mageDamage,'spell projectile hits through the real collision loop');assert.ok(s.mana>92&&s.mana<=100);
+ key('Escape');const pausedMana=s.mana;tick(120);key('Digit1');assert.equal(s.mana,pausedMana,'menus pause mana regeneration and casting');assert.equal(spells,shotCount);key('Escape');
+ s.mana=0;tick(40);const lowMana=s.mana;key('Digit1');assert.equal(s.mana,lowMana);assert.equal(spells,shotCount,'empty mana cannot fire a spell');
+ s.mana=23;key('Digit2');assert.equal(s.mana,23,'failed frost cast consumes no mana');
+ mageWolf.mesh.position.set(0,0,2);mageWolf.homeZ=2;s.mana=100;const frostHp=mageWolf.hp;key('Digit2');
+ assert.equal(s.mana,76);assert.ok(mageWolf.chill>0);assert.equal(mageWolf.chillHalo.visible,true);assert.equal(mageWolf.hp,frostHp-Math.round(mageDamage*.75));
+ const novaMana=s.mana;key('Digit2');assert.equal(s.mana,novaMana,'frost cooldown prevents repeat costs');tick(190);assert.equal(mageWolf.chill,0);assert.equal(mageWolf.chillHalo.visible,false);
+ tick(310);const behindWallHp=mageWolf.hp;world.colliders.push({x:0,z:4,r:.5});s.mana=100;key('Digit2');assert.equal(mageWolf.hp,behindWallHp,'frost cannot hit through a solid obstacle');assert.equal(mageWolf.chill,0);world.colliders.pop();
+ // Mage can complete normal bow training and return to the staff explicitly.
+ s.x=-3;s.z=18;tick();key('KeyE');get('dialog-extra').onclick();get('dialog-action').onclick();assert.equal(s.weapon,'bow');assert.equal(s.bowQuest,1);assert.equal(world.mageView.staff.visible,false);
+ key('KeyF');assert.equal(s.weapon,'staff');key('KeyF');assert.equal(s.weapon,'sword');key('KeyF');assert.equal(s.weapon,'bow');
+ get('inventory-button').onclick();get('staff-equip').onclick();assert.equal(s.weapon,'staff');assert.equal(world.mageView.staff.visible,true);get('inventory-close').onclick();
+ s.x=-6;s.z=6;tick(60);aimAt(-6,3);key('Digit1');tick(45);assert.equal(s.bowPractice.length,0,'staff magic never counts as a charged training arrow');
+ get('inventory-button').onclick();get('bow-equip').onclick();assert.equal(s.weapon,'bow','the bow button must select bow from staff, not cycle to sword');get('inventory-close').onclick();
+ tick(60);aimAt(-6,3);handlers.keydown({code:'Digit1',target:{},preventDefault(){}});tick(75);handlers.keyup({code:'Digit1'});tick(40);assert.ok(s.bowPractice.includes('t1'));
+ key('KeyF');assert.equal(s.weapon,'staff');key('Escape');const mageSaved=sandbox.RPG.restore(stored['emberwild-save-v1']);assert.equal(mageSaved.classId,'mage');assert.equal(mageSaved.weapon,'staff');assert.equal(mageSaved.quest,s.quest);assert.equal(mageSaved.mana,s.mana);key('Escape');
+ s.mana=0;s.x=0;s.z=14;tick(120);assert.ok(s.mana>45,'campfire restores mana faster');s.hp=-1;s.mana=0;tick();assert.equal(s.hp,sandbox.RPG.maxHp(s));assert.equal(s.mana,sandbox.RPG.maxMana(s));assert.equal(s.classId,'mage');
  world.scene.traverse(o=>{assert.ok(Number.isFinite(o.position.x));assert.ok(Number.isFinite(o.position.y));assert.ok(Number.isFinite(o.position.z));});
 });

@@ -92,7 +92,8 @@ function createPreview(T,canvas){
  const rig=root.EmberCharacterRig.create(T);
  const flame=root.EmberFlameGuardian.decorate(T,rig);
  const look=attach(T,rig,flame);
- const assets=root.EmberModelAssets?.attach(T,rig,flame,look);scene.add(rig.group);
+ const assets=root.EmberModelAssets?.attach(T,rig,flame,look);
+ const mageView=root.EmberMage?.attach(T,rig);scene.add(rig.group);
  assets?.ready.then(()=>{canvas.dataset.characterModel=assets.status;});
  let angle=.35;
  function select(skinId,appearance,classId='guardian'){
@@ -101,6 +102,8 @@ function createPreview(T,canvas){
   rig.setSkin(isFlame?'flame_guardian':classId);
   look.apply(skinId,appearance);
   assets?.setLook(skinId,appearance,classId);
+  mageView?.setClass(classId);mageView?.setWeapon(classId==='mage'?'staff':'sword');
+  rig.blade.visible=rig.guard.visible=classId!=='mage';
  }
  function rotate(delta){angle+=delta;}
  function update(time){
@@ -108,10 +111,10 @@ function createPreview(T,canvas){
   rig.animate(time,false,0);
   flame.animate(time,{moving:false});
   look.animate(time);
-  assets?.animate(time);
+  assets?.animate(time);mageView?.update(1/60,time);
   renderer.render(scene,camera);
  }
- return {select,rotate,update,renderer,rig,assets};
+ return {select,rotate,update,renderer,rig,assets,mageView};
 }
 root.EmberAppearance={attach,createPreview,hairColors,skinColors,eyeColors,styles};
 })(typeof window==='undefined'?globalThis:window);

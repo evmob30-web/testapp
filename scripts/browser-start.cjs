@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
  const errors=[];
  page.on('pageerror',e=>errors.push(e.stack||e.message));
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
- await page.goto('http://127.0.0.1:8765/',{waitUntil:'load'});
+ await page.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});
  await page.waitForTimeout(2000);
  await page.locator('#play').click();
  await page.waitForFunction(()=>document.getElementById('creator-canvas').dataset.characterModel==='ready',null,{timeout:30000});
@@ -120,6 +120,48 @@ const { chromium } = require('playwright');
  const wornAfterReload=await page.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
  if(wornAfterReload?.lootEquipped?.hands!==77)errors.push('Loot item equipment not restored');
 
+
+ // A separate context exercises the new class without replacing the legacy test save.
+ const magePage=await browser.newPage();const mageErrors=[];
+ magePage.on('pageerror',e=>mageErrors.push(e.message));magePage.on('console',m=>{if(m.type()==='error')mageErrors.push(m.text());});
+ await magePage.addInitScript(()=>{
+  Object.defineProperty(window,'EmberMage',{configurable:true,set(api){
+   const attach=api.attach;api.attach=(...args)=>{const view=attach(...args);(window.__mageViews??=[]).push(view);return view;};
+   const bolt=api.bolt;api.bolt=(...args)=>{window.__mageBolts=(window.__mageBolts||0)+1;return bolt(...args);};
+   Object.defineProperty(window,'EmberMage',{value:api,writable:true,configurable:true});
+  }});
+ });
+ await magePage.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});
+ await magePage.locator('#play').click();await magePage.locator('#class-mage').click();
+ await magePage.waitForFunction(()=>document.getElementById('creator-canvas').dataset.characterModel==='ready'&&window.__mageViews?.[1]?.staff.visible,null,{timeout:30000});
+ await magePage.screenshot({path:'/tmp/emberwild-mage-creator.png'});
+ await magePage.locator('#class-start').click();
+ if(!await magePage.locator('#mana-wrap').isVisible())mageErrors.push('Mage mana bar missing');
+ if(await magePage.locator('#attack-name').textContent()!=='Vonkbol'||await magePage.locator('#skill-name').textContent()!=='Vrieskring')mageErrors.push('Mage abilities missing');
+ const mageStart=await magePage.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(mageStart?.classId!=='mage'||mageStart?.weapon!=='staff'||mageStart?.hp!==75)mageErrors.push('Mage start/save incorrect');
+ await magePage.locator('#attack').click();
+ await magePage.waitForFunction(()=>window.__mageBolts===1);
+ const afterBolt=Number((await magePage.locator('#mana-label').textContent()).split(' / ')[0]);
+ if(afterBolt>=100)mageErrors.push('Basic spell did not spend mana');
+ await magePage.locator('#magic').click();
+ const afterFrost=Number((await magePage.locator('#mana-label').textContent()).split(' / ')[0]);
+ if(afterFrost>=afterBolt)mageErrors.push('Frost did not spend mana');
+ await magePage.screenshot({path:'/tmp/emberwild-mage-play.png'});
+ await magePage.keyboard.press('Escape');const pausedMana=await magePage.locator('#mana-label').textContent();
+ await magePage.waitForTimeout(400);if(await magePage.locator('#mana-label').textContent()!==pausedMana)mageErrors.push('Mana changed while paused');
+ await magePage.keyboard.press('Escape');await magePage.keyboard.press('f');
+ if(await magePage.evaluate(()=>window.__mageViews[0].staff.visible))mageErrors.push('Staff did not hide after weapon switch');
+ await magePage.keyboard.press('f');if(!await magePage.evaluate(()=>window.__mageViews[0].staff.visible))mageErrors.push('Staff did not return');
+ await magePage.locator('#inventory-button').click();await magePage.locator('#customize').click();
+ await magePage.locator('#appearance-hairColor').selectOption('silver');await magePage.locator('#class-start').click();
+ const mageEdited=await magePage.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(mageEdited?.classId!=='mage'||mageEdited?.appearance?.hairColor!=='silver'||mageEdited?.quest!==mageStart?.quest)mageErrors.push('Mage appearance editing lost class/progress');
+ await magePage.reload({waitUntil:'load'});await magePage.locator('#play').click();
+ await magePage.waitForFunction(()=>window.__mageViews?.[0]?.staff.visible);
+ const mageRestored=await magePage.evaluate(()=>JSON.parse(localStorage.getItem('emberwild-save-v1')));
+ if(mageRestored?.classId!=='mage'||mageRestored?.weapon!=='staff'||mageRestored?.appearance?.hairColor!=='silver')mageErrors.push('Mage restore failed');
+ errors.push(...mageErrors.map(e=>'Mage: '+e));await magePage.close();
 
  console.log('HTTP game flow completed',JSON.stringify({errors}));
  if(!process.argv.includes('--http-only')){
