@@ -15,7 +15,7 @@ function save(){try{localStorage.setItem(saveKey,JSON.stringify(state));}catch{i
 function cancelCharge(){charging=false;charge=0;}
 function loadout(){EmberEquipment.syncRewards(state);world.setWeapon(state.equipped,state.weapon);world.setClass(state.classId);world.setAppearance(state.skinId,state.classId,state.appearance);world.setArmor(state);archery.sync(state);}
 function syncQuestObjects(){const v=RPG.questVisibility(state);dungeon.sync(state);exploration.sync(state);archery.sync(state);for(const e of world.enemies)e.mesh.visible=RPG.enemyVisible(state,e);for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&v.crystals&&!state.crystals.includes(c.id);world.sigil.visible=state.area==='valley'&&(v.forestBoss||v.dungeon);if(target&&!target.mesh.visible)target=null;}
-function sync(){cancelCharge();for(const a of arrows)world.scene.remove(a.mesh);arrows.length=0;dungeon.setArea(state.area);dungeon.sync(state);exploration.sync(state);if(state.area==='roots'&&!EmberDungeon.canStand(state.x,state.z,state.gateOpen)){state.x=100;state.z=14;}combat.remaining=0;combat.cooldown=0;EmberCombat.resetCombo(combo);for(const p of projectiles)world.scene.remove(p.mesh);projectiles.length=0;world.player.model.rotation.x=0;loadout();world.setAmulet(state.amulet&&state.amuletEquipped);world.player.group.position.set(state.x,0,state.z);for(const e of world.enemies){e.mesh.visible=(e.area||'valley')===state.area&&!state.kills.includes(e.id);e.hp=e.max;e.mesh.position.set(e.homeX,0,e.homeZ);e.attack=1;e.windup=0;e.stagger=0;e.alertTimer=0;e.focusUntil=0;e.mesh.rotation.z=0;e.lastX=e.homeX;e.lastZ=e.homeZ;}for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&!state.crystals.includes(c.id);world.chest.visible=state.area==='valley'&&!state.chest;world.warning.visible=false;syncQuestObjects();}
+function sync(){cancelCharge();for(const a of arrows)world.scene.remove(a.mesh);arrows.length=0;dungeon.setArea(state.area);dungeon.sync(state);exploration.sync(state);if(state.area==='roots'&&!EmberDungeon.canStand(state.x,state.z,state.gateOpen)){state.x=100;state.z=14;}combat.remaining=0;combat.cooldown=0;EmberCombat.resetCombo(combo);for(const p of projectiles)world.scene.remove(p.mesh);projectiles.length=0;world.player.model.rotation.x=0;loadout();world.setAmulet(state.amulet&&state.amuletEquipped);world.player.group.position.set(state.x,0,state.z);for(const e of world.enemies){e.mesh.visible=(e.area||'valley')===state.area&&!state.kills.includes(e.id);e.hp=e.max;e.mesh.position.set(e.homeX,0,e.homeZ);e.attack=1;e.windup=0;e.stagger=0;e.alertTimer=0;e.focusUntil=0;e.pendingAttack=null;e.telegraph=0;e.dodgeTime=0;e.dodgeCooldown=0;e.dodgeVector=null;if(e.warningMesh)e.warningMesh.visible=false;e.mesh.rotation.z=0;e.lastX=e.homeX;e.lastZ=e.homeZ;}for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&!state.crystals.includes(c.id);world.chest.visible=state.area==='valley'&&!state.chest;world.warning.visible=false;syncQuestObjects();}
 function begin(fresh=false,classId='guardian'){EmberAudio.unlock();state=fresh?RPG.fresh(classId):saved?RPG.restore(saved):RPG.fresh(classId);if(fresh){state.skinId=selectedSkin;state.appearance=RPG.normalizeAppearance(selectedAppearance);}sync();mode='playing';keys.clear();$('overlay').hidden=true;$('hud').hidden=false;canvas.focus?.({preventScroll:true});attackCD=magicCD=healCD=swing=0;EmberCombat.resetCombo(combo);yaw=0;pitch=.48;camera.position.set(state.x,7,state.z+10);updateHud();save();toast(state.quest===0?'Welkom in Lindehaard. Zoek Elin. Met spatie rol je uit de weg van aanvallen.':'Welkom terug in de Schemervallei.');if(state.sideQuest===0)toast('Nieuw in Lindehaard: Mira zoekt haar kruidenzoeker. Zoek haar ten zuidoosten van het kampvuur.');else if(state.quest===5&&state.dungeon===0)toast('Nieuw avontuur: Elin heeft een opdracht voor de Wortelgrotten.');else if(state.kills.includes('boss')&&state.equipped!=='thorn')toast('Nieuwe buit beschikbaar: open je inventaris met I en rust Doornlicht uit.');}
 $('play').onclick=()=>mode==='paused'?resume():saved?begin():chooseClass('start');$('new').onclick=()=>{if(mode==='start')chooseClass('start');else showDialog('EEN NIEUW BEGIN','Opnieuw beginnen?','Je opgeslagen avontuur wordt vervangen. Je kunt ook sluiten om je huidige avontuur te behouden.','Begin opnieuw',()=>{$('dialog').hidden=true;chooseClass('playing');});};
 function selectClass(id){const c=RPG.classConfig(id);selectedClass=c.id;for(const candidate of Object.values(RPG.classes))$('class-'+candidate.id).setAttribute('aria-pressed',String(candidate.id===c.id));$('class-start').textContent='Begin als '+c.name;world.setClass(c.id);world.setWeapon('starter',c.starter);archery.bow.visible=c.starter==='bow';refreshCreator();}
@@ -134,12 +134,12 @@ $('sound').onclick=()=>{EmberAudio.toggle();soundButton();};soundButton();
 addEventListener('pointerdown',()=>{EmberAudio.unlock();},{passive:true});
 $('inventory-button').onclick=inventory;$('inventory-close').onclick=resume;
 function nearestEnemy(range){let found=null,best=range;for(const e of world.enemies){if(!e.mesh.visible||e.boss&&state.quest<3)continue;const d=Math.hypot(e.mesh.position.x-state.x,e.mesh.position.z-state.z);if(d<best){best=d;found=e;}}return found;}
-function hit(e,amount,dx=e.mesh.position.x-state.x,dz=e.mesh.position.z-state.z,ranged=false){if(!RPG.enemyVisible(state,e))return; if(ranged){e.alertTimer=10;e.attack=Math.min(e.attack,.5);target=e;e.focusUntil=time+2.5;}if(e.shield&&EmberCombat.shieldBlocks(e.mesh.rotation.y,dx,dz)){world.damageText('SCHILD',e.mesh.position.x,e.mesh.position.z,'#d5cfad');EmberAudio.play('block');return;}const oldLevel=state.level;e.hp=Math.max(0,e.hp-amount);
+function hit(e,amount,dx=e.mesh.position.x-state.x,dz=e.mesh.position.z-state.z,ranged=false){if(!RPG.enemyVisible(state,e))return;EmberEnemyAI.notifyHit(e,world.enemies,state.x,state.z);if(ranged){target=e;e.focusUntil=time+2.5;}if(e.shield&&EmberCombat.shieldBlocks(e.mesh.rotation.y,dx,dz)){world.damageText('SCHILD',e.mesh.position.x,e.mesh.position.z,'#d5cfad');EmberAudio.play('block');return;}const oldLevel=state.level;e.hp=Math.max(0,e.hp-amount);
  world.burst(e.mesh.position.x,e.mesh.position.z,e.spirit?'#ddc7ff':'#ffbf87',e.boss?10:7);
  world.magicImpact?.(e.mesh.position.x,e.mesh.position.z,e.spirit?'#d7b7ff':'#ffb45e',e.boss?.8:.52);
  world.damageText(amount,e.mesh.position.x,e.mesh.position.z);
  EmberAudio.play('hit');
- e.flash=.22;e.stagger=e.boss?0:.16;
+ e.flash=.22;e.stagger=e.boss?0:.16;if(!e.boss&&!ranged){e.pendingAttack=null;e.telegraph=0;}
  e.mesh.scale.setScalar(e.boss?1.07:1.18);e.mesh.rotation.z=.14*(Math.sign(dx)||1);if(e.hp===0){e.mesh.visible=false;RPG.kill(state,e.id);const l=RPG.loot(e.id);toast(RPG.enemyName(e)+' verslagen · +'+l.xp+' XP · +'+l.gold+' goud');if(state.level>oldLevel){world.burst(state.x,state.z,'#b5f3d2',24);toast('Niveau '+state.level+'! Je gezondheid is volledig hersteld.');}if(e.boss){world.warning.visible=false;EmberAudio.play('loot');toast(e.rootBoss?'De Wortelmoeder is verslagen! Neem het Hartamulet van het altaar.':'Unieke buit: Doornlicht! Open je inventaris met I om het wapen uit te rusten.');save();}else save();}updateHud();}
 function updateAim(){aimMouse.set(mouseX/innerWidth*2-1,-mouseY/innerHeight*2+1);aimRay.setFromCamera(aimMouse,camera);if(!aimRay.ray.intersectPlane(aimPlane,aimPoint))aimPoint.set(state.x+aimRay.ray.direction.x*20,1.5,state.z+aimRay.ray.direction.z*20);let closest=Infinity;for(const item of [...world.enemies.filter(e=>e.mesh.visible),...archery.targets.filter(t=>state.area==='valley'&&RPG.questVisibility(state).bow&&t.mesh.visible)]){const hit=aimRay.intersectObject(item.mesh,true)[0];if(hit&&hit.distance<closest){closest=hit.distance;aimPoint.set(item.mesh.position.x,1.5,item.mesh.position.z);}}}
 function startCharge(){if(mode!=='playing'||state.weapon!=='bow'||combat.remaining>0||attackCD>0||charging)return;charging=true;charge=0;updateAim();}
@@ -237,10 +237,55 @@ function update(dt){if(charging)charge=Math.min(1.2,charge+dt);if(state.weapon==
  if(moving){const vx=rolling?combat.x:v.x,vz=rolling?combat.z:v.z,speed=rolling?13:RPG.classConfig(state).speed*(keys.has('ShiftLeft')||keys.has('ShiftRight')?1.5:1)*(charging?.65:1),moveDt=rolling?Math.min(dt,combat.remaining):dt;const result=resolve(state.x+vx*speed*moveDt,state.z+vz*speed*moveDt);state.x=result.x;state.z=result.z;if(rolling||swing<=0)world.player.group.rotation.y=Math.atan2(vx,vz);}
  if(charging)world.player.group.rotation.y=Math.atan2(aimPoint.x-state.x,aimPoint.z-state.z);world.player.group.position.set(state.x,0,state.z);if((state.area==='valley'?Math.hypot(state.x,state.z-14)<5:Math.hypot(state.x-100,state.z-12)<2.5)&&state.hp<RPG.maxHp(state))state.hp=Math.min(RPG.maxHp(state),state.hp+(state.area==='roots'?9:16)*dt);
  world.warning.visible=false;
- for(const e of world.enemies){if(!e.mesh.visible)continue;e.attack-=dt;e.alertTimer=Math.max(0,(e.alertTimer||0)-dt);if(e.flash>0){e.flash-=dt;e.mesh.rotation.z*=Math.exp(-dt*12);if(e.flash<=0){e.mesh.scale.setScalar(1);e.mesh.rotation.z=0;}}if(e.stagger>0)e.stagger=Math.max(0,e.stagger-dt);if(e.boss&&state.quest<3)continue;const pos=e.mesh.position,ex=state.x-pos.x,ez=state.z-pos.z,d=Math.hypot(ex,ez),homeDist=Math.hypot(state.x-e.homeX,state.z-e.homeZ),aggro=(d<(e.boss?16:11)&&homeDist<(e.boss?21:17))||(e.alertTimer>0&&d<=32);if(e.spirit){if(aggro){e.mesh.rotation.y=Math.atan2(ex,ez);const direction=d>9?1:d<5?-1:0;if(direction&&d>.01){pos.x+=ex/d*1.9*dt*direction;pos.z+=ez/d*1.9*dt*direction;}if(e.attack<=0&&d>.01){e.attack=2.1;const projectile={mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:ex/d*8,vz:ez/d*8,life:3};projectiles.push(projectile);world.damageText('✧',pos.x,pos.z,'#eac9ff');}}else{const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);if(h>.1){pos.x+=hx/h*2*dt;pos.z+=hz/h*2*dt;}/* Keep ranged damage when an unaggroed enemy returns home. */}continue;}
+ for(const e of world.enemies){if(!e.mesh.visible)continue;e.attack-=dt;EmberEnemyAI.tick(e,dt);if(e.flash>0){e.flash-=dt;e.mesh.rotation.z*=Math.exp(-dt*12);if(e.flash<=0){e.mesh.scale.setScalar(1);e.mesh.rotation.z=0;}}if(e.stagger>0)e.stagger=Math.max(0,e.stagger-dt);if(e.boss&&state.quest<3)continue;const pos=e.mesh.position,ex=state.x-pos.x,ez=state.z-pos.z,d=Math.hypot(ex,ez),homeDist=Math.hypot(state.x-e.homeX,state.z-e.homeZ),aggro=EmberEnemyAI.active(e,state.x,state.z);if(e.spirit){
+  if(e.pendingAttack==='orb'){
+   if(e.telegraph<=0){e.pendingAttack=null;const dd=Math.hypot(state.x-pos.x,state.z-pos.z);
+     if(dd>.01&&dd<=25){projectiles.push({mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:(state.x-pos.x)/dd*8,vz:(state.z-pos.z)/dd*8,life:3});world.burst(pos.x,pos.z,'#d3bbff',6);}
+   }
+   continue;
+  }
+  if(aggro){e.mesh.rotation.y=Math.atan2(ex,ez);const dir=EmberEnemyAI.movement(e,state.x,state.z);
+   if(dir.d>.01){pos.x+=dir.x*1.9*dt;pos.z+=dir.z*1.9*dt;}
+   if(e.attack<=0&&d>.01){e.attack=2.1;e.pendingAttack='orb';EmberEnemyAI.startWarning(e,.25);world.damageText('VONKSCHOT',pos.x,pos.z,'#eac9ff');}
+  }else{const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);if(h>.1){pos.x+=hx/h*2*dt;pos.z+=hz/h*2*dt;}}
+  continue;
+ }
  if(e.windup>0){e.windup-=dt;world.warning.position.set(pos.x,.05,pos.z);world.warning.visible=true;world.warning.scale.setScalar(e.rootBoss?(e.pattern===1?.5:5.2/4.6):1);world.warning.material.color.set(e.rootBoss&&e.pattern===1?'#c8a4ea':'#f0a167');if(e.windup<=0){if(e.rootBoss&&e.pattern===1){const angle=e.castAngle;for(const offset of [-.3,0,.3]){const a=angle+offset;projectiles.push({mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:Math.sin(a)*9,vz:Math.cos(a)*9,life:3,damage:18});}EmberAudio.play('magic');}else if(d<(e.rootBoss?5.2:4.6)){if(takeDamage(e.rootBoss?36:30))world.burst(state.x,state.z,'#da9a88',6);}}continue;}
 
- if(aggro){pos.y=e.boss?0:Math.sin(time*9)*.06;if(e.stagger>0)continue;e.mesh.rotation.y=e.shield?EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(ex,ez),dt*1.4):Math.atan2(ex,ez);const range=e.boss?3.5:1.9;if(d>range){const speed=e.speed||(e.boss?2.1:3.3);pos.x+=ex/d*speed*dt;pos.z+=ez/d*speed*dt;}else if(e.attack<=0){e.attack=e.boss?3:e.shield?1.8:1.35;if(e.boss){if(e.rootBoss){e.pattern=(e.pattern+1)%2;e.windup=e.pattern===1?.95:1.25;e.castAngle=Math.atan2(ex,ez);world.damageText(e.pattern===1?'ZAADSALVO':'WORTELSLAG',pos.x,pos.z,e.pattern===1?'#e4c3ff':'#ffdb9e');}else e.windup=1.15;}else{if(takeDamage(e.damage||10))world.burst(state.x,state.z,'#dca48c',4);}}}else{pos.y=0;const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);if(h>.1){pos.x+=hx/h*2*dt;pos.z+=hz/h*2*dt;}/* Keep ranged damage when an unaggroed enemy returns home. */}}
+ if(e.pendingAttack==='melee'){
+  if(e.telegraph<=0){e.pendingAttack=null;const reach=EmberEnemyAI.config(e).range+.35;
+    if(Math.hypot(state.x-pos.x,state.z-pos.z)<=reach){if(takeDamage(e.damage||10))world.burst(state.x,state.z,'#dca48c',5);}
+  }
+  continue;
+ }
+ if(aggro){
+  pos.y=e.boss?0:Math.sin(time*9)*.06;
+  if(e.stagger>0)continue;
+  e.mesh.rotation.y=e.shield?EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(ex,ez),dt*1.4):Math.atan2(ex,ez);
+  if(!e.boss){
+   const evade=EmberEnemyAI.dodgeArrow(e,arrows);if(evade){e.dodgeVector=evade;world.burst(pos.x,pos.z,'#b2dfd1',3);}
+   if(e.dodgeTime>0&&e.dodgeVector){
+    const step=4.5*dt,nx=pos.x+e.dodgeVector.x*step,nz=pos.z+e.dodgeVector.z*step;
+    if(state.area==='roots'){const p=EmberDungeon.move(pos.x,pos.z,nx,nz,state.gateOpen,e.shield?.7:.55);pos.x=p.x;pos.z=p.z;}
+    else if(nx>=-31&&nx<=31&&nz>=-59&&nz<=30&&!world.colliders.some(c=>Math.hypot(nx-c.x,nz-c.z)<c.r+.5)){pos.x=nx;pos.z=nz;}
+    continue;
+   }
+  }
+  const range=EmberEnemyAI.config(e).range;
+  if(d>range){
+   const speed=e.speed||(e.boss?2.1:3.3),dir=EmberEnemyAI.movement(e,state.x,state.z,world.enemies);
+   pos.x+=dir.x*speed*dt;pos.z+=dir.z*speed*dt;
+  }else if(e.attack<=0){
+   e.attack=e.boss?3:e.shield?2.2:1.5;
+   if(e.boss){
+    if(e.rootBoss){e.pattern=(e.pattern+1)%2;e.windup=e.pattern===1?.95:1.25;e.castAngle=Math.atan2(ex,ez);world.damageText(e.pattern===1?'ZAADSALVO':'WORTELSLAG',pos.x,pos.z,e.pattern===1?'#e4c3ff':'#ffdb9e');}
+    else e.windup=1.15;
+   }else{e.pendingAttack='melee';EmberEnemyAI.startWarning(e,EmberEnemyAI.config(e).windup);world.damageText(e.shield?'SCHILDSLAG':'SPRONG',pos.x,pos.z,'#ffdca1');}
+  }
+ }else{
+  pos.y=0;const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);
+  if(h>.1){pos.x+=hx/h*2*dt;pos.z+=hz/h*2*dt;}
+ }}
  for(const e of dungeon.enemies)if(e.mesh.visible){const p=EmberDungeon.move(e.lastX,e.lastZ,e.mesh.position.x,e.mesh.position.z,state.gateOpen,e.boss?1:.55);e.mesh.position.x=e.lastX=p.x;e.mesh.position.z=e.lastZ=p.z;}
  for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i],oldX=p.x,oldZ=p.z;p.x+=p.vx*dt;p.z+=p.vz*dt;p.life-=dt;p.mesh.position.set(p.x,1.4,p.z);const hit=EmberCombat.segmentHit(oldX,oldZ,p.x,p.z,state.x,state.z,.85),blocked=state.area==='roots'?!EmberDungeon.canStand(p.x,p.z,state.gateOpen,.18):world.colliders.some(c=>EmberCombat.segmentHit(oldX,oldZ,p.x,p.z,c.x,c.z,c.r));if(hit||blocked||p.life<=0){if(hit)takeDamage(p.damage||14);world.scene.remove(p.mesh);projectiles.splice(i,1);}}
  for(let i=arrows.length-1;i>=0;i--){const a=arrows[i],ox=a.x,oz=a.z;a.x+=a.vx*dt;a.z+=a.vz*dt;a.life-=dt;a.mesh.position.set(a.x,1.5,a.z);let block=Infinity;
