@@ -168,3 +168,12 @@ De uitrusting is gemodelleerd met lichtgewicht afgeronde meshes die aan de gedee
 
 ## Gevechten v0.9 — drie slagen
 Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruisslag** (120%) en **Vuurfinish** (165%). De volgende slag moet binnen 0,9 seconde na de vorige worden uitgevoerd en respecteert een eigen cooldown. Daarna begint de keten opnieuw. Rollen, wapens wisselen en magie gebruiken resetten de keten. De HUD laat de actieve combo zien. Boog en boogtraining blijven ongewijzigd. Elk stadium heeft eigen zwaard- en lichaamsanimatie, kleur en slagboog; magie heeft gloeiende inslagen. Vijanden tonen een visuele hitreactie en gewone tegenstanders worden kort onderbroken, zonder eindbaaspatronen te veranderen. De combostatus wordt niet opgeslagen en beïnvloedt bestaande saves niet.
+
+## Vijandelijke AI (v1.0)
+
+- Schemerwolven zoeken een flank en nabijgelegen bondgenoten reageren wanneer een wolf geraakt wordt.
+- Schildwachters houden hun schildgerichte houding, kondigen zware klappen duidelijk aan en kunnen een volgende pijl zijwaarts ontwijken.
+- Bosgeesten proberen op afstand te blijven, tonen een paarse waarschuwing voordat ze hun projectiel lanceren en wijken terug wanneer je dichtbij komt.
+- Elke gewone melee-aanval toont eerst een gekleurde, pulserende waarschuwingsring op de grond. Beweeg of rol uit het bereik voordat de slag valt; een eigen melee-treffer kan de voorbereiding van de tegenstander onderbreken.
+- Verrassingsschoten met een boog blijven raakbaar van buiten detectieafstand. Eerder gealarmeerde vijanden mogen volgende pijlen proberen te ontwijken; botsingen en blokkeringen blijven leidend.
+- De bestaande aanvallen en telegraphs van Doornwachter en Wortelmoeder blijven behouden. Quests, loot en save-indeling veranderen niet. De AI-status bestaat alleen gedurende de huidige speelsessie.
