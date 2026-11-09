@@ -47,7 +47,7 @@ const pendant=new T.Group();player.model.add(pendant);pendant.position.set(0,.55
 function setAmulet(on){pendant.visible=!!on;}
 function setWeapon(name,weapon='sword'){const thorn=name==='thorn',sword=weapon!=='bow';player.blade.visible=sword;player.guard.visible=sword;player.blade.material=thorn?mat('#ade8c9','#539e7d'):mat('#d1ded5');player.blade.scale.set(thorn?1.8:1,thorn?1.3:1,thorn?1.4:1);for(const part of ornaments)part.visible=thorn&&sword;}
 function setClass(id){player.setSkin(id==='ranger'?'ranger':'guardian');}
-function setAppearance(id){const flame=id==='flame_guardian';flameCostume.setVisible(flame);player.setSkin(flame?'flame_guardian':'guardian');}
+function setAppearance(id,classId='guardian'){const flame=id==='flame_guardian';flameCostume.setVisible(flame);player.setSkin(flame?'flame_guardian':classId==='ranger'?'ranger':'guardian');}
 return {scene,colliders,cameraMeshes,sigil,player,ranger,merchant,enemies,crystals,chest,warning,marker,burst,update,firelight,damageText,slash,beam,orb,setWeapon,setClass,setAppearance,setAmulet,effects};
 }
 window.EmberWorld={createWorld};
