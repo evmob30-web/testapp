@@ -56,3 +56,12 @@ header #sound{font-size:10px}#equip{color:#bde9d2;border:1px solid #a1cbb670;bor
 .loot-entry button{display:inline-block;margin:3px 6px 0 0;width:auto}
 .loot-sell{border-color:#ca9a6870}
 @media(max-width:560px){.loot-entry button{width:100%;text-align:center}}
+
+/* Mage selection and class resource; the existing save/appearance flow stays shared. */
+#class-mage{grid-column:1/-1;border-color:#b0a0d56b}#class-mage[aria-pressed=true]{border-color:#c5bdff;background:#3d3d5b}
+#class-mage strong{color:#d8d0ff}.mana{margin-top:6px}.mana .bar{height:12px}.mana .bar i{background:linear-gradient(90deg,#5564ac,#a1c5ee)}.mana .bar>span{line-height:10px;font-size:9px;color:#edf2ff}
+#staff-equip{color:#d4c7ff;border:1px solid #a89bda66;border-radius:5px;padding:10px}
+#aim-reticle[data-spell=true]{border-color:#c8d4ff;box-shadow:0 0 8px #a5afff66}
+
+@media(min-width:701px){.creator-view{position:sticky;top:0}}
+.creator-actions{position:sticky;bottom:-25px;padding:12px 0;background:#1c352df5;z-index:2}

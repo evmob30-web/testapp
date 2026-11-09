@@ -1,6 +1,6 @@
-# Emberwild — De laatste vonk · versie 1.3
+# Emberwild — De laatste vonk · versie 1.4
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.3 bevat twee classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.4 bevat drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
@@ -26,10 +26,11 @@ Bij een nieuw avontuur kies je een class. De keuzelijst gebruikt centrale classd
 | --- | --- | --- |
 | Wachter | 100 gezondheid, zwaard, Vonkflits | Gevechten van dichtbij met een magische afstandsaanval; kan de boog bij Elin leren |
 | Woudloper | 85 gezondheid, boog, Vonkpijl | Snellere beweging en ontwijkrol; kan ook een zwaard gebruiken |
+| Magiër | 75 gezondheid, Vonkstaf, 100 mana, Vrieskring | Magische projectielen en een vertragende gebiedsspreuk; mana herstelt tijdens spelen |
 
-De Woudloper heeft snelheid 5,5 en 1,15 s ontwijkafkoeltijd; de Wachter snelheid 5 en 1,35 s. Vonkpijl vuurt een krachtige magische pijl op een nabije vijand af (4 s afkoeltijd); Vonkflits heeft een afkoeltijd van 3,5 s.
+De Magiër heeft snelheid 5,1 en 1,25 s ontwijkafkoeltijd. De Woudloper heeft snelheid 5,5 en 1,15 s ontwijkafkoeltijd; de Wachter snelheid 5 en 1,35 s. Vonkpijl vuurt een krachtige magische pijl op een nabije vijand af (4 s afkoeltijd); Vonkflits heeft een afkoeltijd van 3,5 s.
 
-Je class blijft bij het personage. Bestaande opslag wordt als Wachter geladen zonder verlies van voortgang. ‘Ga verder’ laadt je opgeslagen class direct. Via pauze → ‘Nieuw avontuur’ kun je opnieuw kiezen; de nieuwe start vervangt je ene opgeslagen avontuur. Teruggaan uit de classkeuze laat de huidige voortgang intact. Er zijn nog geen meerdere personageslots of classes buiten deze twee.
+Je class blijft bij het personage. Oudere opslag zonder class wordt als Wachter geladen; opgeslagen Wachters en Woudlopers behouden hun class en voortgang. ‘Ga verder’ laadt je opgeslagen class direct. Via pauze → ‘Nieuw avontuur’ kun je opnieuw kiezen; de nieuwe start vervangt je ene opgeslagen avontuur. Teruggaan uit de classkeuze laat de huidige voortgang intact. Er zijn nog geen meerdere personageslots. De drie classes zijn Wachter, Woudloper en Magiër.
 
 ## Besturing
 
@@ -39,15 +40,25 @@ Je class blijft bij het personage. Bestaande opslag wordt als Wachter geladen zo
 | Shift | Rennen |
 | Rechtermuis slepen | Camera draaien en kantelen; met een zwaard werkt links slepen ook |
 | Muiswiel | In- en uitzoomen |
-| 1 / linkermuisknop | Zwaard: slaan; boog: vasthouden om te laden en loslaten om te schieten |
+| 1 / linkermuisknop | Zwaard: slaan; boog: vasthouden en loslaten; staf: direct een Vonkbol schieten in de richting van de muis |
 | Muis bewegen met boog | Richten met het vizier |
-| F | Wisselen tussen zwaard en boog, zodra de boog beschikbaar is |
-| 2 | Classvaardigheid: Vonkflits (Wachter) of Vonkpijl (Woudloper) |
+| F | Beschikbare wapens wisselen; Magiër: staf → zwaard → boog (na boogtraining) → staf |
+| 2 | Classvaardigheid: Vonkflits (Wachter), Vonkpijl (Woudloper) of Vrieskring (Magiër) |
 | Spatie | Voorwaartse ontwijkrol in je bewegingsrichting; 0,38 s bescherming, afkoeltijd afhankelijk van class |
 | Q | Levensdrank; herstelt tot 70 gezondheid |
 | E | Praten, verzamelen, deur openen of gebied betreden/verlaten |
 | I | Inventaris en uitrusting |
 | Esc | Pauze / menu sluiten |
+
+## Magiër — Vonkbol, mana en Vrieskring
+
+Kies **Magiër** bij **Nieuw avontuur**. Je begint met 75 gezondheid, een zichtbare kristalstaf en 100 mana. De bestaande kapsels, kleuren en beide cosmetische outfits blijven beschikbaar. Classes kun je alleen bij een nieuw avontuur kiezen; uiterlijk aanpassen via I behoudt je class. Beginnen vervangt de ene lokale save pas nadat je bewust de nieuwe class start.
+
+- **Vonkbol — 1 / linksklik:** richt met de muis en schiet direct een magisch projectiel. Kost 8 mana, heeft 0,65 seconde afkoeltijd en een bereik van circa 24 speleenheden. Basisschade is 32 en groeit met level, sterrenlicht, pantserbonussen en Hartamulet. De zwaardbonus van Doornlicht telt voor je zwaard.
+- **Vrieskring — 2:** een ijsring treft zichtbare vijanden binnen 4,8 speleenheden voor 75% van je spreukschade. Kost 24 mana en heeft 8 seconden afkoeltijd. Gewone vijanden bewegen 3 seconden op 45% snelheid; eindbazen 1,5 seconde op 72% snelheid. Aanvalsaankondigingen blijven actief. De ring treft rondom een schild, maar niet door muren of andere vaste obstakels.
+- **Mana:** herstelt met 7 per spelseconde, bij een herstelplek met nog eens 20 per seconde. Pauze en menu's stoppen herstel en spreuken. Een level erbij, sterrenlicht, Woudzegen en terugkeer na een nederlaag vullen mana aan. Maximale mana groeit met 5 per level. Huidige mana wordt opgeslagen en begrensd hersteld.
+
+Een directe Vonkbol botst met bomen, grotwanden, oefendoelen en vijanden; een schild kan hem van voren blokkeren. Verborgen questonderdelen kunnen geen schade krijgen. Magie telt niet mee voor de boogtraining: neem Elins training aan en gebruik daarvoor geladen pijlen. Met **F** wissel je tussen staf, zwaard en de vrijgespeelde boog. In I kun je ook rechtstreeks je staf of boog uitrusten.
 
 ## Boogtraining en de Schildwacht
 
@@ -123,6 +134,7 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 - `js/combat.js`: ontwijkregels, afkoeltijden, eerste projectieltreffers, schildhoeken en begrensd draaien.
 - `js/enemy-ai.js`: vijandprofielen, groepswaarschuwingen, flanken, aanvalsaankondigingen en pijlontwijking.
 - `js/archery.js`: boogmodel, boogpees, herbruikbare pijlmodellen en oefendoelen.
+- `js/mage.js`: mana verbruiken/herstellen, tijdelijke vertraging, originele staf en herbruikbare spreukeffecten.
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
 - `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
@@ -139,11 +151,11 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-De huidige testsuite bevat 60 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
+De huidige testsuite bevat 67 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert daarvoor Playwright en Chromium; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
-De huidige game heeft twee gebieden, twee classes en twee korte hoofdstukken, met een character creator, modulair pantser, willekeurige loot en tactische vijanden. Meerdere personageslots, sprongen, multiplayer en extra kerkers zijn nog niet geïmplementeerd.
+De huidige game heeft twee gebieden, drie classes en twee korte hoofdstukken, met een character creator, modulair pantser, willekeurige loot en tactische vijanden. Meerdere personageslots, sprongen, multiplayer en extra kerkers zijn nog niet geïmplementeerd.
 
 ## Herbruikbaar 3D-personageskelet en skins
 
@@ -188,7 +200,7 @@ Veldnamen voor opslag: `armorOwned` is een opgeschoonde lijst met bekende stuk-I
 Losse uitrustingsstukken blijven lichtgewicht meshes op de gedeelde botten. Ze passen over beide GLB-basismodellen en volgen dezelfde bewegingen.
 
 ## Gevechten — drie slagen
-Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruisslag** (120%) en **Vuurfinish** (165%). De volgende slag moet binnen 0,9 seconde na de vorige worden uitgevoerd en respecteert een eigen cooldown. Daarna begint de keten opnieuw. Rollen, wapens wisselen en magie gebruiken resetten de keten. De HUD laat de actieve combo zien. Boog en boogtraining blijven ongewijzigd. Elk stadium heeft eigen zwaard- en lichaamsanimatie, kleur en slagboog; magie heeft gloeiende inslagen. Vijanden tonen een visuele hitreactie en gewone tegenstanders worden kort onderbroken, zonder eindbaaspatronen te veranderen. De combostatus wordt niet opgeslagen en beïnvloedt bestaande saves niet.
+Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruisslag** (120%) en **Vuurfinish** (165%). De volgende slag moet binnen 0,9 seconde na de vorige worden uitgevoerd en respecteert een eigen cooldown. Daarna begint de keten opnieuw. Rollen, wapens wisselen en magie gebruiken resetten de keten. De HUD laat de actieve combo zien. Boog en boogtraining blijven beschikbaar voor alle drie classes. Elk stadium heeft eigen zwaard- en lichaamsanimatie, kleur en slagboog; magie heeft gloeiende inslagen. Vijanden tonen een visuele hitreactie en gewone tegenstanders worden kort onderbroken, zonder eindbaaspatronen te veranderen. De combostatus wordt niet opgeslagen en beïnvloedt bestaande saves niet.
 
 ## Vijandelijke AI
 
@@ -216,3 +228,5 @@ Zet de volledige repository op GitHub, inclusief `vendor/`, `js/` en `assets/`. 
 Voor de browser-smoketest kan optioneel `EMBERWILD_CHROMIUM_PATH` naar een bestaande Chromium-installatie verwijzen. Zonder die variabele gebruikt de test de door Playwright geïnstalleerde browser.
 
 Op een beheerde testmachine die `file://`-navigatie blokkeert kan `node scripts/browser-start.cjs --http-only` alleen de HTTP-controles uitvoeren. GitHub Actions gebruikt altijd de volledige test, inclusief rechtstreeks openen.
+
+De browsercontrole omvat ook een afzonderlijk Magiër-avontuur: class/preview, staf en manabalk, beide spreuken, pauze, wapens wisselen, uiterlijk aanpassen en opslagherstel. Voor een lokale HTTP-server op een andere poort kan `EMBERWILD_BASE_URL` worden ingesteld; GitHub Actions gebruikt standaard `http://127.0.0.1:8765/` en blijft rechtstreeks openen mee testen.

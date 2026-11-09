@@ -35,8 +35,10 @@ function attach(T,rig,flame,appearance){
     if(material.name==='lip')material.color.set(A.skinColors[look.skinTone]||A.skinColors.warm).lerp(new T.Color('#824d46'),.55);
     if(material.name==='iris')material.color.set(A.eyeColors[look.eyeColor]||A.eyeColors.green);
     if(material.name==='hair')material.color.set(A.hairColors[look.hairColor]||A.hairColors.auburn);
-    if(id==='classic'&&material.name==='fabric')material.color.set(choice.classId==='ranger'?'#637e64':'#46697a');
-    if(id==='classic'&&material.name==='cape')material.color.set(choice.classId==='ranger'?'#3d6655':'#2e6171');
+    if(id==='classic'&&material.name==='leather')material.color.set(choice.classId==='mage'?'#4c3f63':'#6f4c37');
+    if(id==='classic'&&material.name==='metal')material.color.set(choice.classId==='mage'?'#777592':'#496575');
+    if(id==='classic'&&material.name==='fabric')material.color.set(choice.classId==='mage'?'#65558c':choice.classId==='ranger'?'#637e64':'#46697a');
+    if(id==='classic'&&material.name==='cape')material.color.set(choice.classId==='mage'?'#423768':choice.classId==='ranger'?'#3d6655':'#2e6171');
    });
   }
   rig.group.userData.characterAsset={status:'ready',skin:choice.id,format:'glTF 2.0',weighted:true};
