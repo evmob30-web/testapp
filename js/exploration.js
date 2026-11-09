@@ -14,10 +14,10 @@ function create(world){
  const shrine=new T.Group();shrine.position.set(-26,0,-48);group.add(shrine);const plinth=mesh(new T.CylinderGeometry(1.3,1.7,.6,8),'#8b9e89',0,.2,0,shrine);const gem=mesh(new T.OctahedronGeometry(.55,0),material('#a9e9da','#579c8f'),0,1.65,0,shrine);const ring=mesh(new T.TorusGeometry(1,.09,5,24),material('#d6e5b6','#8b9d61'),0,1.65,0,shrine);ring.rotation.x=Math.PI/2;
  for(let i=0;i<9;i++){const a=i*Math.PI*2/9;const rock=ball(.4,'#829580',Math.cos(a)*2.5,.15,Math.sin(a)*2.5,shrine);rock.scale.y=.55;}
  const light=new T.PointLight('#9ed8d2',3.5,9);light.position.set(0,2,0);shrine.add(light);const title=label('Het Fluisterheiligdom',0,3.6,0,shrine,'#c7e9d7');
- for(const [x,z] of [[-24,-36],[-25,-40],[-26,-44]])for(let i=0;i<3;i++){box(.05,.3,.05,'#749775',x+i*.25,.15,z);ball(.12,material('#99cce3','#49728a'),x+i*.25,.4,z);}
- function sync(s){title.visible=s.shrineSeen;group.visible=s.area==='valley';for(const h of herbNodes)h.mesh.visible=!s.gathered.includes(h.id);tovin.position.set(s.sideQuest>=2?9:-23,0,s.sideQuest>=2?27:-32);marker.visible=s.sideQuest!==3;marker.material.color.set(s.sideQuest===1?'#a9c4b3':'#ffdb8f');gem.material=material(s.shrineBlessing?'#c6d8bd':'#a9e9da',s.shrineBlessing?'#698666':'#579c8f');}
+ const trail=new T.Group();group.add(trail);for(const [x,z] of [[-24,-36],[-25,-40],[-26,-44]])for(let i=0;i<3;i++){box(.05,.3,.05,'#749775',x+i*.25,.15,z,trail);ball(.12,material('#99cce3','#49728a'),x+i*.25,.4,z,trail);}
+ function sync(s){const v=RPG.questVisibility(s);title.visible=v.shrine&&s.shrineSeen;group.visible=s.area==='valley';tovin.visible=v.herbalist;shrine.visible=v.shrine;trail.visible=v.shrine;for(const h of herbNodes)h.mesh.visible=v.herbalist&&!s.gathered.includes(h.id);tovin.position.set(s.sideQuest>=2?9:-23,0,s.sideQuest>=2?27:-32);marker.visible=s.sideQuest!==3;marker.material.color.set(s.sideQuest===1?'#a9c4b3':'#ffdb8f');gem.material=material(s.shrineBlessing?'#c6d8bd':'#a9e9da',s.shrineBlessing?'#698666':'#579c8f');}
  function update(dt,time,s){marker.position.y=4.25+Math.sin(time*2)*.1;gem.position.y=1.65+Math.sin(time*1.7)*.14;gem.rotation.y=time*.5;ring.rotation.z=time*.15;for(const h of herbNodes)if(h.mesh.visible)h.mesh.rotation.z=Math.sin(time*1.5+h.x)*.035;}
- return {group,mira,tovin,herbNodes,shrine,sync,update};
+ return {group,mira,tovin,herbNodes,shrine,trail,sync,update};
 }
 window.EmberExplore={create};
 })();
