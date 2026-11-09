@@ -55,3 +55,20 @@ test('sculpted Flame Guardian has curved hair and smooth armor geometry',()=>{
  rig.animate(0.3,true,0);
  assert.ok(skin.costumeMeshes.every(m=>m.visible));
 });
+
+test('hair and cape sway during movement and return to rest without drifting',()=>{
+ const rig=context.EmberCharacterRig.create(THREE);
+ const flame=context.EmberFlameGuardian.decorate(THREE,rig);
+ const cape=flame.costumeMeshes.find(m=>m.name==='flame_cape_panel_1');
+ const hair=flame.costumeMeshes.find(m=>m.name==='flame_long_hair_1');
+ const initialCape=cape.rotation.x,initialHair=hair.rotation.x;
+ flame.animate(.4,{moving:true,running:true,attacking:0});
+ assert.notEqual(cape.rotation.x,initialCape);
+ assert.notEqual(hair.rotation.x,initialHair);
+ const initial=flame.costumeMeshes.length;
+ for(let i=0;i<100;i++)flame.animate(i*.03,{moving:false,attacking:0});
+ assert.ok(Math.abs(cape.rotation.x)<.2);
+ assert.equal(flame.costumeMeshes.length,initial);
+ flame.setVisible(false);flame.animate(4,{moving:false});flame.setVisible(true);
+ assert.ok(flame.costumeMeshes.every(m=>m.visible));
+});
