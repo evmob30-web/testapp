@@ -1,4 +1,4 @@
-# Emberwild — De laatste vonk · versie 0.4
+# Emberwild — De laatste vonk · versie 0.5
 
 Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
@@ -6,21 +6,46 @@ Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos e
 
 Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. De game is bedoeld voor toetsenbord en muis op een laptop of desktop; er is nog geen mobiele besturing.
 
+## Classes en een nieuw avontuur
+
+Bij een nieuw avontuur kies je een class. De keuzelijst gebruikt centrale classdata uit `RPG.classes` in `js/core.js`; gezondheid, basissnelheid, ontwijkafkoeltijd, startwapen en classvaardigheid worden daar bepaald.
+
+| Class | Start | Speelstijl |
+| --- | --- | --- |
+| Wachter | 100 gezondheid, zwaard, Vonkflits | Gevechten van dichtbij met een magische afstandsaanval; kan de boog bij Elin leren |
+| Woudloper | 85 gezondheid, boog, Vonkpijl | Snellere beweging en ontwijkrol; kan ook een zwaard gebruiken |
+
+De Woudloper heeft snelheid 5,5 en 1,15 s ontwijkafkoeltijd; de Wachter snelheid 5 en 1,35 s. Vonkpijl vuurt een krachtige magische pijl op een nabije vijand af (4 s afkoeltijd); Vonkflits heeft een afkoeltijd van 3,5 s.
+
+Je class blijft bij het personage. Bestaande opslag wordt als Wachter geladen zonder verlies van voortgang. ‘Ga verder’ laadt je opgeslagen class direct. Via pauze → ‘Nieuw avontuur’ kun je opnieuw kiezen; de nieuwe start vervangt je ene opgeslagen avontuur. Teruggaan uit de classkeuze laat de huidige voortgang intact. Er zijn nog geen meerdere personageslots of classes buiten deze twee.
+
 ## Besturing
 
 | Invoer | Actie |
 | --- | --- |
 | WASD / pijltjes | Bewegen ten opzichte van de camera |
 | Shift | Rennen |
-| Muis slepen | Camera draaien en kantelen |
+| Rechtermuis slepen | Camera draaien en kantelen; met een zwaard werkt links slepen ook |
 | Muiswiel | In- en uitzoomen |
-| 1 / korte linkermuisklik | Zwaardslag op de dichtstbijzijnde vijand binnen 3,1 meter |
-| 2 | Vonkflits binnen 13 meter; 3,5 s afkoeltijd |
-| Spatie | Voorwaartse ontwijkrol in je bewegingsrichting; 0,38 s bescherming, 1,35 s afkoeltijd |
+| 1 / linkermuisknop | Zwaard: slaan; boog: vasthouden om te laden en loslaten om te schieten |
+| Muis bewegen met boog | Richten met het vizier |
+| F | Wisselen tussen zwaard en boog, zodra de boog beschikbaar is |
+| 2 | Classvaardigheid: Vonkflits (Wachter) of Vonkpijl (Woudloper) |
+| Spatie | Voorwaartse ontwijkrol in je bewegingsrichting; 0,38 s bescherming, afkoeltijd afhankelijk van class |
 | Q | Levensdrank; herstelt tot 70 gezondheid |
 | E | Praten, verzamelen, deur openen of gebied betreden/verlaten |
 | I | Inventaris en uitrusting |
 | Esc | Pauze / menu sluiten |
+
+## Boogtraining en de Schildwacht
+
+Je bestaande Wachter kan de boog leren zonder opnieuw te beginnen. Praat met Elin en kies in haar gesprek **‘Boogtraining bij Elin’**. Neem de training aan. Je krijgt toegang tot een oefenboog; Woudlopers gebruiken hun eigen startboog.
+
+De drie rieten doelen staan ten noorden van het dorp. Richt met de muis, houd links of 1 ongeveer 1,2 seconde vast tot de balk vol is en laat los. Raak ieder doel eenmaal met een geladen pijl. Korte schoten richten wel schade aan, maar tellen niet voor deze opdracht. Keer na drie treffers terug naar Elin en kies **‘Rond boogtraining af’**. Je verdient de Bosboog met extra schade, 50 XP en 20 goud. Dit is een afzonderlijke opdracht en verandert de hoofdverhaallijn niet.
+
+De boog gebruikt zichtbare projectielen met botsingen tegen vijanden, bomen en grotwanden. Je hebt onbeperkt pijlen. Een volgeladen schot doet meer schade; lopen tijdens het laden gaat langzamer. Pauzeren, praten, rollen, inventaris openen en wapen wisselen breken het laden af. Loslaten daarna vuurt geen onbedoelde pijl af. Je uitgeruste zwaard en de boog blijven apart bewaard; F wisselt tussen beide.
+
+Een **Schildwacht** patrouilleert in het oostelijke bos (bij 17, -24). Hij blokkeert aanvallen van voren, inclusief pijlen, en draait langzaam. Beweeg of rol naar zijn zijkant of achter hem en raak hem daar. Hij is optioneel en telt niet mee voor de wolvenopdracht.
 
 ## Hoofdstuk 1 — De Schemervallei
 
@@ -65,7 +90,7 @@ De extra opdracht staat onder ‘Verkenning’ in de HUD en vervangt je hoofdopd
 
 ## Opslag en geluid
 
-Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere opslag van versie 0.1/0.2/0.3 blijft bruikbaar; hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen.
+Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere opslag van versie 0.1/0.2/0.3/0.4 blijft bruikbaar; hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen.
 
 ‘Ga verder’ verschijnt bij een bruikbare opslag. ‘Nieuw avontuur’ vervangt de voortgang; tijdens spelen wordt hiervoor bevestiging gevraagd. Voortgang is gebonden aan dezelfde browser en hetzelfde site-adres. Bij geblokkeerde opslag blijft spelen mogelijk voor de huidige sessie. Geen cloudopslag of multiplayer.
 
@@ -75,7 +100,8 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 - `index.html`, `style.css`: interface en menu's.
 - `js/core.js`: spelregels, opdrachten, uitrusting, beloningen en opslagvalidatie.
-- `js/combat.js`: ontwijkregels, afkoeltijden en botsingen voor snelle projectielen.
+- `js/combat.js`: ontwijkregels, afkoeltijden, eerste projectieltreffers, schildhoeken en begrensd draaien.
+- `js/archery.js`: boogmodel, boogpees, herbruikbare pijlmodellen en oefendoelen.
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
 - `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
@@ -88,8 +114,8 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-22 tests geslaagd. Ze controleren beide opdrachtketens, kamerbereikbaarheid en deurblokkering, oude en nieuwe opslag, uitrusting, herhaalde beloningen, niveauverhogingen, audio, rollen en projectielbotsingen. De integratietest bouwt de echte Three.js-wereld op en voltooit beide hoofdstukken met gesimuleerde invoer. Hij test ook beide aanvalspatronen van de Wortelmoeder, het amulet, gebiedswissels en doodgaan in de grot, de zijmissie, bereikbare verkenningsplekken, kruiden plukken, drankjes maken en de Woudzegen. Audiotests controleren ook de omgevingslus, gebiedswissels, pauze en dempen. JavaScript-syntax en relatieve bestandsverwijzingen zijn gecontroleerd.
+26 tests geslaagd. Ze controleren beide opdrachtketens, kamerbereikbaarheid en deurblokkering, oude en nieuwe opslag, uitrusting, herhaalde beloningen, niveauverhogingen, audio, rollen en projectielbotsingen. De integratietest bouwt de echte Three.js-wereld op en voltooit beide hoofdstukken met gesimuleerde invoer. Hij test ook beide aanvalspatronen van de Wortelmoeder, het amulet, gebiedswissels en doodgaan in de grot, de zijmissie, bereikbare verkenningsplekken, kruiden plukken, drankjes maken en de Woudzegen. Extra controles testen classkeuze en annuleren, legacy-opslag als Wachter, de Woudloper-start, een werkende Vonkpijl, geladen pijlen op echte oefendoelen, boogtraining, schildblokkering en flanktreffers, muisbesturing en het afbreken van laden. Audiotests controleren ook de omgevingslus, gebiedswissels, pauze en dempen. JavaScript-syntax en relatieve bestandsverwijzingen zijn gecontroleerd.
 
 De test vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De voorgeschreven browsertool was niet beschikbaar voor een visuele browsercontrole. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
-Dit is een eerste speelbare RPG met twee gebieden, één klasse, twee korte hoofdstukken en eenvoudige modellen en AI. Nog geen uitgebreide uitrustingssystemen, sprongen, multiplayer of extra kerkers.
+Dit is een eerste speelbare RPG met twee gebieden, twee classes, twee korte hoofdstukken en eenvoudige modellen en AI. Nog geen uitgebreide uitrustingssystemen, sprongen, multiplayer of extra kerkers.
