@@ -1,18 +1,18 @@
 /* Emberwild reusable procedural humanoid rig.
  * Local +Z is forward, +Y up. All proportions in world units.
- * Skeleton joints are THREE.Group pivots, not skinned mesh bones:
- * a lightweight animation-ready hierarchy for procedural characters.
- * A future GLB SkinnedMesh can be retargeted to the named joints.
+ * The joints are real THREE.Bone transforms; geometry currently consists of
+ * rigid pieces parented to bones, not weight-painted SkinnedMeshes.
+ * A future GLB SkinnedMesh can bind to the shared skeleton.
  */
 (function(root){
 'use strict';
 function create(T, options={}){
   const skin=options.skin||'guardian';
   const group=new T.Group();group.name='Character';
-  const model=new T.Group();model.name='rig_root';model.position.y=1.2;group.add(model);
+  const model=new T.Bone();model.name='rig_root';model.position.y=1.2;group.add(model);
   const joints={root:model};
-  function joint(name,parent,x,y,z){const g=new T.Group();g.name=name;g.position.set(x,y,z);parent.add(g);joints[name]=g;return g;}
-  function material(color,emissive){return new T.MeshStandardMaterial({color,roughness:.78,metalness:.18,flatShading:true,emissive:emissive||0,emissiveIntensity:emissive?.45:0});}
+  function joint(name,parent,x,y,z){const g=new T.Bone();g.name=name;g.position.set(x,y,z);parent.add(g);joints[name]=g;return g;}
+  function material(color,emissive){return new T.MeshStandardMaterial({color,roughness:.78,metalness:.18,flatShading:true,emissive:emissive||0,emissiveIntensity:emissive ? 0.45 : 0});}
   function cube(parent,name,w,h,d,x,y,z,color){const m=new T.Mesh(new T.BoxGeometry(w,h,d),material(color));m.name=name;m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m;}
   function ball(parent,name,r,x,y,z,color){const m=new T.Mesh(new T.SphereGeometry(r,10,7),material(color));m.name=name;m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m;}
   const palette=skin==='ranger'?{armor:'#637e64',fabric:'#829b74',cape:'#567357',accent:'#b8c88e'}:{armor:'#626e79',fabric:'#a0b0a3',cape:'#81958a',accent:'#d7ae6b'};
@@ -77,8 +77,9 @@ function create(T, options={}){
     elbowL.rotation.x=moving?-.09:0;
     elbowR.rotation.x=attacking>0?-.35:0;
   }
+  const skeleton=new T.Skeleton(Object.values(joints));
   setSkin(skin);
-  return {group,model,joints,body,cloth,left,right,arm,blade,guard,setSkin,animate};
+  return {group,model,joints,skeleton,body,cloth,left,right,arm,blade,guard,setSkin,animate};
 }
 root.EmberCharacterRig={create};
 })(typeof window==='undefined'?globalThis:window);
