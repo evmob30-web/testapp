@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world');let renderer,world;
-try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;world=EmberWorld.createWorld();}catch(error){$('fatal').hidden=false;$('fatal').textContent='Deze browser kan de 3D-wereld niet openen. Gebruik een recente Edge, Chrome of Firefox met hardwareversnelling ingeschakeld.';console.error(error);return;}
+try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;world=EmberWorld.createWorld();}catch(error){$('fatal').hidden=false;const details=error&&error.message?error.message:String(error);$('fatal').textContent='Emberwild kon de 3D-wereld niet starten: '+details+' — Herlaad de pagina met Ctrl+F5. Als het probleem blijft, geef deze foutmelding door.';console.error('Emberwild startfout:',error);return;}
 const exploration=EmberExplore.create(world);
 const archery=EmberArchery.create(world);
 const dungeon=EmberDungeon.create(world);
