@@ -19,8 +19,9 @@ const { chromium } = require('playwright');
  await page.locator('#class-start').click();
  // Execute all three melee stages in the actual WebGL game, without needing an enemy.
  for(let step=1;step<=3;step++){
+   if(step>1)await page.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});
    await page.locator('#attack').click();
-   await page.waitForTimeout(step===3?150:420);
+   await page.waitForFunction(expected=>document.getElementById('combo-indicator').textContent.includes('COMBO '+expected+' / 3'),step,{timeout:25000});
    const shown=await page.locator('#combo-indicator').textContent();
    if(!shown.includes('COMBO '+step+' / 3'))errors.push('Combo stage '+step+' was not visible: '+shown);
  }
