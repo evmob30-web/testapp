@@ -147,3 +147,11 @@ De speler gebruikt nu gladdere procedurele vormen: ellipsoïden voor gezicht/rom
 ## Karakteranimaties v0.6
 
 Het gedeelde rig-systeem biedt procedurele idle-ademhaling, een zacht gemengde loop- en renbeweging, kniebeweging, armzwaai en een zwaardaanval met follow-through. De Flame Guardian heeft lichte secundaire beweging op haarlokken en cape. Het huidige 3D-model blijft uit losse, aan botten bevestigde onderdelen bestaan; het is nog geen gewichtsgeschilderde SkinnedMesh. De gameplay- en savestructuur veranderen niet.
+
+## Character creator (v0.7)
+
+Bij een nieuw avontuur open je de character creator na **Kies je class**. In een aparte realtime Three.js-preview kies je een klassiek uiterlijk of Flame Guardian, drie kapsels (kort, lang, vlecht), vijf haarkleuren, vier huidtinten en vier oogkleuren. Met de knoppen onder de preview draai je je personage. De klasse bepaalt de gameplay en blijft losstaan van het cosmetische uiterlijk.
+
+In een bestaand avontuur: druk op **I → Personage aanpassen**. Je kunt daar je uiterlijk bijstellen zonder je klasse, level, quests of uitrusting te verliezen. Wijzigingen worden pas opgeslagen met **Bewaar uiterlijk**; **Terug** annuleert ze. Je oude save wordt automatisch uitgebreid met veilige standaardwaarden. De bestaande `skinId` blijft ondersteund, en aanvullende keuzes worden opgeslagen onder `appearance`. De nieuwe UI gebruikt één gedeelde `EmberAppearance`-module voor gamepersonage en preview; geen buildstap of extra externe dependencies.
+
+Test lokaal met `node --test tests/*.cjs`. De Playwright-smoketest opent daarnaast de creator en controleert de preview, cosmetische keuzes, bewerken vanuit de inventaris en opslag na herladen.
