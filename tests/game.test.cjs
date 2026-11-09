@@ -73,7 +73,7 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  const previousColliders=[...world.colliders];world.colliders.length=0;
  const distantHome={x:distant.homeX,z:distant.homeZ};
  distant.mesh.position.set(15,0,-34);distant.homeX=15;distant.homeZ=-34;
- distant.attack=100;distant.alertTimer=0;
+ const originalDistantMax=distant.max;distant.hp=300;distant.max=300;distant.attack=100;distant.alertTimer=0;
  s.x=15;s.z=-16;tick(42); // Let the prior shield-shot cooldown finish.
  const farHp=distant.hp,farZ=distant.mesh.position.z;
  assert.equal(distant.alertTimer,0,'enemy starts unalerted beyond 11-unit sight range');
@@ -85,7 +85,7 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  tick(25); // Enemy finishes its short hit stagger, then starts chasing.
  assert.ok(distant.mesh.position.z>farZ,'enemy should begin pursuing the distant archer: '+JSON.stringify({from:farZ,to:distant.mesh.position.z,playerZ:s.z,playerHp:s.hp,alert:distant.alertTimer,stagger:distant.stagger,visible:distant.mesh.visible,enemyHp:distant.hp}));
  assert.equal(get('enemy-health').style.width,distant.hp/distant.max*100+'%','health bar should show the distant hit');
- distant.alertTimer=0;distant.mesh.position.set(distantHome.x,0,distantHome.z);
+ distant.alertTimer=0;distant.hp=originalDistantMax;distant.max=originalDistantMax;distant.mesh.position.set(distantHome.x,0,distantHome.z);
  world.colliders.push(...previousColliders);
 
  key('KeyF');assert.equal(s.weapon,'sword');assert.equal(s.equipped,'thorn');key('KeyF');assert.equal(s.weapon,'bow');
