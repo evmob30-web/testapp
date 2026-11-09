@@ -88,8 +88,25 @@ function decorate(T,rig){
  const costumeMeshes=[];
  rig.model.traverse(o=>{if(o.isMesh&&o.name.startsWith('flame_'))costumeMeshes.push(o);});
  function setVisible(on){for(const m of baseMeshes)m.visible=!on;for(const m of costumeMeshes)m.visible=!!on;}
+ // Lightweight secondary motion: all ornaments stay attached to their own bones.
+ // Each mesh uses a stable rest pose, so switching skins never accumulates drift.
+ const dynamic=costumeMeshes.filter(m=>/^flame_(long_hair_|side_lock_|cape_panel_|cape_hem_)/.test(m.name));
+ for(const mesh of dynamic)mesh.userData.motionRest={x:mesh.rotation.x,y:mesh.rotation.y,z:mesh.rotation.z};
+ function animate(time,options={}){
+   const amount=options.moving?(options.running?1:.58):.08;
+   const attack=options.attacking>0?.17:0;
+   for(const mesh of dynamic){
+     const rest=mesh.userData.motionRest;
+     const hair=mesh.name.includes('hair_')||mesh.name.includes('side_lock_');
+     const phase=hair?time*4.2:time*2.8;
+     const amplitude=hair?.11:.16;
+     mesh.rotation.x=rest.x+Math.sin(phase+(hair?0:1.1))*amplitude*(.3+amount)+attack;
+     mesh.rotation.z=rest.z+Math.sin(phase*.77+(mesh.position.x*4))*amplitude*(.3+amount);
+     mesh.rotation.y=rest.y+Math.sin(phase*.68)*amplitude*.2;
+   }
+ }
  setVisible(false);
- return {setVisible,costumeMeshes,baseMeshes};
+ return {setVisible,animate,costumeMeshes,baseMeshes};
 }
 root.EmberFlameGuardian={decorate};
 })(typeof window==='undefined'?globalThis:window);
