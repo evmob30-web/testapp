@@ -6,11 +6,27 @@ test('3D world and full gameplay: quests, combat, inventory, pause, saving and n
  class Renderer{constructor(){this.shadowMap={};}setPixelRatio(){}setSize(){}render(scene,camera){scene.updateMatrixWorld();camera.updateMatrixWorld();renderedCamera=camera;assert.ok(scene.isScene);assert.ok(camera.isPerspectiveCamera);renderCount++;}}
  const sandbox={console,THREE:{...RealThree,WebGLRenderer:Renderer},devicePixelRatio:1,innerWidth:1280,innerHeight:720,HTMLButtonElement:class{},document:{getElementById:get,createElement:element,addEventListener(n,fn){handlers[n]=fn;}},localStorage:{getItem:k=>stored[k]||null,setItem:(k,v)=>stored[k]=v},requestAnimationFrame:fn=>callback=fn,addEventListener:(n,fn)=>handlers[n]=fn};sandbox.window=sandbox;vm.createContext(sandbox);
  const load=n=>vm.runInContext(fs.readFileSync(path.join(__dirname,'../js/'+n+'.js'),'utf8'),sandbox);
- load('audio');load('combat');load('enemy-ai');const makeCombat=sandbox.EmberCombat.create;sandbox.EmberCombat.create=()=>combat=makeCombat();load('core');load('equipment');const fresh=sandbox.RPG.fresh;sandbox.RPG.fresh=(id)=>s=fresh(id);load('character-rig');load('flame-guardian');load('appearance');load('world');const create=sandbox.EmberWorld.createWorld;sandbox.EmberWorld.createWorld=()=>world=create();load('exploration');const makeExplore=sandbox.EmberExplore.create;sandbox.EmberExplore.create=(...args)=>exploration=makeExplore(...args);load('archery');const makeArchery=sandbox.EmberArchery.create;sandbox.EmberArchery.create=(...args)=>archery=makeArchery(...args);load('dungeon');const makeDungeon=sandbox.EmberDungeon.create;sandbox.EmberDungeon.create=(...args)=>dungeon=makeDungeon(...args);load('game');
+ load('audio');load('combat');load('enemy-ai');const makeCombat=sandbox.EmberCombat.create;sandbox.EmberCombat.create=()=>combat=makeCombat();load('core');load('loot');load('equipment');const fresh=sandbox.RPG.fresh;sandbox.RPG.fresh=(id)=>s=fresh(id);load('character-rig');load('flame-guardian');load('appearance');load('world');const create=sandbox.EmberWorld.createWorld;sandbox.EmberWorld.createWorld=()=>world=create();load('exploration');const makeExplore=sandbox.EmberExplore.create;sandbox.EmberExplore.create=(...args)=>exploration=makeExplore(...args);load('archery');const makeArchery=sandbox.EmberArchery.create;sandbox.EmberArchery.create=(...args)=>archery=makeArchery(...args);load('dungeon');const makeDungeon=sandbox.EmberDungeon.create;sandbox.EmberDungeon.create=(...args)=>dungeon=makeDungeon(...args);load('game');
  // The class selection now offers a second independently rendered 3D preview.
  assert.ok(sandbox.EmberAppearance.createPreview);
  const tick=(n=1)=>{for(let i=0;i<n;i++){ms+=1000/60;callback(ms);}};const key=code=>{handlers.keydown({code,target:{},preventDefault(){}});handlers.keyup({code});};
  tick();for(const point of sandbox.RPG.explorationSpots)assert.ok(world.colliders.every(c=>Math.hypot(point.x-c.x,point.z-c.z)>=c.r+.55),'exploration sites must be reachable without standing inside a solid object');assert.ok(renderCount>0);assert.ok(world.scene.children.length>100);get('play').onclick();assert.equal(get('class-select').hidden,false);get('class-start').onclick();tick();assert.equal(get('overlay').hidden,true);
+ // A glowing world drop must be pickable and equipable, with comparisons and saved gold.
+ s.lootDrops.push({uid:1,base:'ember_helm',rarity:'epic',affix:'fury',x:0,z:22,area:'valley'});s.lootSequence=1;
+ world.syncLoot(s);assert.equal(world.lootMeshes.size,1,'3D drop should appear on the ground');
+ tick(2);assert.match(get('interact').textContent,/Pak buit/);
+ key('KeyE');assert.equal(world.lootMeshes.size,0);
+ assert.equal(s.lootBag.length,1);assert.equal(s.lootDrops.length,0);
+ get('inventory-button').onclick();
+ assert.equal(get('loot-bag').children.length,1);
+ assert.match(get('loot-bag').children[0].children[2].textContent,/Verschil met uitgerust/);
+ const oldPower=sandbox.RPG.damage(s);
+ get('loot-bag').children[0].children[3].onclick();
+ assert.equal(s.lootEquipped.head,1);assert.ok(sandbox.RPG.damage(s)>oldPower);
+ assert.equal(sandbox.RPG.restore(stored['emberwild-save-v1']).lootEquipped.head,1);
+ get('loot-bag').children[0].children[3].onclick();assert.equal(s.lootEquipped.head,null);
+ const prevGold=s.gold;get('loot-bag').children[0].children[4].onclick();assert.equal(s.lootBag.length,0);assert.equal(s.gold,prevGold+90);
+ get('inventory-close').onclick();
 
  // Unaccepted quest objects are absent in both the scene and nearby interactions.
  assert.ok(world.crystals.every(c=>!c.mesh.visible));assert.ok(world.crystals.every(c=>!mapHas(c.x,c.z)));assert.ok(sandbox.RPG.bowTargets.every(t=>!mapHas(t.x,t.z)));assert.ok(world.enemies.filter(e=>/^w/.test(e.id)||e.id==='boss'||e.shield).every(e=>!e.mesh.visible));assert.equal(archery.targetsRoot.visible,false);assert.equal(dungeon.entrance.visible,false);assert.equal(exploration.tovin.visible,false);assert.equal(exploration.shrine.visible,false);assert.equal(exploration.trail.visible,false);assert.ok(exploration.herbNodes.every(h=>!h.mesh.visible));assert.equal(get('side-quest').hidden,true);
