@@ -131,3 +131,11 @@ Met Node.js 18+: `node --test tests/*.cjs`.
 De test vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De voorgeschreven browsertool was niet beschikbaar voor een visuele browsercontrole. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
 Dit is een eerste speelbare RPG met twee gebieden, twee classes, twee korte hoofdstukken en eenvoudige modellen en AI. Nog geen uitgebreide uitrustingssystemen, sprongen, multiplayer of extra kerkers.
+
+## Herbruikbaar 3D-personageskelet (experimenteel)
+
+`js/character-rig.js` biedt `EmberCharacterRig.create(THREE, {skin:'guardian'})`. Het retourneert een `group`, `model`, `joints`, een `THREE.Skeleton`, `animate(time,moving,attacking)` en `setSkin(name)`. De benoemde `THREE.Bone`-gewrichten omvatten heupen, rug, borstkas, nek, hoofd, schouders, ellebogen, handen, dijen, knieën, voeten en `weapon_r` / `back` voor uitrusting.
+
+De bestaande speler gebruikt het skelet. `guardian`, `ranger` en `flame_guardian` zijn **voorlopig kleurvarianten van een eenvoudig opgebouwd prototype**; de gedetailleerde Flame Guardian uit de concepttekening is nog niet gemodelleerd. De huidige meshes zijn star aan de botten bevestigd: dit is dus wel een echte bot-hiërarchie maar nog **geen weight-painted, vervormbare SkinnedMesh**. Voor definitieve GLB-skins zijn mesh, weights, UV/texturen en eventueel animatie-retargeting nodig. Questdata, bestaande saves en besturing blijven onveranderd.
+
+Controle: `node --test tests/*.cjs` (ook `tests/character-rig.test.cjs`).
