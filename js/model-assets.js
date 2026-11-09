@@ -32,10 +32,11 @@ function attach(T,rig,flame,appearance){
     if(mesh.name.includes('default_hair'))mesh.visible=false;
     const material=mesh.material;
     if(material.name==='skin')material.color.set(A.skinColors[look.skinTone]||A.skinColors.warm);
+    if(material.name==='lip')material.color.set(A.skinColors[look.skinTone]||A.skinColors.warm).lerp(new T.Color('#824d46'),.55);
     if(material.name==='iris')material.color.set(A.eyeColors[look.eyeColor]||A.eyeColors.green);
     if(material.name==='hair')material.color.set(A.hairColors[look.hairColor]||A.hairColors.auburn);
-    if(id==='classic'&&material.name==='fabric')material.color.set(choice.classId==='ranger'?'#637e64':'#647b83');
-    if(id==='classic'&&material.name==='cape')material.color.set(choice.classId==='ranger'?'#567357':'#69827b');
+    if(id==='classic'&&material.name==='fabric')material.color.set(choice.classId==='ranger'?'#637e64':'#46697a');
+    if(id==='classic'&&material.name==='cape')material.color.set(choice.classId==='ranger'?'#3d6655':'#2e6171');
    });
   }
   rig.group.userData.characterAsset={status:'ready',skin:choice.id,format:'glTF 2.0',weighted:true};

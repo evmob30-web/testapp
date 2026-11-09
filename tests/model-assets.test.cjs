@@ -6,11 +6,12 @@ const vm=require('node:vm');
 const THREE=require('../vendor/three.min.js');
 const ROOT=path.join(__dirname,'..');
 function environment(){
- const sandbox={THREE,console,URL,Blob,fetch,atob,TextDecoder,setTimeout,
+ const warnings=[];class BitmapTestLoader extends THREE.Loader{constructor(...args){super(...args);this.isImageBitmapLoader=true;}load(url,onLoad){Promise.resolve().then(()=>onLoad({width:512,height:256,close(){}}));}}
+ const sandbox={THREE:{...THREE,ImageBitmapLoader:BitmapTestLoader},console:{...console,warn:(...args)=>warnings.push(args)},warnings,URL,Blob,fetch,atob,TextDecoder,setTimeout,
   // Node tests exercise glTF parsing/bindings; real PNG decoding/rendering runs in Chromium CI.
   createImageBitmap:async()=>({width:64,height:64,close(){}})};
  sandbox.window=sandbox;sandbox.self=sandbox;vm.createContext(sandbox);
- for(const file of ['js/character-rig.js','js/flame-guardian.js','js/appearance.js','vendor/GLTFLoader.js','js/character-assets-data.js','js/model-assets.js'])vm.runInContext(fs.readFileSync(path.join(ROOT,file),'utf8'),sandbox,{filename:file});
+ for(const file of ['js/hero-art.js','js/character-rig.js','js/flame-guardian.js','js/appearance.js','vendor/GLTFLoader.js','js/character-assets-data.js','js/model-assets.js'])vm.runInContext(fs.readFileSync(path.join(ROOT,file),'utf8'),sandbox,{filename:file});
  return sandbox;
 }
 function avatar(env){
@@ -37,7 +38,7 @@ test('GLB models deform on the game bones, preserve attachments and keep avatar 
  a.assets.setLook('flame_guardian',{skinTone:'deep',eyeColor:'violet',hairColor:'silver'},'ranger');
  b.assets.setLook('classic',{skinTone:'fair'},'guardian');
  assert.equal(await a.assets.ready,true);assert.equal(await b.assets.ready,true);
- assert.equal(a.assets.status,'ready');
+ assert.equal(a.assets.status,'ready');assert.equal(env.warnings.length,0,'successful assets have no loader warnings');
  const first=a.assets.models.getObjectByName('flame_skin');
  assert.ok(first?.isSkinnedMesh);
  assert.equal(first.material.color.getHexString(),'81513e');
@@ -73,6 +74,21 @@ test('asset failure leaves the procedural character usable',async()=>{
  const env=environment();env.EmberGLTFLoader=null;
  const {rig,assets}=avatar(env);
  assert.equal(await assets.ready,false);assert.equal(assets.status,'fallback');
- assert.ok(rig.body.visible);assert.ok(rig.blade.visible);rig.animate(.5,true,.2);
+ assert.ok(env.warnings.some(w=>String(w[0]).includes('fallback')));assert.ok(rig.body.visible);assert.ok(rig.blade.visible);rig.animate(.5,true,.2);
  assert.ok(Number.isFinite(rig.joints.upper_arm_r.rotation.x));
+});
+
+test('heroic proportions keep feet on the original ground and hair is shared without color leaks',async()=>{
+ const env=environment(),a=avatar(env),b=avatar(env);await Promise.all([a.assets.ready,b.assets.ready]);
+ a.rig.group.updateMatrixWorld(true);
+ for(const side of ['l','r'])assert.ok(Math.abs(a.rig.joints['foot_'+side].getWorldPosition(new THREE.Vector3()).y+.02)<1e-6,'ground contact is preserved');
+ const skin=a.assets.models.getObjectByName('classic_skin');skin.geometry.computeBoundingBox();
+ assert.ok(skin.geometry.boundingBox.max.y-skin.geometry.boundingBox.min.y<.6,'head and neck stay proportional to the heroic body');
+ for(const style of ['short','long','braid']){
+  const ga=a.look.groups[style],gb=b.look.groups[style];assert.equal(ga.children.length,1,'one draw per hairstyle');
+  assert.strictEqual(ga.children[0].geometry,gb.children[0].geometry);assert.notStrictEqual(ga.children[0].material,gb.children[0].material);
+ }
+ a.look.apply('classic',{hairStyle:'long',hairColor:'silver'});b.look.apply('classic',{hairStyle:'braid',hairColor:'black'});
+ assert.equal(a.look.groups.long.visible,true);assert.equal(b.look.groups.braid.visible,true);
+ assert.notEqual(a.look.groups.long.children[0].material.color.getHex(),b.look.groups.braid.children[0].material.color.getHex());
 });

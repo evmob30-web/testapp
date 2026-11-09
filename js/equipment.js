@@ -112,6 +112,13 @@ function attach(T,rig){
     group.userData.meshes.push(add(bone,sphere,trim,'boot_trim_'+id+side,0,-.05,.36,.21,.055,.10));
    }
   }
+  if(root.EmberHeroArt){
+   for(const mesh of group.userData.meshes){mesh.parent.remove(mesh);mesh.material.dispose();}
+   group.userData.meshes=root.EmberHeroArt.create(T).armor(item.slot,item.rarity==='rare').map(piece=>{
+    const mesh=add(rig.joints[piece.bone],piece.geometry,piece.role==='trim'?trim:col,'armor_detail_'+id,...piece.position);
+    mesh.rotation.set(...piece.rotation);mesh.material.vertexColors=true;mesh.material.metalness=item.rarity==='rare'?.38:.12;mesh.material.roughness=.64;return mesh;
+   });
+  }
   for(const mesh of group.userData.meshes){mesh.visible=false;mesh.userData.armorBaseColor=mesh.material.color.clone();}
  }
  function sync(state){

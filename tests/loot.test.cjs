@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const THREE=require('../vendor/three.min.js');
 const root={THREE};root.window=root;vm.createContext(root);
-for(const file of ['core','loot','equipment','character-rig'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
+for(const file of ['core','loot','equipment','hero-art','character-rig'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file+'.js'),'utf8'),root);
 const loot=root.EmberLoot,armor=root.EmberEquipment;
 function randomStream(values){let i=0;return ()=>values[i++%values.length];}
 test('rarities, distinct affixes and template-derived bonuses',()=>{

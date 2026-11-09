@@ -5,7 +5,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const THREE=require('../vendor/three.min.js');
 const context={THREE};context.window=context;vm.createContext(context);
-for(const name of ['core','character-rig','flame-guardian'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',name+'.js'),'utf8'),context);
+for(const name of ['core','hero-art','character-rig','flame-guardian'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',name+'.js'),'utf8'),context);
 test('Flame Guardian meshes follow reusable bones and can switch back',()=>{
  const rig=context.EmberCharacterRig.create(THREE);
  const skin=context.EmberFlameGuardian.decorate(THREE,rig);

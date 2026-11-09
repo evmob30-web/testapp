@@ -25,7 +25,7 @@ function initializeCreator(){
  catch(error){console.warn('De 3D-preview is niet beschikbaar:',error);$('creator-preview-error').hidden=false;}
 }
 function refreshCreator(){
- if(creatorPreview)creatorPreview.select(selectedSkin,selectedAppearance);
+ if(creatorPreview)creatorPreview.select(selectedSkin,selectedAppearance,selectedClass);
 }
 function showCreatorValues(){
  $('appearance-skin').value=selectedSkin;

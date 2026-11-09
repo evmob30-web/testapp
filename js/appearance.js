@@ -19,8 +19,11 @@ function strand(T,parent,name,points,r,mat){
 }
 function attach(T,rig,flame){
  const head=rig.joints.head, hairMaterial=material(T,hairColors.auburn);
+ hairMaterial.vertexColors=!!root.EmberHeroArt;
  const eyesMaterial=material(T,eyeColors.green);
- const groups={};for(const style of styles){const g=new T.Group();g.name='appearance_hair_'+style;head.add(g);groups[style]=g;}
+ const groups={};
+ if(root.EmberHeroArt){const art=root.EmberHeroArt.create(T);for(const style of styles){const g=art.hair(style,hairMaterial);head.add(g);groups[style]=g;}}else{
+for(const style of styles){const g=new T.Group();g.name='appearance_hair_'+style;head.add(g);groups[style]=g;}
  // All hair shapes are relative to the same head bone used in the game.
  ellipsoid(T,groups.short,'short_cap',0,.40,-.06,.36,.22,.34,hairMaterial);
  for(const side of [-1,1]){
@@ -41,6 +44,7 @@ function attach(T,rig,flame){
    const x=(i-1.5)*.15;
    strand(T,groups.long,'long_fringe_'+i,[[x,.49,.17],[x+.025,.35,.28],[x+.038,.25,.28]],.046,hairMaterial);
    strand(T,groups.braid,'braid_fringe_'+i,[[x,.49,.17],[x+.015,.36,.29],[x+.04,.26,.27]],.041,hairMaterial);
+ }
  }
  // Classic model had no eyes. The Flame Guardian already has its own eyes.
  const classicEyes=[];
@@ -72,26 +76,31 @@ function attach(T,rig,flame){
 }
 function createPreview(T,canvas){
  const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});
- renderer.setPixelRatio(1);
+ renderer.setPixelRatio(Math.min(root.devicePixelRatio||1,1.5));
+ renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
  renderer.setSize(320,400,false);
  renderer.outputColorSpace=T.SRGBColorSpace;
- const scene=new T.Scene();scene.background=new T.Color('#20302c');
+ const scene=new T.Scene();scene.background=new T.Color('#162b31');
  const camera=new T.PerspectiveCamera(37,320/400,.1,40);
  camera.position.set(3.0,2.5,4.7);camera.lookAt(0,1.20,0);
  scene.add(new T.HemisphereLight('#fff0d6','#294036',2.6));
  const light=new T.DirectionalLight('#ffd6a2',3);light.position.set(-3,7,5);scene.add(light);
+ const rim=new T.DirectionalLight('#77bad1',2.6);rim.position.set(3,4,-3);scene.add(rim);
+ const fill=new T.DirectionalLight('#bfcbc5',.8);fill.position.set(4,1,4);scene.add(fill);
+ const floor=new T.Mesh(new T.CylinderGeometry(.93,.99,.09,48),new T.MeshStandardMaterial({color:'#293e43',roughness:.85}));floor.position.y=-.155;scene.add(floor);
+ const ring=new T.Mesh(new T.TorusGeometry(.89,.009,4,64),new T.MeshBasicMaterial({color:'#b69862'}));ring.rotation.x=-Math.PI/2;ring.position.y=-.105;scene.add(ring);
  const rig=root.EmberCharacterRig.create(T);
  const flame=root.EmberFlameGuardian.decorate(T,rig);
  const look=attach(T,rig,flame);
  const assets=root.EmberModelAssets?.attach(T,rig,flame,look);scene.add(rig.group);
  assets?.ready.then(()=>{canvas.dataset.characterModel=assets.status;});
  let angle=.35;
- function select(skinId,appearance){
+ function select(skinId,appearance,classId='guardian'){
   const isFlame=skinId==='flame_guardian';
   flame.setVisible(isFlame);
-  rig.setSkin(isFlame?'flame_guardian':'guardian');
+  rig.setSkin(isFlame?'flame_guardian':classId);
   look.apply(skinId,appearance);
-  assets?.setLook(skinId,appearance);
+  assets?.setLook(skinId,appearance,classId);
  }
  function rotate(delta){angle+=delta;}
  function update(time){

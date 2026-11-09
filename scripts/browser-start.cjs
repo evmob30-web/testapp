@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
 (async()=>{
- const browser=await chromium.launch({headless:true,args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
+ const browser=await chromium.launch({headless:true,...(process.env.EMBERWILD_CHROMIUM_PATH?{executablePath:process.env.EMBERWILD_CHROMIUM_PATH}:{}),args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
  const page=await browser.newPage();
  // Observe the real production controllers without adding game-only test APIs.
  await page.addInitScript(()=>{
@@ -15,6 +15,19 @@ const { chromium } = require('playwright');
  await page.goto('http://127.0.0.1:8765/',{waitUntil:'load'});
  await page.waitForTimeout(2000);
  await page.locator('#play').click();
+ await page.waitForFunction(()=>document.getElementById('creator-canvas').dataset.characterModel==='ready',null,{timeout:30000});
+ for(const skin of ['classic','flame_guardian'])for(const style of ['short','long','braid']){
+  await page.locator('#appearance-skin').selectOption(skin);await page.locator('#appearance-hairStyle').selectOption(style);
+  const count=await page.evaluate(selected=>{
+   const rig=window.__modelInstances[1].rig,group=rig.joints.head.getObjectByName('appearance_hair_'+selected);
+   return group?.visible&&group.children.filter(m=>m.isMesh).length;
+  },style);
+  if(count!==1)errors.push('Hairstyle is not visible/batched: '+skin+'/'+style);
+ }
+ await page.locator('#class-ranger').click();await page.locator('#appearance-skin').selectOption('classic');
+ const rangerColor=await page.evaluate(()=>window.__modelInstances[1].controller.models.getObjectByName('classic_fabric').material.color.getHexString());
+ if(rangerColor!=='637e64')errors.push('Ranger preview uses the wrong class colors');
+ await page.locator('#class-guardian').click();
  await page.locator('#appearance-skin').selectOption('flame_guardian');
  await page.locator('#appearance-hairStyle').selectOption('braid');
  await page.locator('#appearance-hairColor').selectOption('blonde');
@@ -108,6 +121,8 @@ const { chromium } = require('playwright');
  if(wornAfterReload?.lootEquipped?.hands!==77)errors.push('Loot item equipment not restored');
 
 
+ console.log('HTTP game flow completed',JSON.stringify({errors}));
+ if(!process.argv.includes('--http-only')){
  // The embedded assets must also work when index.html is opened directly, without HTTP.
  const offline=await browser.newPage();const offlineErrors=[];
  offline.on('pageerror',e=>offlineErrors.push(e.message));
@@ -119,6 +134,7 @@ const { chromium } = require('playwright');
  await offline.locator('#class-start').click();
  if(!await offline.locator('#overlay').isHidden())errors.push('Direct-file game did not start');
  errors.push(...offlineErrors.map(e=>'Direct file: '+e));await offline.close();
+ }
 
  const fatal=await page.locator('#fatal').evaluate(n=>({hidden:n.hidden,text:n.textContent}));
  const overlay=await page.locator('#overlay').evaluate(n=>n.hidden);
