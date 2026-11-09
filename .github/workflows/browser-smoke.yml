@@ -4,7 +4,7 @@ on:
     paths:
       - 'js/**'
       - 'index.html'
-      - 'tests/browser-start.cjs'
+      - 'scripts/browser-start.cjs'
       - '.github/workflows/browser-smoke.yml'
 jobs:
   browser:
@@ -17,4 +17,4 @@ jobs:
       - run: npm install --no-save playwright
       - run: npx playwright install --with-deps chromium
       - run: python3 -m http.server 8765 --bind 127.0.0.1 &
-      - run: node tests/browser-start.cjs
+      - run: node scripts/browser-start.cjs
