@@ -1,10 +1,10 @@
-# Emberwild — De laatste vonk · versie 0.2
+# Emberwild — De laatste vonk · versie 0.3
 
-Een originele, kleine singleplayer-actie-RPG in een echte 3D-wereld. Deze eerste versie bevat één vallei, een dorp, een bos en een ruïne. Eigen low-poly graphics en personages; geen Warcraft-assets of verhaal.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
-Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Alle bestanden inclusief Three.js worden lokaal meegeleverd; geen backend, account, internetverbinding of buildstap nodig. Ook geschikt voor GitHub Pages op een subpad. Ontwikkeld voor toetsenbord en muis op een laptop/desktop; nog geen mobiele besturing.
+Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. De game is bedoeld voor toetsenbord en muis op een laptop of desktop; er is nog geen mobiele besturing.
 
 ## Besturing
 
@@ -12,51 +12,69 @@ Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. A
 | --- | --- |
 | WASD / pijltjes | Bewegen ten opzichte van de camera |
 | Shift | Rennen |
-| Muis slepen (links of rechts) | Camera draaien en kantelen |
+| Muis slepen | Camera draaien en kantelen |
 | Muiswiel | In- en uitzoomen |
-| 1 / korte linkermuisklik | Zwaardslag op dichtstbijzijnde vijand binnen 3,1 meter |
-| Spatie | Ontwijkrol in je looprichting, anders voorwaarts; 0,38 s bescherming, 1,35 s afkoeltijd |
-| 2 | Vonkflits op dichtstbijzijnde vijand binnen 13 meter; 3,5 s afkoeltijd |
-| Q | Levensdrank, herstelt tot 70 gezondheid |
-| E | Praten, kristal verzamelen, kist openen |
-| I | Inventaris openen/sluiten |
+| 1 / korte linkermuisklik | Zwaardslag op de dichtstbijzijnde vijand binnen 3,1 meter |
+| 2 | Vonkflits binnen 13 meter; 3,5 s afkoeltijd |
+| Spatie | Voorwaartse ontwijkrol in je bewegingsrichting; 0,38 s bescherming, 1,35 s afkoeltijd |
+| Q | Levensdrank; herstelt tot 70 gezondheid |
+| E | Praten, verzamelen, deur openen of gebied betreden/verlaten |
+| I | Inventaris en uitrusting |
 | Esc | Pauze / menu sluiten |
 
-## Het avontuur
+## Hoofdstuk 1 — De Schemervallei
 
-1. Praat met Elin bij het kampvuur en aanvaard haar opdracht.
-2. Versla drie schemerwolven ten noorden van het dorp. Kom terug bij Elin voor je beloning.
-3. Verzamel de drie mintgroene kristallen die op de minimap staan. Breng ze naar Elin om het vonkzwaard te krijgen.
-4. Versla de Doornwachter bij de noordelijke ruïne. Ontwijk zijn oranje aanvalscirkel tijdens de voorbereiding van zijn slag; rol met spatie door een aanval om schade te voorkomen.
-5. Keer terug naar Elin om het avontuur te voltooien.
+1. Praat met Elin bij het kampvuur in Lindehaard.
+2. Versla drie schemerwolven in het noorden en keer terug naar Elin.
+3. Verzamel drie mintgroene kristallen (zichtbaar op de minimap) en breng ze naar Elin voor het vonkzwaard.
+4. Versla de Doornwachter bij de noordelijke ruïne. Ontwijk de oranje aanvalscirkel.
+5. Keer terug naar Elin om het eerste hoofdstuk te voltooien.
 
-Een optionele **bosgeest** bewaakt het oostelijke woud (paarse stip op de minimap). Hij houdt afstand en schiet paarse projectielen. Je kunt zijwaarts bewegen, achter een boom schuilen of door een projectiel rollen. De bosgeest telt niet mee voor de drie wolven.
+De optionele bosgeest in het oostelijke woud houdt afstand en schiet paarse projectielen. Hij telt niet mee voor de wolvenopdracht. De Doornwachter laat **Doornlicht** achter: +18 schade, uit te rusten via I. Ook bestaande opslag waarin de Doornwachter al verslagen is geeft toegang tot dit wapen.
 
-De Doornwachter laat **Doornlicht** achter, een uniek wapen met +18 schade. Open de inventaris met I en klik ‘Rust Doornlicht uit’. Het wapen krijgt een groter mintgroen lemmet en zichtbare doorns. Je kunt daar ook terugwisselen. Bestaande opslag van een eerder verslagen Doornwachter geeft eveneens toegang tot deze buit; je hoeft het avontuur niet opnieuw te spelen.
+Bram verkoopt levensdranken voor 15 goud. Een verborgen kist ligt ten oosten van het bospad. Rust bij het kampvuur om te herstellen. Ervaring verhoogt je niveau, gezondheid en schade.
 
-Zwaardslagen hebben een zichtbare boog, magie een lichtstraal en schade verschijnt als zwevende getallen. Geluiden zijn procedureel gemaakt en starten na je eerste klik of toetsaanslag. Gebruik ‘Geluid aan/uit’ bovenaan om te dempen; de keuze wordt lokaal bewaard. Er is geen achtergrondmuziek.
+## Hoofdstuk 2 — De Wortelgrotten
 
-Bram verkoopt levensdranken voor 15 goud. Er ligt een verborgen kist ten oosten van het bospad. Rust binnen vijf meter van het kampvuur om te herstellen. Met ervaring stijg je in niveau: je krijgt meer gezondheid en schade. Na een nederlaag keer je terug naar het dorp, verlies je maximaal 10 goud en behoud je opdrachtvoortgang en verzamelde buit. Nog levende vijanden herstellen en keren terug naar hun beginplek.
+1. Praat na hoofdstuk 1 opnieuw met Elin en neem de nieuwe opdracht aan. Je krijgt twee levensdranken.
+2. Zoek de doorgang onder de noordelijke ruïne en druk op E om af te dalen.
+3. **De Sporehal:** een wortelwacht bewaakt de eerste kamer. De gloeiende kring bij de ingang herstelt langzaam gezondheid. De uitgang aan de zuidkant brengt je terug naar de vallei.
+4. **Het Wortelarchief:** versla de Sporenwachter die van afstand aanvalt. Pak daarna de gouden wortelsleutel op de sokkel aan de oostkant met E.
+5. Open met E de gesloten worteldeur in de noordelijke gang. Zonder sleutel kun je hier ook niet doorheen rollen.
+6. **Het Stille Hart:** versla de Wortelmoeder. Ze wisselt twee aanvallen af: een oranje wortelslag met groter bereik, en een paars zaadsalvo van drie projectielen. De tekst en gekleurde cirkel kondigen de aanval aan. Verplaats je of rol op het juiste moment.
+7. Pak met E het **Hartamulet** van het altaar achter de eindbaas. Via I kun je het uitrusten: +40 maximale gezondheid en +8 schade. Het krijgt ook een zichtbaar hangertje op je personage. Uitrusten geneest niet gratis; rust bij een herstelplek of gebruik een levensdrank om de extra gezondheid te vullen.
+8. Verlaat de grot via de ingang en keer terug naar Elin voor de voltooiing en laatste beloning.
 
-## Opslag
+De minimap past zich aan het gebied aan en toont de huidige kamer. Sleutel, deur en altaar hebben een eigen markering. Verslagen vijanden, gevonden sleutel, geopende deur en amulet blijven bewaard bij verlaten en herladen. Nog levende vijanden herstellen en keren terug naar hun beginplek wanneer je van gebied wisselt.
 
-Automatische localStorage-opslag elke vijf spelseconden, bij gesprekken, belangrijke beloningen, pauzeren en verlaten van de pagina. De opslag staat onder een eigen sleutel (`emberwild-save-v1`) en raakt Star Hopper niet. ‘Ga verder’ verschijnt als er een bruikbare opslag is. ‘Nieuw avontuur’ vervangt je voortgang; tijdens een actief avontuur vraagt het spel daarvoor bevestiging. De opslag werkt alleen in dezelfde browser en op dezelfde site. Als opslag geblokkeerd is, blijft spelen mogelijk voor de huidige sessie. Geen cloudopslag of multiplayer.
+Na een nederlaag verlies je maximaal 10 goud. In de vallei keer je terug naar het dorp; in de grot naar de eerste kamer. Opdrachten, gevonden buit en geopende deur blijven behouden.
+
+## Opslag en geluid
+
+Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere opslag van versie 0.1/0.2 blijft bruikbaar; hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen.
+
+‘Ga verder’ verschijnt bij een bruikbare opslag. ‘Nieuw avontuur’ vervangt de voortgang; tijdens spelen wordt hiervoor bevestiging gevraagd. Voortgang is gebonden aan dezelfde browser en hetzelfde site-adres. Bij geblokkeerde opslag blijft spelen mogelijk voor de huidige sessie. Geen cloudopslag of multiplayer.
+
+Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/uit’ kun je dempen; de voorkeur blijft lokaal bewaard. Er is geen achtergrondmuziek.
 
 ## Bestanden
 
-- `index.html`, `style.css`: interface, menu's en schermindeling.
-- `js/core.js`: spelregels, opdrachten, beloningen, opslagvalidatie.
-- `js/world.js`: procedureel gebouwde 3D-wereld, modellen en effecten.
-- `js/combat.js`: afkoeltijden, ontwijkregels en botsingsdetectie voor projectielen.
-- `js/audio.js`: originele gevechtsgeluiden via Web Audio, met dempknop.
-- `js/game.js`: WebGL-weergave, camera, invoer, gevechten, interacties, opslag en UI.
-- `vendor/three.min.js`: lokaal meegeleverde Three.js 0.160.1, MIT-licentie in `vendor/THREE-LICENSE.txt`.
-- `tests/`: Node.js-regressietests.
+- `index.html`, `style.css`: interface en menu's.
+- `js/core.js`: spelregels, opdrachten, uitrusting, beloningen en opslagvalidatie.
+- `js/combat.js`: ontwijkregels, afkoeltijden en botsingen voor snelle projectielen.
+- `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
+- `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
+- `js/audio.js`: procedurele geluidseffecten en dempknop.
+- `js/game.js`: camera, invoer, gevechten, gebiedswissels, interacties, HUD en opslag.
+- `vendor/three.min.js`: Three.js 0.160.1, MIT-licentie in `vendor/THREE-LICENSE.txt`.
+- `tests/`: Node.js-tests.
 
 ## Controle
 
-Voer uit met Node.js 18+: `node --test tests/*.cjs`.
+Met Node.js 18+: `node --test tests/*.cjs`.
 
-Twaalf tests geslaagd: volledige opdrachtketen, opslagherstel, ongeldige opslag, niveauverhogingen en een integratietest die de echte Three.js-wereld opbouwt en het volledige avontuur met gesimuleerde invoer voltooit. Daarin worden ook pauze, inventaris, doodgaan en opnieuw beginnen getest. Extra tests controleren rollen en afkoeltijd, snelle projectielen, bescherming tegen melee en projectielen, wapenbezit en uitrusten, migratie van oude opslag, de aparte wolventeller en audio hervatten/dempen. JavaScript-syntax is gecontroleerd. De integratietest vervangt de WebGL-renderer en DOM; hij controleert geen uiteindelijke pixels, geluid of hardwareprestaties. Visuele browser-QA was niet beschikbaar doordat de voorgeschreven browsertool ontbrak.
+17 tests geslaagd. Ze controleren beide opdrachtketens, kamerbereikbaarheid en deurblokkering, oude en nieuwe opslag, uitrusting, herhaalde beloningen, niveauverhogingen, audio, rollen en projectielbotsingen. De integratietest bouwt de echte Three.js-wereld op en voltooit beide hoofdstukken met gesimuleerde invoer. Hij test ook beide aanvalspatronen van de Wortelmoeder, het amulet, gebiedswissels en doodgaan in de grot. JavaScript-syntax en relatieve bestandsverwijzingen zijn gecontroleerd.
 
-Dit is een eerste 3D-prototype: één klasse, één gebied, één korte verhaallijn, eenvoudige modellen en gevechts-AI. Nog geen sprongen, achtergrondmuziek, uitgebreide uitrustingssystemen, grootschalige open wereld of extra dungeons.
+De test vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De voorgeschreven browsertool was niet beschikbaar voor een visuele browsercontrole. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
+
+Dit is een eerste speelbare RPG met twee gebieden, één klasse, twee korte hoofdstukken en eenvoudige modellen en AI. Nog geen uitgebreide uitrustingssystemen, sprongen, multiplayer of extra kerkers.

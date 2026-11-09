@@ -43,8 +43,10 @@ function slash(x,z,angle){if(effects.length>=100)return;const m=mesh(new T.RingG
 function beam(x,z,tx,tz){const length=Math.hypot(tx-x,tz-z),m=mesh(new T.CylinderGeometry(.07,.13,length,6),new T.MeshBasicMaterial({color:'#b0ffec',transparent:true,opacity:.8,depthWrite:false}),(x+tx)/2,1.5,(z+tz)/2);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),new T.Vector3(tx-x,0,tz-z).normalize());effects.push({mesh:m,vx:0,vz:0,vy:0,gravity:0,life:.18,max:.18,kind:'beam',ownedMaterial:true});}
 const orbGeometry=new T.IcosahedronGeometry(.3,1),orbMaterial=mat('#e4c1fc','#aa69d5');
 function orb(x,z){return mesh(orbGeometry,orbMaterial,x,1.4,z);}
+const pendant=new T.Group();player.model.add(pendant);pendant.position.set(0,.55,.34);sphere(.15,mat('#b1f1c6','#52a375'),0,0,0,pendant);const chain=mesh(new T.TorusGeometry(.19,.025,4,12),mat('#dfcc8f'),0,.1,0,pendant);pendant.visible=false;
+function setAmulet(on){pendant.visible=!!on;}
 function setWeapon(name){const thorn=name==='thorn';player.blade.material=thorn?mat('#ade8c9','#539e7d'):mat('#d1ded5');player.blade.scale.set(thorn?1.8:1,thorn?1.3:1,thorn?1.4:1);for(const part of ornaments)part.visible=thorn;}
-return {scene,colliders,cameraMeshes,player,ranger,merchant,enemies,crystals,chest,warning,marker,burst,update,firelight,damageText,slash,beam,orb,setWeapon,effects};
+return {scene,colliders,cameraMeshes,player,ranger,merchant,enemies,crystals,chest,warning,marker,burst,update,firelight,damageText,slash,beam,orb,setWeapon,setAmulet,effects};
 }
 window.EmberWorld={createWorld};
 })();
