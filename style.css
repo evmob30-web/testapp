@@ -65,3 +65,34 @@ header #sound{font-size:10px}#equip{color:#bde9d2;border:1px solid #a1cbb670;bor
 
 @media(min-width:701px){.creator-view{position:sticky;top:0}}
 .creator-actions{position:sticky;bottom:-25px;padding:12px 0;background:#1c352df5;z-index:2}
+
+/* Local character roster shares the existing fantasy palette and creator. */
+#characters{z-index:5;background:linear-gradient(135deg,#0c211deb,#15251fe6)}
+#characters>div.character-panel{width:min(1040px,94vw);max-height:92svh;overflow:auto;padding:30px}
+.character-panel>h2{font-size:clamp(27px,4vw,40px);color:#f3dfb8;margin-bottom:8px}
+.character-panel>p{margin-top:0}
+.character-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;margin:24px 0}
+.character-slot{--hero:#d9b476;position:relative;display:flex;flex-direction:column;min-width:0;padding:22px 19px 12px;border:1px solid #b09d775c;border-radius:10px;background:linear-gradient(155deg,#31483c,#142b26);overflow:hidden}
+.character-slot.ranger{--hero:#a8d2af;background:linear-gradient(155deg,#2c4a40,#142c27)}
+.character-slot.mage{--hero:#c0b2ee;background:linear-gradient(155deg,#3b3a54,#1d2b32)}
+.character-slot.empty{border-style:dashed;background:#142b2680}
+.character-number{font-size:9px;letter-spacing:2px;color:#e8d4adad}
+.character-emblem{display:grid;place-items:center;align-self:center;width:76px;height:76px;margin:22px 0 15px;border:1px solid color-mix(in srgb,var(--hero) 55%,transparent);border-radius:50%;background:radial-gradient(circle,#ffffff13,transparent 70%);box-shadow:0 0 28px #0d1e2266;color:var(--hero);font:42px Georgia,serif}
+.character-slot h3{font:27px Georgia,serif;color:#f8e8c9;margin:6px 0 8px;overflow-wrap:anywhere}
+.character-slot p{font-size:12px;line-height:1.65;margin:0 0 8px}
+.character-slot .character-class{color:var(--hero)}
+.character-slot .character-region{font-size:10px;color:#c6d3c2}
+.character-slot .character-quest{flex:1;min-height:48px;font-size:11px;color:#e2e0cf;margin:9px 0 14px}
+.character-current{font-size:9px;letter-spacing:.04em;color:#e0ddc0a6;margin-bottom:12px;min-height:13px}
+.character-slot .primary{width:100%;font-size:11px;padding:12px 8px}
+.character-slot .quiet{margin:8px 0 0;width:100%;font-size:10px}
+.character-slot button:disabled{opacity:.45;cursor:default}
+.character-panel .character-storage{font-size:11px;color:#c9d7c6;line-height:1.7}
+#character-delete-confirm{z-index:20;background:#081b16ce}
+.modal .danger{color:#ffc2ac}
+.creator-controls input{border-radius:5px;background:#122c26;color:#f1e6cc;border:1px solid #ad996e7a;padding:9px 11px;font:13px system-ui;width:100%;min-width:0}
+.creator-controls input:focus-visible{outline:2px solid #ffe2a4;outline-offset:2px}
+.storage-notice{position:fixed;top:82px;left:50%;transform:translateX(-50%);z-index:40;width:min(780px,94vw);padding:12px 17px;background:#47372ef5;border:1px solid #d4a77e;border-radius:7px;font-size:12px;line-height:1.6;box-shadow:0 5px 25px #0005}
+.storage-notice button{margin-left:12px;border:1px solid #d4a77e;background:#6b5140;border-radius:4px;padding:5px 9px}
+.vitals b{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:760px){.character-slots{grid-template-columns:1fr}.character-slot{padding:18px}.character-emblem{width:58px;height:58px;font-size:33px;margin:12px 0 8px}.character-slot .character-quest{min-height:0}.character-slot h3{font-size:25px}#characters>div.character-panel{padding:21px}.vitals b{max-width:115px}}
