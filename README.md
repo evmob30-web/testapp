@@ -1,6 +1,6 @@
-# Emberwild — De laatste vonk · versie 1.5
+# Emberwild — De laatste vonk · versie 1.6
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.5 bevat drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.6 bevat drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
@@ -30,7 +30,14 @@ Bij een nieuw avontuur kies je een class. De keuzelijst gebruikt centrale classd
 
 De Magiër heeft snelheid 5,1 en 1,25 s ontwijkafkoeltijd. De Woudloper heeft snelheid 5,5 en 1,15 s ontwijkafkoeltijd; de Wachter snelheid 5 en 1,35 s. Vonkpijl vuurt een krachtige magische pijl op een nabije vijand af (4 s afkoeltijd); Vonkflits heeft een afkoeltijd van 3,5 s.
 
-Je class blijft bij het personage. Oudere opslag zonder class wordt als Wachter geladen; opgeslagen Wachters en Woudlopers behouden hun class en voortgang. ‘Ga verder’ laadt je opgeslagen class direct. Via pauze → ‘Nieuw avontuur’ kun je opnieuw kiezen; de nieuwe start vervangt je ene opgeslagen avontuur. Teruggaan uit de classkeuze laat de huidige voortgang intact. Er zijn nog geen meerdere personageslots. De drie classes zijn Wachter, Woudloper en Magiër.
+Je class blijft bij het personage. Oudere opslag zonder class wordt als Wachter geladen. Via **Kies je personage →** open je het overzicht met drie opslagplaatsen. Kies **Maak personage →** bij een lege plek, geef je held een naam en kies class en uiterlijk. Pas met **Begin als …** wordt de held opgeslagen. Teruggaan bewaart geen concept en verandert je andere personages niet.
+
+Elk personage bewaart eigen level, gezondheid/mana, locatie, quests, uitrusting, loot en uiterlijk. Je mag ook meerdere helden met dezelfde class maken. **Verder spelen →** hervat de gekozen held. Wisselen kan tijdens het spelen via **Esc → Personages kiezen**; de huidige held wordt eerst opgeslagen. De wereld, questobjecten, vijanden en grondeffecten worden vervolgens uit de gekozen opslag hersteld.
+
+Je bestaande avontuur wordt automatisch als **Aerin** naar de eerste plek overgenomen, inclusief voortgang en uitrusting. De twee andere plekken zijn vrij. De oorspronkelijke save blijft als reservekopie bewaard. Via **I → Personage aanpassen** kun je ook de naam wijzigen.
+
+Een volle plek wordt nooit door een nieuwe held vervangen. **Verwijderen** opent een bevestiging met de naam van de held. **Bewaar personage** of **Esc** annuleert; **Verwijder definitief** maakt alleen die plek vrij. Ook als alle plekken leeg zijn gemaakt, verschijnt de oude reservekopie niet automatisch opnieuw.
+
 
 ## Besturing
 
@@ -52,7 +59,7 @@ Je class blijft bij het personage. Oudere opslag zonder class wordt als Wachter 
 
 ## Magiër — Vonkbol, mana en Vrieskring
 
-Kies **Magiër** bij **Nieuw avontuur**. Je begint met 75 gezondheid, een zichtbare kristalstaf en 100 mana. De bestaande kapsels, kleuren en beide cosmetische outfits blijven beschikbaar. Classes kun je alleen bij een nieuw avontuur kiezen; uiterlijk aanpassen via I behoudt je class. Beginnen vervangt de ene lokale save pas nadat je bewust de nieuwe class start.
+Kies **Magiër** wanneer je een personage in een lege plek maakt. Je begint met 75 gezondheid, een zichtbare kristalstaf en 100 mana. De bestaande kapsels, kleuren en beide cosmetische outfits blijven beschikbaar. Classes kun je alleen bij een nieuw avontuur kiezen; uiterlijk aanpassen via I behoudt je class. De nieuwe Magiër krijgt eigen voortgang; de andere personages blijven bewaard.
 
 - **Vonkbol — 1 / linksklik:** richt met de muis en schiet direct een magisch projectiel. Kost 8 mana, heeft 0,65 seconde afkoeltijd en een bereik van circa 24 speleenheden. Basisschade is 32 en groeit met level, sterrenlicht, pantserbonussen en Hartamulet. De zwaardbonus van Doornlicht telt voor je zwaard.
 - **Vrieskring — 2:** een ijsring treft zichtbare vijanden binnen 4,8 speleenheden voor 75% van je spreukschade. Kost 24 mana en heeft 8 seconden afkoeltijd. Gewone vijanden bewegen 3 seconden op 45% snelheid; eindbazen 1,5 seconde op 72% snelheid. Aanvalsaankondigingen blijven actief. De ring treft rondom een schild, maar niet door muren of andere vaste obstakels.
@@ -113,9 +120,11 @@ De extra opdracht staat onder ‘Verkenning’ in de HUD en vervangt je hoofdopd
 
 ## Opslag en geluid
 
-Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. Opslagsleutel: `emberwild-save-v1`. Oudere saves blijven bruikbaar en worden aangevuld met standaardwaarden voor uiterlijk, pantser en loot. Hoofdstuk 2 begint pas nadat je de nieuwe opdracht aanneemt. Je hoeft niet opnieuw te beginnen. De versie van dit opslagformaat staat los van het versienummer van de game.
+Automatische localStorage-opslag iedere vijf spelseconden en na belangrijke acties, gebiedswissels en pauzeren. De drie personages staan samen onder `emberwild-characters-v1`: `{version:1, active:0, slots:[{name,state},null,null]}`. `active` is de laatst gekozen plek (0–2, of `null`); elke `state` gebruikt het bestaande spelopslagformaat met `version:1`.
 
-‘Ga verder’ verschijnt bij een bruikbare opslag. ‘Nieuw avontuur’ vervangt de voortgang; tijdens spelen wordt hiervoor bevestiging gevraagd. Voortgang is gebonden aan dezelfde browser en hetzelfde site-adres. Bij geblokkeerde opslag blijft spelen mogelijk voor de huidige sessie. Geen cloudopslag of multiplayer.
+Bij de eerste start wordt `emberwild-save-v1` eenmalig ingelezen als die bestaat en er nog geen personageoverzicht is. Dit oorspronkelijke bestand wordt niet gewijzigd of verwijderd. Alle drie de plekken worden samen in één localStorage-bewerking opgeslagen. Een mislukte opslag wist de bestaande gegevens niet. Onleesbare of onbekende personageopslag wordt behouden en niet automatisch overschreven. De versie van het opslagformaat staat los van het versienummer van de game.
+
+Voortgang is gebonden aan dezelfde browser en hetzelfde site-adres. Bij geblokkeerde opslag blijft spelen en wisselen tijdens de huidige sessie mogelijk; een melding geeft aan dat opslaan niet lukt. Als de personageopslag in een ander tabblad wordt veranderd, stopt dit tabblad met schrijven en vraagt de game om te herladen. Zo schrijft een verouderd overzicht de nieuwere gegevens niet terug. Gebruik één speltabblad tegelijk. Geen cloudopslag of multiplayer.
 
 Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/uit’ kun je dempen; de voorkeur blijft lokaal bewaard. Er is geen achtergrondmuziek. In de vallei hoor je zachte procedurele wind en vogels; in de Wortelgrotten hoor je zachte ruis en druppels met korte echo’s. Omgevingsgeluid start na gebruikersinvoer, pauzeert tijdens menu’s of verlies van vensterfocus en wordt samen met de effecten gedempt. Eén hergebruikte ruislus en enkele korte tonen houden het audiowerk beperkt.
 
@@ -139,6 +148,8 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
 - `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
 - `js/audio.js`: procedurele geluidseffecten, omgevingsgeluid en dempknop.
+- `js/characters.js`: drie personages, eenmalige migratie, gevalideerde opslag, naamgeving en bescherming tegen verouderde tabbladen.
+- `js/character-menu.js`: personagekaarten, kiezen/maken en bevestigen of annuleren van verwijderen.
 - `js/game.js`: camera, invoer, gevechten, gebiedswissels, interacties, HUD en opslag.
 - `assets/characters/*.glb`: de twee volledige 3D-personages met skelet, botgewichten en ingesloten PNG-textuur.
 - `scripts/build-character-assets.cjs`: originele model- en textuurgenerator; uitvoeren met Node.js na bronwijzigingen.
@@ -151,11 +162,11 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-De huidige testsuite bevat 73 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. De integratietest bouwt de echte Three.js-wereld op en doorloopt het avontuur met gesimuleerde invoer.
+De huidige testsuite bevat 83 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert daarvoor Playwright en Chromium; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
-De huidige game heeft twee gebieden, drie classes en twee korte hoofdstukken, met een character creator, modulair pantser, willekeurige loot en tactische vijanden. Meerdere personageslots, sprongen, multiplayer en extra kerkers zijn nog niet geïmplementeerd.
+De huidige game heeft twee gebieden, drie classes en twee korte hoofdstukken, met een character creator, modulair pantser, willekeurige loot en tactische vijanden. Er zijn drie lokale personageslots. Sprongen, multiplayer, cloudopslag en extra kerkers zijn nog niet geïmplementeerd.
 
 ## Herbruikbaar 3D-personageskelet en skins
 
@@ -189,9 +200,9 @@ De gewogen modellen volgen alle procedurele animaties. Botgewichten laten romp e
 
 ## Character creator
 
-Bij een nieuw avontuur open je de character creator na **Kies je class**. In een aparte realtime Three.js-preview kies je een klassiek uiterlijk of Flame Guardian, drie kapsels (kort, lang, vlecht), vijf haarkleuren, vier huidtinten en vier oogkleuren. Met de knoppen onder de preview draai je je personage. De klasse bepaalt de gameplay en blijft losstaan van het cosmetische uiterlijk.
+Open **Kies je personage → Maak personage** bij een lege plek om de character creator te gebruiken. In een aparte realtime Three.js-preview kies je een klassiek uiterlijk of Flame Guardian, drie kapsels (kort, lang, vlecht), vijf haarkleuren, vier huidtinten en vier oogkleuren. Met de knoppen onder de preview draai je je personage. De klasse bepaalt de gameplay en blijft losstaan van het cosmetische uiterlijk.
 
-In een bestaand avontuur: druk op **I → Personage aanpassen**. Je kunt daar je uiterlijk bijstellen zonder je klasse, level, quests of uitrusting te verliezen. Wijzigingen worden pas opgeslagen met **Bewaar uiterlijk**; **Terug** annuleert ze. Je oude save wordt automatisch uitgebreid met veilige standaardwaarden. De bestaande `skinId` blijft ondersteund, en aanvullende keuzes worden opgeslagen onder `appearance`. De nieuwe UI gebruikt één gedeelde `EmberAppearance`-module voor gamepersonage en preview; geen buildstap of extra externe dependencies.
+In een bestaand avontuur: druk op **I → Personage aanpassen**. Je kunt daar je naam en uiterlijk bijstellen zonder je klasse, level, quests of uitrusting te verliezen. Wijzigingen worden pas opgeslagen met **Bewaar uiterlijk**; **Terug** annuleert ze. Je oude save wordt automatisch uitgebreid met veilige standaardwaarden. De bestaande `skinId` blijft ondersteund, en aanvullende keuzes worden opgeslagen onder `appearance`. De nieuwe UI gebruikt één gedeelde `EmberAppearance`-module voor gamepersonage en preview; geen buildstap of extra externe dependencies.
 
 Test lokaal met `node --test tests/*.cjs`. De Playwright-smoketest opent daarnaast de creator en controleert de preview, cosmetische keuzes, bewerken vanuit de inventaris en opslag na herladen.
 
@@ -236,3 +247,5 @@ Voor de browser-smoketest kan optioneel `EMBERWILD_CHROMIUM_PATH` naar een besta
 Op een beheerde testmachine die `file://`-navigatie blokkeert kan `node scripts/browser-start.cjs --http-only` alleen de HTTP-controles uitvoeren. GitHub Actions gebruikt altijd de volledige test, inclusief rechtstreeks openen.
 
 De browsercontrole omvat ook een afzonderlijk Magiër-avontuur: class/preview, staf en manabalk, beide spreuken, pauze, wapens wisselen, uiterlijk aanpassen en opslagherstel. Voor een lokale HTTP-server op een andere poort kan `EMBERWILD_BASE_URL` worden ingesteld; GitHub Actions gebruikt standaard `http://127.0.0.1:8765/` en blijft rechtstreeks openen mee testen.
+
+De browsercontrole voor versie 1.6 maakt drie echte personages, controleert annuleren, wisselen, naam en uiterlijk, opslag na herladen en verwijderen. Een afzonderlijke context migreert een oude save met uitrusting en controleert dat een verwijderde oude held niet opnieuw wordt geïmporteerd.
