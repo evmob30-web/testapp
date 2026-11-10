@@ -1,6 +1,6 @@
-# Emberwild — De laatste vonk · versie 1.7
+# Emberwild — De laatste vonk · versie 1.7.1
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.7 bevat een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.7.1 bevat een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
@@ -126,7 +126,7 @@ Bij de eerste start wordt `emberwild-save-v1` eenmalig ingelezen als die bestaat
 
 Voortgang is gebonden aan dezelfde browser en hetzelfde site-adres. Bij geblokkeerde opslag blijft spelen en wisselen tijdens de huidige sessie mogelijk; een melding geeft aan dat opslaan niet lukt. Als de personageopslag in een ander tabblad wordt veranderd, stopt dit tabblad met schrijven en vraagt de game om te herladen. Zo schrijft een verouderd overzicht de nieuwere gegevens niet terug. Gebruik één speltabblad tegelijk. Geen cloudopslag of multiplayer.
 
-Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/uit’ kun je dempen; de voorkeur blijft lokaal bewaard. Er is geen achtergrondmuziek. In de vallei hoor je zachte procedurele wind en vogels; in de Wortelgrotten hoor je zachte ruis en druppels met korte echo’s. Omgevingsgeluid start na gebruikersinvoer, pauzeert tijdens menu’s of verlies van vensterfocus en wordt samen met de effecten gedempt. Eén hergebruikte ruislus en enkele korte tonen houden het audiowerk beperkt.
+Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeeld bij aanvallen, spreuken, geraakt worden en verzamelen. Met ‘Geluid aan/uit’ kun je deze effecten dempen; de voorkeur blijft lokaal bewaard. Sinds versie 1.7.1 zijn de achtergrondgeluiden volledig verwijderd: geen wind, vogelgeluiden, omgevingsruis of grotdruppels. Er is ook geen achtergrondmuziek.
 
 ## Bestanden
 
@@ -148,7 +148,7 @@ Geluiden worden via Web Audio gemaakt na een gebruikersactie. Met ‘Geluid aan/
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
 - `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
-- `js/audio.js`: procedurele geluidseffecten, omgevingsgeluid en dempknop.
+- `js/audio.js`: actiegebonden geluidseffecten en dempknop.
 - `js/characters.js`: drie personages, eenmalige migratie, gevalideerde opslag, naamgeving en bescherming tegen verouderde tabbladen.
 - `js/character-menu.js`: personagekaarten, kiezen/maken en bevestigen of annuleren van verwijderen.
 - `js/game.js`: camera, invoer, gevechten, gebiedswissels, interacties, HUD en opslag.
