@@ -2,6 +2,10 @@ const { chromium } = require('playwright');
 async function currentState(page){return page.evaluate(()=>{const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));return roster?.slots[roster.active]?.state;});}
 async function continueHero(page,index=0){await page.locator('#play').click();await page.locator('#character-play-'+index).click();}
 async function observeForest(page){await page.addInitScript(()=>{
+ Object.defineProperty(window,'EmberThornGuardian',{configurable:true,set(api){
+  const create=api.create;api.create=(...args)=>window.__thornBoss=create(...args);
+  Object.defineProperty(window,'EmberThornGuardian',{value:api,writable:true,configurable:true});
+ }});
  Object.defineProperty(window,'EmberVillageActors',{configurable:true,set(api){
   const create=api.create;api.create=(...args)=>{const actor=create(...args);(window.__villageActors??={})[args[1]]=actor;return actor;};
   Object.defineProperty(window,'EmberVillageActors',{value:api,writable:true,configurable:true});
@@ -261,6 +265,32 @@ async function observeForest(page){await page.addInitScript(()=>{
  await migrated.keyboard.press('Escape');await migrated.locator('#new').click();await migrated.locator('#character-delete-0').click();await migrated.locator('#character-delete-accept').click();await migrated.reload({waitUntil:'load'});await migrated.locator('#play').click();
  if(await migrated.locator('[id^="character-play-"]').count()!==0||await migrated.locator('[id^="character-create-"]').count()!==3)errors.push('Deleted legacy hero was imported again');
  await migrated.close();
+
+ // A real boss fight exercises the weighted model, timed slam and cosmetic defeat.
+ const bossPage=await browser.newPage({viewport:{width:960,height:640}});await observeForest(bossPage);bossPage.on('pageerror',e=>errors.push('Doornwachter: '+e.message));
+ await bossPage.addInitScript(()=>{
+  if(!sessionStorage.getItem('thorn-fixture')){sessionStorage.setItem('thorn-fixture','1');localStorage.setItem('emberwild-characters-v1',JSON.stringify({version:1,active:0,slots:[{name:'Eindbaasproef',state:{version:1,classId:'guardian',level:4,hp:154,quest:3,x:0,z:-50,crystals:['c1','c2','c3'],kills:['w1','w2','w3'],potions:3}},null,null]}));}
+  Object.defineProperty(window,'EmberWorld',{configurable:true,set(api){const create=api.createWorld;api.createWorld=(...args)=>window.__thornWorld=create(...args);Object.defineProperty(window,'EmberWorld',{value:api,writable:true,configurable:true});}});
+ });
+ await bossPage.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});await continueHero(bossPage);
+ await bossPage.waitForFunction(()=>window.__thornBoss?.motion.warning>.65,null,{timeout:60000});await bossPage.keyboard.press('Escape');
+ const frozenBoss=await bossPage.evaluate(()=>({windup:__thornWorld.enemies.find(e=>e.id==='boss').windup,arm:__thornBoss.joints.arm_r.quaternion.toArray()}));await bossPage.waitForTimeout(200);
+ if(await bossPage.evaluate(before=>__thornWorld.enemies.find(e=>e.id==='boss').windup!==before.windup||__thornBoss.joints.arm_r.quaternion.toArray().some((n,i)=>n!==before.arm[i]),frozenBoss))errors.push('Boss warning moved while paused');
+ await bossPage.screenshot({path:'/tmp/emberwild-thorn-warning.png'});await bossPage.keyboard.press('Escape');
+ await bossPage.waitForFunction(()=>__thornBoss.motion.strike>.6,null,{timeout:60000});await bossPage.screenshot({path:'/tmp/emberwild-thorn-impact.png'});
+ const bossArt=await bossPage.evaluate(()=>({weighted:__thornBoss.meshes.every(m=>m.isSkinnedMesh),draws:__thornBoss.meshes.length,bark:__thornWorld.effects.some(e=>e.kind==='bark'&&e.sharedGeometry)}));if(!bossArt.weighted||bossArt.draws>8||!bossArt.bark)errors.push('Boss art/impact missing: '+JSON.stringify(bossArt));
+ await bossPage.locator('#magic').click();
+ for(let i=0;i<8;i++){
+  if(!await bossPage.evaluate(()=>__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible))break;
+  await bossPage.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});await bossPage.locator('#attack').click();
+  await bossPage.waitForFunction(()=>!__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible||document.getElementById('attack-cd').textContent!=='Klaar',null,{timeout:25000});
+  await bossPage.waitForFunction(()=>!__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible||document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});
+ }
+ await bossPage.waitForFunction(()=>!__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible,null,{timeout:15000});await bossPage.keyboard.press('Escape');
+ const defeat=await bossPage.evaluate(()=>({dying:__thornBoss.dying,separate:__thornBoss.model.parent!==__thornBoss.group,killed:JSON.parse(localStorage.getItem('emberwild-characters-v1')).slots[0].state.kills.includes('boss'),phase:__thornBoss.motion.defeat}));if(!defeat.dying||!defeat.separate||!defeat.killed)errors.push('Boss defeat/reward did not separate visuals from gameplay: '+JSON.stringify(defeat));await bossPage.waitForTimeout(200);if(await bossPage.evaluate(p=>__thornBoss.motion.defeat!==p,defeat.phase))errors.push('Cosmetic defeat moved during pause');
+ await bossPage.screenshot({path:'/tmp/emberwild-thorn-defeat.png'});await bossPage.keyboard.press('Escape');await bossPage.waitForFunction(()=>!__thornBoss.dying,null,{timeout:60000});
+ if(await bossPage.evaluate(()=>!!__thornWorld.scene.getObjectByName('DoornwachterDefeat')))errors.push('Boss corpse was not cleaned up');
+ await bossPage.reload({waitUntil:'load'});await continueHero(bossPage);if(await bossPage.evaluate(()=>__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible||__thornBoss.dying))errors.push('Boss returned after reloading a completed save');await bossPage.close();
 
  console.log('HTTP game flow completed',JSON.stringify({errors}));
  if(!process.argv.includes('--http-only')){
