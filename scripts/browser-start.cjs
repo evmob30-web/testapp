@@ -12,6 +12,13 @@ async function observeForest(page){await page.addInitScript(()=>{
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.EMBERWILD_CHROMIUM_PATH?{executablePath:process.env.EMBERWILD_CHROMIUM_PATH}:{}),args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
  const page=await browser.newPage();
+ // Observe native sources: opening/starting stays silent and attacks retain effects.
+ await page.addInitScript(()=>{
+  const Audio=window.AudioContext||window.webkitAudioContext;window.__audioProbe={available:!!Audio,buffers:0,notes:0};if(!Audio)return;
+  const makeBuffer=Audio.prototype.createBufferSource,makeOscillator=Audio.prototype.createOscillator;
+  Audio.prototype.createBufferSource=function(...args){window.__audioProbe.buffers++;return makeBuffer.apply(this,args);};
+  Audio.prototype.createOscillator=function(...args){const node=makeOscillator.apply(this,args),start=node.start;node.start=function(...args){window.__audioProbe.notes++;return start.apply(this,args);};return node;};
+ });
  // Observe the real production controllers without adding game-only test APIs.
  await page.addInitScript(()=>{
   Object.defineProperty(window,'EmberModelAssets',{configurable:true,set(api){
@@ -62,6 +69,7 @@ async function observeForest(page){await page.addInitScript(()=>{
  if(await page.locator('#creator-canvas').getAttribute('data-character-model')!=='ready')errors.push('Creator GLB is not ready');
  await page.screenshot({path:'/tmp/emberwild-model-preview.png'});
  await page.locator('#class-start').click();
+ const initialAudio=await page.evaluate(()=>window.__audioProbe);if(initialAudio.buffers||initialAudio.notes)errors.push('Game startup produced background audio: '+JSON.stringify(initialAudio));
  const importedLook=await page.evaluate(()=>{
   const {controller}=window.__modelInstances[0];const skin=controller.models.getObjectByName('flame_skin');return skin?.material.color.getHexString();
  });
@@ -79,6 +87,8 @@ async function observeForest(page){await page.addInitScript(()=>{
    const shown=await page.locator('#combo-indicator').textContent();
    if(!shown.includes('COMBO '+step+' / 3'))errors.push('Combo stage '+step+' was not visible: '+shown);
  }
+ await page.waitForFunction(()=>!window.__audioProbe.available||window.__audioProbe.notes>=3,null,{timeout:25000});
+ const actionAudio=await page.evaluate(()=>window.__audioProbe);if(actionAudio.buffers||actionAudio.available&&actionAudio.notes<3)errors.push('Action audio/background silence incorrect: '+JSON.stringify(actionAudio));
  const selected=await currentState(page);
  if(selected?.skinId!=='flame_guardian'||selected?.appearance?.hairStyle!=='braid'||selected?.appearance?.hairColor!=='blonde')errors.push('Creator selection did not save');
  await page.locator('#inventory-button').click();
