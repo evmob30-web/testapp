@@ -11,13 +11,23 @@ function environment(){
   // Node tests exercise glTF parsing/bindings; real PNG decoding/rendering runs in Chromium CI.
   createImageBitmap:async()=>({width:64,height:64,close(){}})};
  sandbox.window=sandbox;sandbox.self=sandbox;vm.createContext(sandbox);
- for(const file of ['js/hero-art.js','js/character-rig.js','js/flame-guardian.js','js/appearance.js','vendor/GLTFLoader.js','js/character-assets-data.js','js/model-assets.js','js/forest-actors.js'])vm.runInContext(fs.readFileSync(path.join(ROOT,file),'utf8'),sandbox,{filename:file});
+ for(const file of ['js/hero-art.js','js/character-rig.js','js/flame-guardian.js','js/appearance.js','vendor/GLTFLoader.js','js/character-assets-data.js','js/model-assets.js','js/forest-actors.js','js/village-actors.js'])vm.runInContext(fs.readFileSync(path.join(ROOT,file),'utf8'),sandbox,{filename:file});
  return sandbox;
 }
 function avatar(env){
  const rig=env.EmberCharacterRig.create(THREE),flame=env.EmberFlameGuardian.decorate(THREE,rig),look=env.EmberAppearance.attach(THREE,rig,flame);
  return {rig,flame,look,assets:env.EmberModelAssets.attach(THREE,rig,flame,look)};
 }
+test('village outfits reuse the weighted mesh with independent colors and town clothes',async()=>{
+ const env=environment(),hero=avatar(env),villagers=['bram','mira','tovin'].map(id=>env.EmberVillageActors.create(THREE,id));await hero.assets.ready;assert.ok((await Promise.all(villagers.map(a=>a.ready))).every(Boolean));
+ const original=hero.assets.models.getObjectByName('classic_fabric'),color=original.material.color.getHexString(),geometry=original.geometry,colors=new Set();
+ for(const actor of villagers){
+  const mesh=actor.assets.models.getObjectByName('classic_fabric');assert.strictEqual(mesh.geometry,geometry,'NPCs share the original weighted geometry');assert.notStrictEqual(mesh.material,original.material);colors.add(mesh.material.color.getHexString());
+  assert.equal(actor.assets.models.getObjectByName('classic_metal').visible,false,'adventurer shoulder armor is replaced by town clothes');assert.equal(actor.assets.models.getObjectByName('classic_gold').visible,false);
+  let visible=0;actor.group.traverseVisible(m=>{if(m.isMesh)visible++;});assert.ok(visible<=50,'bounded draw calls for each finished NPC');
+ }
+ assert.equal(colors.size,3,'all three outfits have distinct colors');assert.equal(original.material.color.getHexString(),color);assert.equal(hero.assets.models.getObjectByName('classic_metal').visible,true,'NPC clothing changes leave the hero untouched');
+});
 test('shipped GLBs are self-contained and identical to the offline payload',()=>{
  const env=environment();
  for(const [id,file] of [['classic','ember-adventurer.glb'],['flame_guardian','flame-guardian.glb']]){
