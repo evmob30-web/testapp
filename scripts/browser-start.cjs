@@ -47,8 +47,9 @@ async function observeForest(page){await page.addInitScript(()=>{
  if(rangerColor!=='637e64')errors.push('Ranger preview uses the wrong class colors');
  await page.waitForFunction(()=>{
   const rig=window.__modelInstances[1].rig,bow=rig.joints.hand_l.getObjectByName('WoodlandBow'),held=bow?.getObjectByName('NockedArrow');
-  if(!bow?.visible||!held||rig.blade.visible)return false;
-  const nock=held.localToWorld(new THREE.Vector3(0,0,-.45));return rig.palmWorld('r').distanceTo(nock)<.001;
+  if(!bow?.visible||!held||held.visible||rig.blade.visible)return false;
+  const wrist=rig.group.worldToLocal(rig.joints.hand_r.getWorldPosition(new THREE.Vector3())),shoulder=rig.group.worldToLocal(rig.joints.upper_arm_r.getWorldPosition(new THREE.Vector3()));
+  return wrist.y<shoulder.y-1&&Math.abs(wrist.x-shoulder.x)<.08&&rig.palmWorld('l').distanceTo(bow.getWorldPosition(new THREE.Vector3()))<.001;
  },null,{timeout:25000});
 
  await page.locator('#class-guardian').click();

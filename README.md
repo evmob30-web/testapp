@@ -1,6 +1,6 @@
-# Emberwild — De laatste vonk · versie 1.7.1
+# Emberwild — De laatste vonk · versie 1.7.2
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.7.1 bevat een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.7.2 bevat een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
@@ -17,6 +17,12 @@ Questobjecten verschijnen pas nadat je hun opdracht hebt aangenomen. Eén gedeel
 - Tovin, kruiden en het Verkenning-paneel verschijnen na het aannemen van Mira’s opdracht. Het bloemspoor en heiligdom volgen nadat Tovin zijn aanwijzing geeft.
 
 Opdrachtgevers en gewone werelddecoratie blijven beschikbaar. Onzichtbare questonderdelen geven geen interactieprompt, verschijnen niet op de minimap en blokkeren geen pijlen. Je hoeft geen nieuw avontuur te starten; bestaande voortgang en verdiende beloningen blijven behouden. Een al verdiende Woudzegen uit een oudere opslag blijft geldig, ook als je die destijds vóór Mira’s opdracht vond.
+
+## Rusthouding en wapengrepen
+
+Sinds versie 1.7.2 hangen de bovenarmen dichter langs het lichaam en wijzen de handpalmen in rust naar de dijen. Zwaard, boog en staf gebruiken een contactpunt tussen duim en vingers en elk een eigen handstand. Het zwaard heeft een zichtbaar handvat en pommel. De staf blijft rechtop met de elleboog bij het lichaam; de boog hangt laag totdat je richt. De trekhand gaat bij het richten naar de pees en keert daarna terug naast het lichaam.
+
+Deze houdingen gelden in het personagevoorbeeld en tijdens het spelen, voor beide outfits. De bestaande GLB-bestanden, rustbotten en opgeslagen personages blijven compatibel. Aanvalstijden, schade en projectielbotsingen veranderen niet; projectielen blijven vanaf de zichtbare pijl of stafkristal vertrekken.
 
 ## Classes en een nieuw avontuur
 

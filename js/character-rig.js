@@ -57,6 +57,9 @@ function create(T, options={}){
   const blade=tapered(socket,'blade',.072,.115,1.02,0,-.51,.12,'#d1ded5');
   const guard=cube(socket,'guard',.50,.11,.19,0,-.12,.12,'#e2bd78');
   if(art){blade.geometry.dispose();blade.geometry=art.swordBlade();guard.geometry.dispose();guard.geometry=art.plate([[-.24,.045],[-.13,.005],[0,.02],[.13,.005],[.24,.045],[.20,-.035],[.10,-.05],[0,-.025],[-.10,-.05],[-.20,-.035]],.075,.012);}
+  const hilt=tapered(guard,'sword_grip',.043,.043,.27,0,.185,0,'#493c32');
+  const pommel=ellipsoid(guard,'sword_pommel',.11,.10,.11,0,.35,0,'#d7ae6b');
+  hilt.userData.weaponPart=pommel.userData.weaponPart=true;
   // A dedicated back socket can carry bows, backpacks and capes.
   joint('back',chest,0,0,-.38);
   function setSkin(next){
@@ -88,11 +91,13 @@ function create(T, options={}){
     c.lower.quaternion.setFromUnitVectors(c.axisB,c.direction);c.lower.updateMatrixWorld(true);
     if(orientation){c.lower.getWorldQuaternion(c.parentQ).invert();c.end.quaternion.copy(c.parentQ).multiply(orientation);c.end.updateMatrixWorld(true);}
   }
-  const palmOffset=new T.Vector3(0,-.085,.015),handTarget=new T.Vector3();
+  // Contact sits between the fingers and thumb, below the centre of the palm.
+  const palmOffset=new T.Vector3(0,-.18,.09),handTarget=new T.Vector3();
   function aimArm(side,palm,pole,orientation){handTarget.copy(palmOffset).applyQuaternion(orientation);handTarget.subVectors(palm,handTarget);solve(side==='l'?armL:armR,handTarget,pole,orientation);}
   function palmWorld(side,target=new T.Vector3()){return (side==='l'?handL:handR).localToWorld(target.copy(palmOffset));}
-  const poseBase={chest:new T.Euler(),head:new T.Euler()};
+  const poseBase={chest:new T.Euler(),head:new T.Euler(),arms:{l:[],r:[]}};
   function resetUpperPose(){chest.rotation.copy(poseBase.chest);head.rotation.copy(poseBase.head);chest.updateMatrixWorld(true);}
+  function resetArmPose(side){const c=side==='l'?armL:armR;[c.upper,c.lower,c.end].forEach((bone,i)=>{const q=poseBase.arms[side][i];if(q)bone.quaternion.copy(q);});c.upper.updateMatrixWorld(true);}
   const feet=[{side:-1,chain:legL,anchor:new T.Vector3(),target:new T.Vector3(),takeoff:new T.Vector3(),landing:new T.Vector3(),stance:null,offset:0,contact:true},{side:1,chain:legR,anchor:new T.Vector3(),target:new T.Vector3(),takeoff:new T.Vector3(),landing:new T.Vector3(),stance:null,offset:0,contact:true}];
   const rootPosition=new T.Vector3(),previousPosition=new T.Vector3(),velocity=new T.Vector3(),localTarget=new T.Vector3(),worldTarget=new T.Vector3(),poleTarget=new T.Vector3(),footQ=new T.Quaternion(),groupQ=new T.Quaternion(),pitchQ=new T.Quaternion();
   const footPitchAxis=new T.Vector3(1,0,0);
@@ -129,17 +134,26 @@ function create(T, options={}){
     chest.rotation.set(0,-locomotion*gait*.045,-locomotion*gait*.017);
     neck.rotation.set(0,0,0);head.rotation.set(-spine.rotation.x*.7,.014*Math.sin(time*.8),0);
     if(body.userData.restY===undefined)body.userData.restY=body.scale.y;body.scale.y=body.userData.restY*(1+.009*breath);
-    leftArm.rotation.set(-.10+gait*locomotion*(.27+runBlend*.16),0,-.17);
-    arm.rotation.set(-.16-gait*locomotion*(.27+runBlend*.16),0,.17);
-    elbowL.rotation.set(-.17-runBlend*.35,0,0);elbowR.rotation.set(-.20-runBlend*.35,0,0);
-    handL.rotation.set(0,0,0);handR.rotation.set(0,0,0);joints.back.scale.set(1,1,1);
+    leftArm.rotation.set(.025+gait*locomotion*(.27+runBlend*.16),0,-.025);
+    arm.rotation.set(.025-gait*locomotion*(.27+runBlend*.16),0,.025);
+    elbowL.rotation.set(-.14-runBlend*.35,0,0);elbowR.rotation.set(-.16-runBlend*.35,0,0);
+    // Thumbs face forward and palms face the thighs in a relaxed stance.
+    handL.rotation.set(0,Math.PI/2,0);handR.rotation.set(0,-Math.PI/2,0);joints.back.scale.set(1,1,1);
+    const weapon=options.weapon||'sword';
+    if(weapon==='sword'){
+      handR.rotation.z=-.35;
+      socket.position.set(.065,-.18,-.03);socket.rotation.set(0,0,Math.PI/2);
+    }else if(weapon==='staff'){
+      socket.position.copy(palmOffset);socket.rotation.set(0,0,-Math.PI/2);
+    }else{socket.position.set(0,-.14,.05);socket.rotation.set(0,0,0);}
     const attackingNow=attacking>0&&(options.weapon||'sword')==='sword',step=clamp(options.comboStep||1,1,3),duration=step===3?.42:.3;
     if(attackingNow&&!rolling){
       const p=clamp((duration-attacking)/duration),impact=step===3?.16/.42:.105/.3;
-      const windup=step===1?[-2.0,-.25,.75,-.95,-.18]:step===2?[-1.8,.40,-.55,-.8,.25]:[-2.65,0,.05,-.8,-.08];
-      const strike=step===1?[-1.2,.15,-.35,-.30,.18]:step===2?[-1.05,-.2,.55,-.35,-.18]:[-1.2,0,.10,-.25,.08];
-      const follow=step===1?[-.20,.25,-.55,-.16,.28]:step===2?[-.40,-.35,.45,-.22,-.25]:[-.25,0,.15,-.30,.05];
-      const base=[arm.rotation.x,0,.17,elbowR.rotation.x,chest.rotation.y];let a,b,t;
+      // The blade crosses the fist, so the elbow leads the cut without a bent-back wrist.
+      const windup=step===1?[-1.05,-.20,.65,-.75,-.18]:step===2?[-.90,.35,-.60,-.75,.25]:[-1.50,0,.04,-.75,-.08];
+      const strike=step===1?[-.35,.15,-.35,-.30,.18]:step===2?[-.25,-.2,.50,-.35,-.18]:[-.40,0,.10,-.25,.08];
+      const follow=step===1?[.18,.25,-.40,-.12,.28]:step===2?[.10,-.35,.40,-.18,-.25]:[.12,0,.12,-.20,.05];
+      const base=[arm.rotation.x,0,.025,elbowR.rotation.x,chest.rotation.y];let a,b,t;
       if(p<.23){a=base;b=windup;t=smooth(p/.23);}else if(p<impact){a=windup;b=strike;t=smooth((p-.23)/(impact-.23));}else if(p<.72){a=strike;b=follow;t=smooth((p-impact)/(.72-impact));}else{a=follow;b=base;t=smooth((p-.72)/.28);}
       arm.rotation.set(mix(a[0],b[0],t),mix(a[1],b[1],t),mix(a[2],b[2],t));elbowR.rotation.x=mix(a[3],b[3],t);chest.rotation.y=mix(a[4],b[4],t);
       const weight=Math.sin(p*Math.PI);leftArm.rotation.x-=weight*.4;elbowL.rotation.x-=weight*.5;chest.rotation.x+=(step===3?.11:.035)*weight;motion.strikeWeight=weight;
@@ -193,13 +207,14 @@ function create(T, options={}){
       }
     }
     poseBase.chest.copy(chest.rotation);poseBase.head.copy(head.rotation);
+    for(const [side,c]of [['l',armL],['r',armR]])[c.upper,c.lower,c.end].forEach((bone,i)=>{(poseBase.arms[side][i]??=new T.Quaternion()).copy(bone.quaternion);});
     motion.locomotion=locomotion;motion.gaitPhase=gaitPhase;motion.running=runBlend>.5;motion.rolling=rolling;motion.contacts[0]=feet[0].contact;motion.contacts[1]=feet[1].contact;motion.speed=measured;
     return motion;
   }
   group.updateMatrixWorld(true);
   const skeleton=new T.Skeleton(Object.values(joints));
   setSkin(skin);
-  return {group,model,joints,skeleton,body,cloth,left,right,arm,blade,guard,setSkin,animate,aimArm,palmWorld,resetUpperPose,resetMotion,motion};
+  return {group,model,joints,skeleton,body,cloth,left,right,arm,blade,guard,setSkin,animate,aimArm,palmWorld,resetUpperPose,resetArmPose,resetMotion,motion};
 }
 root.EmberCharacterRig={create};
 })(typeof window==='undefined'?globalThis:window);

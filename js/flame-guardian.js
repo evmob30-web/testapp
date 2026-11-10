@@ -79,11 +79,11 @@ function decorate(T,rig){
    const clasp=orb(J.chest,'clasp_'+side,.11,side*.35,.29,.29,edge);clasp.scale.set(.9,.65,.4);
  }
  // Gold weapon hilt and ember pommel are decorations; actual blade remains the combat mesh.
- box(J.weapon_r,'hilt_gold',.13,.48,.13,0,-.23,.40,edge);
- gem(J.weapon_r,'pommel',.085,0,.02,.40);
+ box(J.weapon_r,'hilt_gold',.07,.055,.07,0,.20,.12,edge);
+ gem(J.weapon_r,'pommel',.055,0,.25,.12);
  // A few emissive crystals give the character identity without expensive lights.
  const baseMeshes=[];
- rig.model.traverse(o=>{if(o.isMesh&&o!==rig.blade&&o!==rig.guard&&!o.name.startsWith('flame_'))baseMeshes.push(o);});
+ rig.model.traverse(o=>{if(o.isMesh&&o!==rig.blade&&o!==rig.guard&&!o.userData.weaponPart&&!o.name.startsWith('flame_'))baseMeshes.push(o);});
  // Decoration was added to bones; hide it by toggling individual meshes, never the bones.
  const costumeMeshes=[];
  rig.model.traverse(o=>{if(o.isMesh&&o.name.startsWith('flame_'))costumeMeshes.push(o);});
