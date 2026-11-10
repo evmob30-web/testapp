@@ -82,7 +82,7 @@ function chooseWeighted(entries,random){
 function roll(state,enemy,random=Math.random){
  clean(state);
  if(state.lootDrops.length>=maxDrops||state.lootSequence>=1000000)return null;
- const chance=enemy.boss?1:enemy.spirit?.78:enemy.shield?.7:.57;
+ const chance=enemy.boss?1:enemy.spirit?.78:.57;
  if(random()>=chance)return null;
  const weights=enemy.boss?[['common',6],['rare',26],['epic',44],['legendary',24]]:
  [['common',55],['rare',28],['epic',13],['legendary',4]];

@@ -1,10 +1,22 @@
-# Emberwild — De laatste vonk · versie 1.9
+# Emberwild — De laatste vonk · versie 1.10
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.9 bevat een volledig vernieuwde Doornwachter, vernieuwde Bram, Mira en Tovin, een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.10 bevat vernieuwde Bosgeesten en een vernieuwde Wortelmoeder, een volledig vernieuwde Doornwachter, vernieuwde Bram, Mira en Tovin, een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
 Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. De game is bedoeld voor toetsenbord en muis op een laptop of desktop; er is nog geen mobiele besturing.
+
+## Bosgeest en Wortelmoeder — versie 1.10
+
+De Bosgeest heeft een zwevend, hol wortellichaam met een lichtgevende zaadkern, uitgesneden masker, bladkroon, gelaagde mantel en drie meebewegende wortelstaarten. Hij ademt, zweeft en bereidt zijn schot met een armgebaar en feller licht voor. Dezelfde geestenfamilie verschijnt als Sporenwachter in de Wortelgrotten.
+
+De Wortelmoeder heeft een eigen silhouet met zes wortelpoten, paddenstoelschouders met lichtende sporen, een bloem rond de groene kern en een hoge bladerkroon. De steunpoten blijven bij lopen op hun plek staan. Bij **Zaadsalvo** opent de bloem en kleurt de kern violet; bij **Wortelslag** gaan de armen omhoog en komen de klauwen op het bestaande schademoment omlaag. Bladeren, wortelvingers, terugslag en de tijdelijke instorting animeren afzonderlijk.
+
+Beide modellen worden origineel en lokaal opgebouwd in `js/grove-creatures.js`. De Bosgeest gebruikt 48 botten en 32.012 driehoeken; de Wortelmoeder 66 botten en 63.170 driehoeken. Elk gebruikt zes materiaalbatches met gedeelde geometrie en een gecachete houtnerftextuur; veranderlijke materialen en botten zijn per instantie gescheiden. De animaties verplaatsen de logische vijand niet. Pauze bevriest de animaties, en verslaan levert direct de bestaande voortgang en buit op. Het tijdelijke visuele model wordt automatisch opgeruimd of bij wisselen gewist.
+
+De **Schildwacht is verwijderd**. De boogtraining bestaat uit de drie oefendoelen en blijft volledig speelbaar. Eerdere overwinningen op de Schildwacht blijven in oude opslag bewaard, evenals goud, XP, voorwerpen, classes en questvoortgang. Het opslagformaat is ongewijzigd.
+
+[Voorbeeld Bosgeest](assets/previews/bosgeest.png) · [Voorbeeld Wortelmoeder](assets/previews/wortelmoeder.png). Deze beelden tonen de echte modellen naast de speler; je hoeft een voltooide save niet opnieuw te beginnen om ze te bekijken.
 
 ## Doornwachter — oorspronkelijk eindbaasmodel
 
@@ -12,7 +24,7 @@ De Doornwachter heeft sinds versie 1.9 een eigen vervormbaar model: een doorlope
 
 Het model gebruikt 44 botten en zes samengevoegde materiaalvlakken. Geometrie en houtnerf worden gedeeld; skelet en veranderlijke materialen horen bij de afzonderlijke instantie. Afstandsafhankelijke stappen houden de steunvoeten op de grond. De bestaande 1,15 seconde voorbereiding tilt beide armen op; op het bestaande schademoment slaan de klauwen omlaag en springen schorsdeeltjes weg. Kleine reacties op treffers herstellen vloeiend. Pauze bevriest ook deze animaties.
 
-Bij verslaan volgen de bestaande voortgang en buit direct. Een tijdelijk, niet-interactief visueel model zakt in en dooft uit, terwijl de logische vijand meteen verdwijnt. Het effect wordt na 2,7 seconde opgeruimd en ook gewist bij gebieds- of personagewissels. De Doornwachter verschijnt nog steeds pas bij de juiste hoofdopdracht. Gezondheid, schade, bereik, aanvalstijden en beloningen zijn gelijk gebleven; de Wortelmoeder gebruikt haar bestaande model en gevecht.
+Bij verslaan volgen de bestaande voortgang en buit direct. Een tijdelijk, niet-interactief visueel model zakt in en dooft uit, terwijl de logische vijand meteen verdwijnt. Het effect wordt na 2,7 seconde opgeruimd en ook gewist bij gebieds- of personagewissels. De Doornwachter verschijnt nog steeds pas bij de juiste hoofdopdracht. Gezondheid, schade, bereik, aanvalstijden en beloningen zijn gelijk gebleven.
 
 [Modelvoorbeeld met de speler als schaalreferentie](assets/previews/doornwachter.png)
 
@@ -31,7 +43,7 @@ Questobjecten verschijnen pas nadat je hun opdracht hebt aangenomen. Eén gedeel
 - Wolven verschijnen na het aannemen van Elins eerste opdracht.
 - Lichtkristallen verschijnen na het aannemen van de kristallenopdracht; de Doornwachter verschijnt na ontvangst van het sterrenlicht.
 - De grotingang verschijnt na het aannemen van de Wortelgrottenopdracht. Het amulet verschijnt na het verslaan van de Wortelmoeder.
-- Oefendoelen en de Schildwacht verschijnen na het aannemen van boogtraining, ook als je als Woudloper al een boog hebt.
+- Oefendoelen verschijnen na het aannemen van boogtraining, ook als je als Woudloper al een boog hebt.
 - Tovin, kruiden en het Verkenning-paneel verschijnen na het aannemen van Mira’s opdracht. Het bloemspoor en heiligdom volgen nadat Tovin zijn aanwijzing geeft.
 
 Opdrachtgevers en gewone werelddecoratie blijven beschikbaar. Onzichtbare questonderdelen geven geen interactieprompt, verschijnen niet op de minimap en blokkeren geen pijlen. Je hoeft geen nieuw avontuur te starten; bestaande voortgang en verdiende beloningen blijven behouden. Een al verdiende Woudzegen uit een oudere opslag blijft geldig, ook als je die destijds vóór Mira’s opdracht vond.
@@ -86,12 +98,12 @@ Een volle plek wordt nooit door een nieuwe held vervangen. **Verwijderen** opent
 Kies **Magiër** wanneer je een personage in een lege plek maakt. Je begint met 75 gezondheid, een zichtbare kristalstaf en 100 mana. De bestaande kapsels, kleuren en beide cosmetische outfits blijven beschikbaar. Classes kun je alleen bij een nieuw avontuur kiezen; uiterlijk aanpassen via I behoudt je class. De nieuwe Magiër krijgt eigen voortgang; de andere personages blijven bewaard.
 
 - **Vonkbol — 1 / linksklik:** richt met de muis en schiet direct een magisch projectiel. Kost 8 mana, heeft 0,65 seconde afkoeltijd en een bereik van circa 24 speleenheden. Basisschade is 32 en groeit met level, sterrenlicht, pantserbonussen en Hartamulet. De zwaardbonus van Doornlicht telt voor je zwaard.
-- **Vrieskring — 2:** een ijsring treft zichtbare vijanden binnen 4,8 speleenheden voor 75% van je spreukschade. Kost 24 mana en heeft 8 seconden afkoeltijd. Gewone vijanden bewegen 3 seconden op 45% snelheid; eindbazen 1,5 seconde op 72% snelheid. Aanvalsaankondigingen blijven actief. De ring treft rondom een schild, maar niet door muren of andere vaste obstakels.
+- **Vrieskring — 2:** een ijsring treft zichtbare vijanden binnen 4,8 speleenheden voor 75% van je spreukschade. Kost 24 mana en heeft 8 seconden afkoeltijd. Gewone vijanden bewegen 3 seconden op 45% snelheid; eindbazen 1,5 seconde op 72% snelheid. Aanvalsaankondigingen blijven actief. De ring treft niet door muren of andere vaste obstakels.
 - **Mana:** herstelt met 7 per spelseconde, bij een herstelplek met nog eens 20 per seconde. Pauze en menu's stoppen herstel en spreuken. Een level erbij, sterrenlicht, Woudzegen en terugkeer na een nederlaag vullen mana aan. Maximale mana groeit met 5 per level. Huidige mana wordt opgeslagen en begrensd hersteld.
 
-Een directe Vonkbol botst met bomen, grotwanden, oefendoelen en vijanden; een schild kan hem van voren blokkeren. Verborgen questonderdelen kunnen geen schade krijgen. Magie telt niet mee voor de boogtraining: neem Elins training aan en gebruik daarvoor geladen pijlen. Met **F** wissel je tussen staf, zwaard en de vrijgespeelde boog. In I kun je ook rechtstreeks je staf of boog uitrusten.
+Een directe Vonkbol botst met bomen, grotwanden, oefendoelen en vijanden. Verborgen questonderdelen kunnen geen schade krijgen. Magie telt niet mee voor de boogtraining: neem Elins training aan en gebruik daarvoor geladen pijlen. Met **F** wissel je tussen staf, zwaard en de vrijgespeelde boog. In I kun je ook rechtstreeks je staf of boog uitrusten.
 
-## Boogtraining en de Schildwacht
+## Boogtraining
 
 Je bestaande Wachter kan de boog leren zonder opnieuw te beginnen. Praat met Elin en kies in haar gesprek **‘Boogtraining bij Elin’**. Neem de training aan. Je krijgt toegang tot een oefenboog; Woudlopers gebruiken hun eigen startboog.
 
@@ -99,7 +111,6 @@ De drie rieten doelen staan ten noorden van het dorp. Richt met de muis, houd li
 
 De boog gebruikt zichtbare projectielen met botsingen tegen vijanden, bomen en grotwanden. Je hebt onbeperkt pijlen. Een volgeladen schot doet meer schade; lopen tijdens het laden gaat langzamer. Pauzeren, praten, rollen, inventaris openen en wapen wisselen breken het laden af. Loslaten daarna vuurt geen onbedoelde pijl af. Je uitgeruste zwaard en de boog blijven apart bewaard; F wisselt tussen beide.
 
-Een **Schildwacht** patrouilleert in het oostelijke bos (bij 17, -24). Hij blokkeert aanvallen van voren, inclusief pijlen, en draait langzaam. Beweeg of rol naar zijn zijkant of achter hem en raak hem daar. Hij is optioneel en telt niet mee voor de wolvenopdracht.
 
 ## Hoofdstuk 1 — De Schemervallei
 
@@ -164,11 +175,14 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 - `js/appearance.js`: kapsels, kleuren en de afzonderlijke 3D-preview in de character creator.
 - `js/equipment.js`: vijf pantserslots, vaste pantserstukken, aankopen, beloningen en zichtbare uitrusting.
 - `js/loot.js`: willekeurige drops, zeldzaamheden, itemeigenschappen, statvergelijking en verkoop.
-- `js/combat.js`: ontwijkregels, afkoeltijden, eerste projectieltreffers, schildhoeken en begrensd draaien.
+- `js/combat.js`: ontwijkregels, afkoeltijden, eerste projectieltreffers en begrensd draaien.
 - `js/enemy-ai.js`: vijandprofielen, groepswaarschuwingen, flanken, aanvalsaankondigingen en pijlontwijking.
 - `js/archery.js`: boogmodel, boogpees, herbruikbare pijlmodellen en oefendoelen.
 - `js/mage.js`: mana verbruiken/herstellen, tijdelijke vertraging, originele staf en herbruikbare spreukeffecten.
 - `js/forest-actors.js`: Elins gedeelde humanoïde skelet, eigen uitrusting en gesprekshouding; originele wolven met losse poten/kaak/oren/staart en afstandgestuurde animatie.
+- `js/village-actors.js`: oorspronkelijke outfits, accessoires en gespreksanimaties van Bram, Mira en Tovin.
+- `js/thorn-guardian.js`: gedetailleerde Doornwachter, wortelstappen, slagen, instorting en gedeelde schorsdeeltjes.
+- `js/grove-creatures.js`: gewogen modellen, materialen en animaties van de Bosgeest en Wortelmoeder.
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
 - `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
@@ -201,7 +215,7 @@ De speler gebruikt dit gedeelde skelet. Wachter en Woudloper zijn classes; **kla
 
 De twee echte glTF 2.0-bestanden staan in `assets/characters/`: `ember-adventurer.glb` en `flame-guardian.glb`. Het lijf heeft doorlopende geometrie met genormaliseerde botgewichten bij romp, ellebogen en knieën. Gezicht, vingers, kledingnaden, gespen, laarzen en mantel geven meer detail; Flame Guardian heeft een gesmeed pantser, goudranden, gravures, een rode tabberd en lichtgevende kristallen. De originele materiaalatlas van 512 × 256 pixels bevat stof, leer, geborsteld staal, goud en mantelpatronen. Hij is in ieder model ingesloten. Vertexkleuren versterken de vorm met subtiele geschilderde schaduw en highlights. Dit is originele gestileerde art, gemaakt met de meegeleverde generator.
 
-`EmberModelAssets` laadt via de lokaal meegeleverde officiële GLTFLoader. De `SkinnedMesh`-geometrie wordt aan de bestaande benoemde botten gekoppeld. De personagepreview en de speler delen onveranderlijke geometrie, maar hebben eigen materialen en botten. Haaropties, wapens, verzameld pantser en het Hartamulet gebruiken hun bestaande bevestigingspunten. Classes, bonussen en het opslagformaat veranderen niet. Elin deelt sinds versie 1.7 de gewogen basisgeometrie, met eigen materialen, vlecht en uitrusting. De schemerwolven hebben een eigen procedureel model; andere NPC's en vijanden behouden hun bestaande modellen.
+`EmberModelAssets` laadt via de lokaal meegeleverde officiële GLTFLoader. De `SkinnedMesh`-geometrie wordt aan de bestaande benoemde botten gekoppeld. De personagepreview en de speler delen onveranderlijke geometrie, maar hebben eigen materialen en botten. Haaropties, wapens, verzameld pantser en het Hartamulet gebruiken hun bestaande bevestigingspunten. Classes, bonussen en het opslagformaat veranderen niet. Elin deelt sinds versie 1.7 de gewogen basisgeometrie, met eigen materialen, vlecht en uitrusting. De schemerwolven hebben een eigen procedureel model; Bram, Mira en Tovin hebben eigen outfits; de Doornwachter, Bosgeest en Wortelmoeder hebben afzonderlijke gewogen modellen.
 
 Voor rechtstreeks openen van `index.html` en offline gebruik bevat `js/character-assets-data.js` dezelfde GLB-bytes. Er zijn geen externe modelverzoeken of extra installaties nodig. Bij een laadprobleem blijft het procedurele reservemodel zichtbaar. De generator maakt zowel de losse GLBs als de identieke offlineversie opnieuw: `node scripts/build-character-assets.cjs`. Zie ook [de assetdocumentatie](assets/characters/README.md).
 
@@ -247,7 +261,6 @@ Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruis
 ## Vijandelijke AI
 
 - Schemerwolven zoeken een flank en nabijgelegen bondgenoten reageren wanneer een wolf geraakt wordt.
-- Schildwachters houden hun schildgerichte houding, kondigen zware klappen duidelijk aan en kunnen een volgende pijl zijwaarts ontwijken.
 - Bosgeesten proberen op afstand te blijven, tonen een paarse waarschuwing voordat ze hun projectiel lanceren en wijken terug wanneer je dichtbij komt.
 - Elke gewone melee-aanval toont eerst een gekleurde, pulserende waarschuwingsring op de grond. Beweeg of rol uit het bereik voordat de slag valt; een eigen melee-treffer kan de voorbereiding van de tegenstander onderbreken.
 - Verrassingsschoten met een boog blijven raakbaar van buiten detectieafstand. Eerder gealarmeerde vijanden mogen volgende pijlen proberen te ontwijken; botsingen en blokkeringen blijven leidend.
@@ -255,7 +268,7 @@ Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruis
 
 ## Loot en progressie
 
-Vijanden kunnen bij verslaan willekeurige uitrusting laten vallen. Gewone vijanden hebben ongeveer 57% dropkans; geesten 78%, schildwachters 70% en eindbazen altijd een drop. De verdeling van gewone drops is 55% **gewoon**, 28% **zeldzaam**, 13% **episch** en 4% **legendarisch**. Eindbazen hebben betere kansen op epische of legendarische stukken. Iedere drop combineert een bestaand van vijf armor-slots (helm, schouders, borst, handschoenen, laarzen) met een zeldzaamheid en een willekeurig kenmerk: Levenskracht, Woede, Scherpschutter, Bescherming of Sintelvuur.
+Vijanden kunnen bij verslaan willekeurige uitrusting laten vallen. Gewone vijanden hebben ongeveer 57% dropkans; geesten 78% en eindbazen altijd een drop. De verdeling van gewone drops is 55% **gewoon**, 28% **zeldzaam**, 13% **episch** en 4% **legendarisch**. Eindbazen hebben betere kansen op epische of legendarische stukken. Iedere drop combineert een bestaand van vijf armor-slots (helm, schouders, borst, handschoenen, laarzen) met een zeldzaamheid en een willekeurig kenmerk: Levenskracht, Woede, Scherpschutter, Bescherming of Sintelvuur.
 
 Na het verslaan verschijnt een draaiende 3D-kristal op de grond, gekleurd naar zeldzaamheid. Ga binnen 2,5 speleenheden staan en druk op **E** om de buit op te pakken. Buit die nog op de grond ligt, wordt net als de verzamelde loot opgeslagen bij je avontuur en opnieuw getoond na laden. De inventaris onder **I → Gevonden buit** toont statvergelijkingen met het momenteel uitgeruste item, een knop voor uitrusten/afleggen en een verkoopknop. Er passen maximaal 32 gevonden items in je reistas en 32 zichtbare drops in de wereld. Verkoop is onmogelijk zolang een item is uitgerust.
 
@@ -285,3 +298,5 @@ De vier schemerwolven hebben een gevormde romp en snuit, bek met tanden, oren, k
 Wolven blijven verborgen tot hun quest is aangenomen. Pauze stopt hun animaties. Wisselen van personage, herladen en doodgaan resetten de tijdelijke houdingen. Elin hergebruikt de bestaande ingebedde GLBs; er worden geen extra modellen van internet opgehaald. Spelregels, buit, quests en de drie personagesaves veranderen niet.
 
 Zes aanvullende modeltests controleren gedeelde geometrie met afzonderlijke botten/materialen, voetcontact bij verschillende snelheden en tijdstappen, waarschuwing/beet/terugslag zonder verplaatste spelpositie, resets en Elins gesprekshouding. De volledige gameplaytest controleert gesprekspauze en bevroren wolfanimaties. De Chromium-test controleert Elins geladen model en gesprek, de zichtbaarheid van wolven na acceptatie en een echte waarschuwing/beet in de game.
+
+De modelcontrole voor versie 1.10 controleert huidgewichten, gedeelde geometrie, eigen materialen, voetcontact bij 30 en 120 tijdstappen per seconde, vrij liggende gewogen geometrie boven de vloer, beide aanvalspatronen, terugslag en opruimen/resetten. De gameplaytest controleert werkelijke projectielen, schade, pauze, directe voortgang bij verslaan en behoud van oude Schildwacht-opslag. De browsercontrole voert beide gevechten uit, inclusief waarschuwingen, pauze, verslaan en herladen. Met `node scripts/browser-start.cjs --grove-only` kun je alleen deze twee gevechten controleren tegen de lokale HTTP-server.
