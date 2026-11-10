@@ -246,10 +246,10 @@ async function observeForest(page){await page.addInitScript(()=>{
   await migrated.evaluate(f=>sessionStorage.setItem('npc-camera-fixture',JSON.stringify(f)),{x:fixture.x,z:fixture.z,sideQuest:fixture.sideQuest});
   await migrated.reload({waitUntil:'load'});await continueHero(migrated);await migrated.keyboard.press('e');
   await migrated.waitForFunction(id=>window.__villageActors?.[id]?.assets.status==='ready'&&window.__villageActors[id].talkBlend>.8,fixture.id,{timeout:30000});
-  if(await migrated.locator('#hud').isVisible())errors.push('HUD obscures NPC conversation: '+fixture.id);
+  if(await migrated.locator('#health-label').isVisible())errors.push('HUD obscures NPC conversation: '+fixture.id);
   if(await migrated.locator('#dialog').getAttribute('data-speaker')!==fixture.id)errors.push('Wrong NPC dialogue camera: '+fixture.id);
   const health=await migrated.locator('#health-label').textContent();await migrated.waitForTimeout(250);if(await migrated.locator('#health-label').textContent()!==health)errors.push('Gameplay continued during '+fixture.id+' dialogue');
-  await migrated.screenshot({path:'/tmp/emberwild-'+fixture.id+'-'+fixture.sideQuest+'-dialogue.png'});await migrated.locator('#dialog-close').click();if(!await migrated.locator('#hud').isVisible())errors.push('HUD did not return after '+fixture.id+' dialogue');
+  await migrated.screenshot({path:'/tmp/emberwild-'+fixture.id+'-'+fixture.sideQuest+'-dialogue.png'});await migrated.locator('#dialog-close').click();if(!await migrated.locator('#health-label').isVisible())errors.push('HUD did not return after '+fixture.id+' dialogue');
   if(await migrated.evaluate(()=>Object.values(window.__villageActors).some(a=>a.talking)))errors.push('NPC did not leave conversation pose: '+fixture.id);
   await migrated.keyboard.press('Escape');
  }
