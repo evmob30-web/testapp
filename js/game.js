@@ -212,7 +212,7 @@ $('sound').onclick=()=>{EmberAudio.toggle();soundButton();};soundButton();
 addEventListener('pointerdown',()=>{EmberAudio.unlock();},{passive:true});
 $('inventory-button').onclick=inventory;$('inventory-close').onclick=resume;
 function nearestEnemy(range){let found=null,best=range;for(const e of world.enemies){if(!e.mesh.visible||e.boss&&state.quest<3)continue;const d=Math.hypot(e.mesh.position.x-state.x,e.mesh.position.z-state.z);if(d<best){best=d;found=e;}}return found;}
-function hit(e,amount,dx=e.mesh.position.x-state.x,dz=e.mesh.position.z-state.z,ranged=false,bypassShield=false){if(!RPG.enemyVisible(state,e))return;EmberEnemyAI.notifyHit(e,world.enemies,state.x,state.z);if(ranged){target=e;e.focusUntil=time+2.5;}if(!bypassShield&&e.shield&&EmberCombat.shieldBlocks(e.mesh.rotation.y,dx,dz)){world.damageText('SCHILD',e.mesh.position.x,e.mesh.position.z,'#d5cfad');EmberAudio.play('block');return;}const oldLevel=state.level;e.hp=Math.max(0,e.hp-amount);
+function hit(e,amount,dx=e.mesh.position.x-state.x,dz=e.mesh.position.z-state.z,ranged=false){if(!RPG.enemyVisible(state,e))return;EmberEnemyAI.notifyHit(e,world.enemies,state.x,state.z);if(ranged){target=e;e.focusUntil=time+2.5;}const oldLevel=state.level;e.hp=Math.max(0,e.hp-amount);
  world.burst(e.mesh.position.x,e.mesh.position.z,e.spirit?'#ddc7ff':'#ffbf87',e.boss?10:7);
  world.magicImpact?.(e.mesh.position.x,e.mesh.position.z,e.spirit?'#d7b7ff':'#ffb45e',e.boss?.8:.52);
  world.damageText(amount,e.mesh.position.x,e.mesh.position.z);
@@ -267,7 +267,7 @@ function castFrost(){
  if(!EmberMage.spend(state,skill.cost)){toast('Vrieskring kost '+skill.cost+' mana. Je mana herstelt vanzelf.');return;}
  magicCD=skill.cooldown;EmberCombat.resetCombo(combo);cancelCharge();world.mageView?.cast('frost');world.mageNova(state.x,state.z,skill.range);EmberAudio.play('frost');
  for(const e of EmberMage.nearby(state,world.enemies,skill.range,clearSpellLine)){
-  EmberMage.chill(e);EmberMage.markChilled(THREE,e);hit(e,Math.round(RPG.spellDamage(state)*.75),e.mesh.position.x-state.x,e.mesh.position.z-state.z,true,true);
+  EmberMage.chill(e);EmberMage.markChilled(THREE,e);hit(e,Math.round(RPG.spellDamage(state)*.75),e.mesh.position.x-state.x,e.mesh.position.z-state.z,true);
   if(e.mesh.visible)world.damageText('VERTRAAGD',e.mesh.position.x,e.mesh.position.z,'#a6e9ff');
  }
  updateHud();
@@ -380,7 +380,7 @@ function update(dt){EmberMage.regenerate(state,dt);if(charging)charge=Math.min(1
  world.warning.visible=false;
  for(const e of world.enemies){if(!e.mesh.visible)continue;e.attack-=dt;EmberEnemyAI.tick(e,dt);EmberMage.tickEnemy(e,dt);if(e.flash>0){e.flash=Math.max(0,e.flash-dt);const pulse=Math.sin((1-e.flash/.22)*Math.PI)*Math.exp(-(1-e.flash/.22)*2),strength=e.boss?.035:.11;if(!e.visual){e.mesh.scale.setScalar(1+pulse*(e.boss?.025:.065));e.mesh.rotation.x=pulse*strength*(e.hitTiltX||0);e.mesh.rotation.z=pulse*strength*(e.hitTiltZ||0);}}if(e.stagger>0)e.stagger=Math.max(0,e.stagger-dt);if(e.boss&&state.quest<3)continue;const pos=e.mesh.position,ex=state.x-pos.x,ez=state.z-pos.z,d=Math.hypot(ex,ez),homeDist=Math.hypot(state.x-e.homeX,state.z-e.homeZ),aggro=EmberEnemyAI.active(e,state.x,state.z);if(e.spirit){
   if(e.pendingAttack==='orb'){
-   if(e.telegraph<=0){e.pendingAttack=null;const dd=Math.hypot(state.x-pos.x,state.z-pos.z);
+   if(e.telegraph<=0){e.pendingAttack=null;e.visual?.attack('orb');const dd=Math.hypot(state.x-pos.x,state.z-pos.z);
      if(dd>.01&&dd<=25){projectiles.push({mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:(state.x-pos.x)/dd*8,vz:(state.z-pos.z)/dd*8,life:3});world.burst(pos.x,pos.z,'#d3bbff',6);}
    }
    continue;
@@ -391,7 +391,7 @@ function update(dt){EmberMage.regenerate(state,dt);if(charging)charge=Math.min(1
   }else{const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);if(h>.1){if(e.visual)e.mesh.rotation.y=EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(hx,hz),dt*4);pos.x+=hx/h*2*dt*EmberMage.movementScale(e);pos.z+=hz/h*2*dt*EmberMage.movementScale(e);}}
   continue;
  }
- if(e.windup>0){e.windup-=dt;world.warning.position.set(pos.x,.05,pos.z);world.warning.visible=true;world.warning.scale.setScalar(e.rootBoss?(e.pattern===1?.5:5.2/4.6):1);world.warning.material.color.set(e.rootBoss&&e.pattern===1?'#c8a4ea':'#f0a167');if(e.windup<=0){e.visual?.attack();if(e.id==='boss')world.thornImpact(pos.x,pos.z);if(e.rootBoss&&e.pattern===1){const angle=e.castAngle;for(const offset of [-.3,0,.3]){const a=angle+offset;projectiles.push({mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:Math.sin(a)*9,vz:Math.cos(a)*9,life:3,damage:18});}EmberAudio.play('magic');}else if(d<(e.rootBoss?5.2:4.6)){if(takeDamage(e.rootBoss?36:30))world.burst(state.x,state.z,'#da9a88',6);}}continue;}
+ if(e.windup>0){e.windup-=dt;world.warning.position.set(pos.x,.05,pos.z);world.warning.visible=true;world.warning.scale.setScalar(e.rootBoss?(e.pattern===1?.5:5.2/4.6):1);world.warning.material.color.set(e.rootBoss&&e.pattern===1?'#c8a4ea':'#f0a167');if(e.windup<=0){e.visual?.attack(e.rootBoss&&e.pattern===1?'salvo':'slam');if(e.id==='boss')world.thornImpact(pos.x,pos.z);if(e.rootBoss&&e.pattern===1){const angle=e.castAngle;for(const offset of [-.3,0,.3]){const a=angle+offset;projectiles.push({mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:Math.sin(a)*9,vz:Math.cos(a)*9,life:3,damage:18});}EmberAudio.play('magic');}else if(d<(e.rootBoss?5.2:4.6)){if(takeDamage(e.rootBoss?36:30))world.burst(state.x,state.z,'#da9a88',6);}}continue;}
 
  if(e.pendingAttack==='melee'){
   if(e.telegraph<=0){e.pendingAttack=null;e.visual?.attack();const reach=EmberEnemyAI.config(e).range+.35;
@@ -402,12 +402,12 @@ function update(dt){EmberMage.regenerate(state,dt);if(charging)charge=Math.min(1
  if(aggro){
   pos.y=e.boss||e.visual?0:Math.sin(time*9)*.06;
   if(e.stagger>0)continue;
-  e.mesh.rotation.y=e.shield?EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(ex,ez),dt*1.4):Math.atan2(ex,ez);
+  e.mesh.rotation.y=Math.atan2(ex,ez);
   if(!e.boss){
    const evade=EmberEnemyAI.dodgeArrow(e,arrows);if(evade){e.dodgeVector=evade;world.burst(pos.x,pos.z,'#b2dfd1',3);}
    if(e.dodgeTime>0&&e.dodgeVector){
     const step=4.5*dt*EmberMage.movementScale(e),nx=pos.x+e.dodgeVector.x*step,nz=pos.z+e.dodgeVector.z*step;
-    if(state.area==='roots'){const p=EmberDungeon.move(pos.x,pos.z,nx,nz,state.gateOpen,e.shield?.7:.55);pos.x=p.x;pos.z=p.z;}
+    if(state.area==='roots'){const p=EmberDungeon.move(pos.x,pos.z,nx,nz,state.gateOpen,.55);pos.x=p.x;pos.z=p.z;}
     else if(nx>=-31&&nx<=31&&nz>=-59&&nz<=30&&!world.colliders.some(c=>Math.hypot(nx-c.x,nz-c.z)<c.r+.5)){pos.x=nx;pos.z=nz;}
     continue;
    }
@@ -417,11 +417,11 @@ function update(dt){EmberMage.regenerate(state,dt);if(charging)charge=Math.min(1
    const speed=e.speed||(e.boss?2.1:3.3),dir=EmberEnemyAI.movement(e,state.x,state.z,world.enemies);
    pos.x+=dir.x*speed*dt*EmberMage.movementScale(e);pos.z+=dir.z*speed*dt*EmberMage.movementScale(e);
   }else if(e.attack<=0){
-   e.attack=e.boss?3:e.shield?2.2:1.5;
+   e.attack=e.boss?3:1.5;
    if(e.boss){
     if(e.rootBoss){e.pattern=(e.pattern+1)%2;e.windup=e.pattern===1?.95:1.25;e.castAngle=Math.atan2(ex,ez);world.damageText(e.pattern===1?'ZAADSALVO':'WORTELSLAG',pos.x,pos.z,e.pattern===1?'#e4c3ff':'#ffdb9e');}
     else e.windup=1.15;
-   }else{e.pendingAttack='melee';EmberEnemyAI.startWarning(e,EmberEnemyAI.config(e).windup);world.damageText(e.shield?'SCHILDSLAG':'SPRONG',pos.x,pos.z,'#ffdca1');}
+   }else{e.pendingAttack='melee';EmberEnemyAI.startWarning(e,EmberEnemyAI.config(e).windup);world.damageText('SPRONG',pos.x,pos.z,'#ffdca1');}
   }
  }else{
   pos.y=0;const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);

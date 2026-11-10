@@ -4,12 +4,11 @@ function enemy(id,x=0,z=0,extra={}){
  return {id,homeX:x,homeZ:z,attack:3,mesh:{visible:true,position:{x,z}},...extra};
 }
 test('distinct behavior profiles and visibility-independent alert',()=>{
- const wolf=enemy('w1'),guard=enemy('g1',0,0,{shield:true}),spirit=enemy('s1',0,0,{spirit:true}),boss=enemy('boss',0,0,{boss:true});
+ const wolf=enemy('w1'),spirit=enemy('s1',0,0,{spirit:true}),boss=enemy('boss',0,0,{boss:true});
  assert.equal(EmberEnemyAI.type(wolf),'wolf');
- assert.equal(EmberEnemyAI.type(guard),'guardian');
  assert.equal(EmberEnemyAI.type(spirit),'spirit');
  assert.equal(EmberEnemyAI.type(boss),'boss');
- assert.notEqual(EmberEnemyAI.config(guard).windup,EmberEnemyAI.config(wolf).windup);
+ assert.notEqual(EmberEnemyAI.config(spirit).windup,EmberEnemyAI.config(wolf).windup);
  assert.equal(EmberEnemyAI.active(wolf,0,18),false);
  EmberEnemyAI.notifyHit(wolf,[wolf],0,18);
  assert.equal(EmberEnemyAI.active(wolf,0,18),true);
@@ -29,8 +28,8 @@ test('wounded wolves alert nearby allies but not remote monsters or bosses',()=>
  assert.equal(flank.coordinated,true);
  assert.ok(Math.abs(flank.x)>.1);
 });
-test('guardians can evade alerted arrows once and respect cooldown',()=>{
- const e=enemy('g1',0,0,{shield:true});
+test('alerted wolves can evade arrows once and respect cooldown',()=>{
+ const e=enemy('w4');
  const arrow={x:0,z:5,vx:0,vz:-26};
  assert.equal(EmberEnemyAI.dodgeArrow(e,[arrow]),null,'idle enemy must not dodge a surprise shot');
  EmberEnemyAI.notifyHit(e,[e],0,5);

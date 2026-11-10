@@ -3,11 +3,10 @@
 'use strict';
 const profiles={
  wolf:{sight:11,leash:17,range:1.9,windup:.42,cooldown:1.5,group:8,flank:1.3},
- guardian:{sight:11,leash:17,range:2.05,windup:.68,cooldown:2.2,group:7,flank:0},
  spirit:{sight:12,leash:19,range:8,windup:.32,cooldown:2.1,group:8,flank:0},
  boss:{sight:16,leash:21,range:3.5,windup:1.15,cooldown:3,group:0,flank:0}
 };
-function type(e){return e.boss?'boss':e.spirit?'spirit':e.shield?'guardian':'wolf';}
+function type(e){return e.boss?'boss':e.spirit?'spirit':'wolf';}
 function config(e){return profiles[type(e)];}
 function ensure(e){
  if(!Number.isFinite(e.alertTimer))e.alertTimer=0;
@@ -68,7 +67,7 @@ function movement(e,px,pz,neighbors=[]){
   const direction=d>8.5?1:d<5.8?-1:0;
   return {x:towardX*direction,z:towardZ*direction,d};
  }
- if(e.boss||e.shield||d>8)return {x:towardX,z:towardZ,d};
+ if(e.boss||d>8)return {x:towardX,z:towardZ,d};
  if(p.flank){
   const mates=neighbors.filter(n=>n!==e&&n.mesh.visible&&!n.boss&&n.alertTimer>0&&Math.hypot(n.mesh.position.x-pos.x,n.mesh.position.z-pos.z)<6);
   const flank=d>p.range+.15?(mates.length?.8:.42):.15;

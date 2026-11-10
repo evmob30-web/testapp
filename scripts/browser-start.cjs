@@ -17,8 +17,57 @@ async function observeForest(page){await page.addInitScript(()=>{
   Object.defineProperty(window,'EmberForestActors',{value:api,writable:true,configurable:true});
  }});
 });}
+async function checkGrove(browser,errors){
+ for(const kind of ['spirit','mother']){
+  const page=await browser.newPage({viewport:{width:960,height:640}});
+  page.on('pageerror',e=>errors.push(kind+': '+e.message));page.on('console',m=>{if(m.type()==='error')errors.push(kind+': '+m.text());});
+  await page.addInitScript(kind=>{
+   if(!sessionStorage.getItem('grove-fixture')){
+    sessionStorage.setItem('grove-fixture','1');const state={version:1,classId:'guardian',level:8,hp:240,quest:5,equipped:'thorn',kills:['w1','w2','w3','w4','boss','g1'],crystals:['c1','c2','c3'],bowUnlocked:true,bowQuest:1,bowPractice:['t1'],potions:3,x:21,z:-35};
+    if(kind==='mother')Object.assign(state,{area:'roots',dungeon:1,caveKey:true,gateOpen:true,x:100,z:-52,kills:[...state.kills,'d1','d2','d3']});
+    localStorage.setItem('emberwild-characters-v1',JSON.stringify({version:1,active:0,slots:[{name:'Woudproef',state},null,null]}));
+   }
+   Object.defineProperty(window,'EmberGroveCreatures',{configurable:true,set(api){
+    for(const name of ['createSpirit','createRootMother']){const create=api[name];api[name]=(...args)=>{const actor=create(...args),attack=actor.attack;actor.attack=kind=>{(window.__groveAttacks??=[]).push({actor:actor.group.name,kind});attack(kind);};(window.__groveActors??=[]).push(actor);return actor;};}
+    Object.defineProperty(window,'EmberGroveCreatures',{value:api,writable:true,configurable:true});
+   }});
+   Object.defineProperty(window,'EmberWorld',{configurable:true,set(api){const create=api.createWorld;api.createWorld=(...args)=>window.__groveWorld=create(...args);Object.defineProperty(window,'EmberWorld',{value:api,writable:true,configurable:true});}});
+  },kind);
+  await page.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});await continueHero(page);
+  await page.evaluate(kind=>{window.__groveEnemy=__groveWorld.enemies.find(e=>e.id===(kind==='mother'?'rootboss':'s1'));window.__groveActor=__groveEnemy.visual;},kind);
+  const art=await page.evaluate(()=>({bones:__groveActor.skeleton.bones.length,draws:__groveActor.meshes.length,weighted:__groveActor.meshes.every(m=>m.isSkinnedMesh),retired:__groveWorld.enemies.some(e=>e.id==='g1'||e.shield)}));
+  if(!art.weighted||art.draws>6||art.bones<48||art.retired)errors.push(kind+' art/retired enemy incorrect: '+JSON.stringify(art));
+  await page.waitForFunction(()=>__groveActor.motion.warning>.4,null,{timeout:60000});await page.keyboard.press('Escape');
+  const frozen=await page.evaluate(()=>({arm:__groveActor.joints.arm_r.quaternion.toArray(),warning:__groveActor.motion.warning,windup:__groveEnemy.windup,telegraph:__groveEnemy.telegraph}));await page.waitForTimeout(200);
+  if(await page.evaluate(p=>__groveActor.motion.warning!==p.warning||__groveEnemy.windup!==p.windup||__groveEnemy.telegraph!==p.telegraph||__groveActor.joints.arm_r.quaternion.toArray().some((n,i)=>n!==p.arm[i]),frozen))errors.push(kind+' warning moved during pause');
+  await page.screenshot({path:'/tmp/emberwild-grove-'+kind+'-warning.png'});await page.keyboard.press('Escape');
+  await page.waitForFunction(()=>__groveActor.motion.strike>.5,null,{timeout:60000});
+  if(kind==='mother'){
+   await page.waitForFunction(()=>__groveActor.motion.state==='slam-windup'&&__groveActor.motion.warning>.5,null,{timeout:60000});
+   await page.waitForFunction(()=>__groveActor.motion.state==='impact'&&__groveActor.motion.strike>.5,null,{timeout:60000});
+  }
+  await page.keyboard.press('Escape');await page.screenshot({path:'/tmp/emberwild-grove-'+kind+'-impact.png'});await page.keyboard.press('Escape');
+  const attacks=await page.evaluate(()=>__groveAttacks||[]);if(!attacks.some(a=>a.kind===(kind==='mother'?'salvo':'orb'))||kind==='mother'&&!attacks.some(a=>a.kind==='slam'))errors.push(kind+' attack/release animation mismatch: '+JSON.stringify(attacks));
+  await page.locator('#magic').click();
+  if(kind==='mother')for(let i=0;i<14;i++){
+   if(!await page.evaluate(()=>__groveEnemy.mesh.visible))break;
+   await page.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:60000});await page.locator('#attack').click();
+   await page.waitForFunction(()=>!__groveEnemy.mesh.visible||document.getElementById('attack-cd').textContent!=='Klaar',null,{timeout:60000});
+   await page.waitForFunction(()=>!__groveEnemy.mesh.visible||document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:60000});
+  }
+  await page.waitForFunction(()=>!__groveEnemy.mesh.visible,null,{timeout:60000});await page.keyboard.press('Escape');
+  const defeat=await page.evaluate(()=>({dying:__groveActor.dying,separate:__groveActor.model.parent!==__groveEnemy.mesh,killed:JSON.parse(localStorage.getItem('emberwild-characters-v1')).slots[0].state.kills.includes(__groveEnemy.id),phase:__groveActor.motion.defeat}));
+  if(!defeat.dying||!defeat.separate||!defeat.killed)errors.push(kind+' logical/cosmetic defeat incorrect: '+JSON.stringify(defeat));await page.waitForTimeout(200);if(await page.evaluate(phase=>__groveActor.motion.defeat!==phase,defeat.phase))errors.push(kind+' defeat moved during pause');
+  await page.screenshot({path:'/tmp/emberwild-grove-'+kind+'-defeat.png'});await page.keyboard.press('Escape');await page.waitForFunction(()=>!__groveActor.dying,null,{timeout:60000});
+  if(await page.evaluate(()=>!!__groveWorld.scene.getObjectByName('RootMotherDefeat')||!!__groveWorld.scene.getObjectByName('ForestSpiritDefeat')))errors.push(kind+' defeat visual was not cleaned up');
+  const saved=await currentState(page);if(!saved.kills.includes('g1')||saved.bowPractice.length!==1)errors.push(kind+' old progress was lost');
+  await page.reload({waitUntil:'load'});await continueHero(page);
+  if(await page.evaluate(id=>__groveWorld.enemies.find(e=>e.id===id).mesh.visible,kind==='mother'?'rootboss':'s1'))errors.push(kind+' returned after reload');await page.close();
+ }
+}
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.EMBERWILD_CHROMIUM_PATH?{executablePath:process.env.EMBERWILD_CHROMIUM_PATH}:{}),args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
+ if(process.argv.includes('--grove-only')){const errors=[];await checkGrove(browser,errors);console.log('Grove creatures',JSON.stringify({errors}));await browser.close();if(errors.length)process.exit(1);return;}
  const page=await browser.newPage();
  // Observe native sources: opening/starting stays silent and attacks retain effects.
  await page.addInitScript(()=>{
@@ -292,6 +341,7 @@ async function observeForest(page){await page.addInitScript(()=>{
  if(await bossPage.evaluate(()=>!!__thornWorld.scene.getObjectByName('DoornwachterDefeat')))errors.push('Boss corpse was not cleaned up');
  await bossPage.reload({waitUntil:'load'});await continueHero(bossPage);if(await bossPage.evaluate(()=>__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible||__thornBoss.dying))errors.push('Boss returned after reloading a completed save');await bossPage.close();
 
+ await checkGrove(browser,errors);
  console.log('HTTP game flow completed',JSON.stringify({errors}));
  if(!process.argv.includes('--http-only')){
  // The embedded assets must also work when index.html is opened directly, without HTTP.
