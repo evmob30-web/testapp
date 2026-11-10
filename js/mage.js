@@ -35,7 +35,7 @@ function markChilled(T,e){
  e.chillHalo.visible=true;
 }
 function attach(T,rig){
- const staff=new T.Group();staff.name='MageStaff';rig.joints.weapon_r.add(staff);staff.position.set(0,.04,.02);
+ const staff=new T.Group();staff.name='MageStaff';rig.joints.weapon_r.add(staff);
  const gold=new T.MeshStandardMaterial({color:'#d9c6a1',metalness:.48,roughness:.46});
  const wood=new T.MeshStandardMaterial({color:'#45345e',roughness:.78});
  const magic=new T.MeshStandardMaterial({color:'#b8deff',emissive:'#6585ff',emissiveIntensity:1.1,roughness:.4});
@@ -68,9 +68,10 @@ function attach(T,rig){
   const amount=castTime>0?Math.sin((1-castTime/castDuration)*Math.PI):0;
   rig.joints.chest.rotation.y-=amount*.09;rig.joints.head.rotation.x-=amount*.035;
   rig.group.updateWorldMatrix(true,true);rig.group.getWorldQuaternion(yawQ);rig.group.worldToLocal(rig.joints.chest.getWorldPosition(chest));
-  handQ.copy(yawQ).multiply(tiltQ.setFromEuler(tilt.set(.08+amount*.30,0,-.07)));
-  palm.set(.59,chest.y-.61+amount*.26,.28+amount*.25).applyMatrix4(rig.group.matrixWorld);pole.set(.95,chest.y-.30,-.35).applyMatrix4(rig.group.matrixWorld);rig.aimArm('r',palm,pole,handQ);
-  staff.rotation.z=.018*Math.sin(time*1.3)*(moving?.35:1);
+  // The shaft crosses the fist; the wrist follows the forward-facing forearm.
+  handQ.copy(yawQ).multiply(tiltQ.setFromEuler(tilt.set(amount*.24,-Math.PI/2,Math.PI/2,'XYZ')));
+  palm.set(.60,chest.y-.61+amount*.26,.38+amount*.25).applyMatrix4(rig.group.matrixWorld);pole.set(.58,chest.y-.33,-.30).applyMatrix4(rig.group.matrixWorld);rig.aimArm('r',palm,pole,handQ);
+  staff.rotation.set(0,0,0);
   if(nova&&castTime>0){
    handQ.copy(yawQ).multiply(tiltQ.setFromEuler(tilt.set(-.20,0,-.65*amount)));
    palm.set(-.62-amount*.28,chest.y-.72+amount*.72,.15+amount*.32).applyMatrix4(rig.group.matrixWorld);pole.set(-1.2,chest.y-.3,-.1).applyMatrix4(rig.group.matrixWorld);rig.aimArm('l',palm,pole,handQ);

@@ -10,7 +10,33 @@ test('bow grip, drawing hand and arrow nock line up in a transformed world',()=>
   assert.ok(bow.muzzle().distanceTo(bow.held.getWorldPosition(new T.Vector3()))<1e-6);assert.strictEqual(left,rig.joints.hand_l);assert.strictEqual(right,rig.joints.hand_r);
  }
  const before=bow.muzzle();for(let i=0;i<90;i++)bow.prepareShot(1,.12);assert.ok(bow.muzzle().distanceTo(before)<1e-8,'repeated aiming does not accumulate rotations');
- bow.release();assert.equal(bow.held.visible,false);bow.update(0,.2,false);assert.equal(bow.held.visible,true);bow.update(1,.1,true);assert.equal(bow.held.visible,false,'roll hides the nocked arrow');
+ bow.release();assert.equal(bow.held.visible,false);bow.update(1,.2,false);assert.equal(bow.held.visible,true);bow.update(1,.1,true);assert.equal(bow.held.visible,false,'roll hides the nocked arrow');
+});
+test('bow lowers beside the body and the drawing arm returns to rest after aiming',()=>{
+ const rig=env.EmberCharacterRig.create(T),bow=env.EmberArchery.attach(T,rig);bow.bow.visible=true;rig.group.rotation.y=-.8;
+ for(const raised of [false,true,false]){
+  for(let f=0;f<90;f++){rig.animate(f/60,false,0,{weapon:'bow'});bow.update(raised?1:0,1/60);}
+  assert.ok(bow.bow.getWorldPosition(new T.Vector3()).distanceTo(rig.palmWorld('l'))<1e-6,'grip stays inside the left hand');
+  if(raised){assert.equal(bow.held.visible,true);continue;}
+  assert.equal(bow.held.visible,false,'no floating arrow while the bow is lowered');
+  for(const side of ['l','r']){
+   const shoulder=rig.group.worldToLocal(rig.joints['upper_arm_'+side].getWorldPosition(new T.Vector3())),elbow=rig.group.worldToLocal(rig.joints['lower_arm_'+side].getWorldPosition(new T.Vector3())),hand=rig.group.worldToLocal(rig.joints['hand_'+side].getWorldPosition(new T.Vector3()));
+   assert.ok(hand.y<shoulder.y-.75,'hand lowers beside the hip');assert.ok(Math.abs(elbow.x-shoulder.x)<.14,'elbow does not flare outward');
+  }
+ }
+});
+test('sword and staff cross the fingers at the grip with relaxed elbows',()=>{
+ for(const weapon of ['sword','staff']){
+  const rig=env.EmberCharacterRig.create(T),mage=env.EmberMage.attach(T,rig);mage.setClass(weapon==='staff'?'mage':'guardian');
+  rig.group.position.set(7,0,-3);rig.group.rotation.y=2.1;rig.animate(.7,false,0,{weapon});mage.update(0,.7);
+  const grip=weapon==='sword'?rig.guard.getObjectByName('sword_grip'):mage.staff;
+  assert.ok(grip.getWorldPosition(new T.Vector3()).distanceTo(rig.palmWorld('r'))<1e-6,'weapon crosses the gripping fingers');
+  const axis=new T.Vector3(0,1,0).applyQuaternion(grip.getWorldQuaternion(new T.Quaternion())),fingerAxis=new T.Vector3(0,-1,0).applyQuaternion(rig.joints.hand_r.getWorldQuaternion(new T.Quaternion()));
+  assert.ok(Math.abs(axis.dot(fingerAxis))<.01,'handle runs across the fist, perpendicular to the fingers');
+  const shoulder=rig.group.worldToLocal(rig.joints.upper_arm_r.getWorldPosition(new T.Vector3())),elbow=rig.group.worldToLocal(rig.joints.lower_arm_r.getWorldPosition(new T.Vector3()));
+  assert.ok(elbow.y<shoulder.y-.45&&Math.abs(elbow.x-shoulder.x)<.14,'elbow stays close to the torso');
+  if(weapon==='staff')assert.ok(axis.y>.99,'staff remains upright');
+ }
 });
 test('staff muzzle follows the actual crystal and casting poses do not accumulate',()=>{
  const rig=env.EmberCharacterRig.create(T),mage=env.EmberMage.attach(T,rig);mage.setClass('mage');mage.setWeapon('staff');rig.group.position.set(-8,0,12);rig.group.rotation.y=-1.1;rig.animate(0,false,0,{weapon:'staff'});mage.update(0,0);

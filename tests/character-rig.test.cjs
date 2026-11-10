@@ -66,12 +66,29 @@ test('idle breath, walk/run cadence and attack settle without damaging bone sock
  for(let i=19;i<=36;i++)rig.animate(.36+i/60,true,0,{running:true});
  assert.ok(Math.abs(left.rotation.x)<=1,'run gait remains bounded');
  rig.animate(1.0,true,.21,{running:true});
- assert.ok(arm.rotation.x<-.8,'sword arm swings forward');
+ assert.ok(arm.rotation.x<-.25,'sword arm swings forward');
  for(let i=1;i<=80;i++)rig.animate(1+i/60,false,0);
  assert.ok(rig.motion.contacts.every(Boolean),'idle feet return to planted contacts');
  assert.ok(Math.abs(rig.joints.foot_r.getWorldPosition(new THREE.Vector3()).y+.02)<.001,'breathing does not lift the planted foot');
- assert.ok(Math.abs(arm.rotation.z-.17)<.01,'sword arm returns to rest');
+ const shoulder=arm.getWorldPosition(new THREE.Vector3()),elbow=rig.joints.lower_arm_r.getWorldPosition(new THREE.Vector3());
+ assert.ok(elbow.y<shoulder.y-.55&&Math.abs(elbow.x-shoulder.x)<.05,'sword arm returns close to the body');
  assert.strictEqual(rig.blade.parent,handSocket);
+});
+
+test('relaxed arms hang beside the torso with both palms facing inward',()=>{
+ const rig=makeRig();rig.group.position.set(8,0,-12);rig.group.rotation.y=1.4;
+ for(const weapon of ['none','sword','bow','staff'])for(const time of [0,1.6,8]){
+  rig.animate(time,false,0,{weapon});const inverse=rig.group.getWorldQuaternion(new THREE.Quaternion()).invert();
+  for(const [side,sign]of [['l',-1],['r',1]]){
+   const shoulder=rig.group.worldToLocal(rig.joints['upper_arm_'+side].getWorldPosition(new THREE.Vector3()));
+   const elbow=rig.group.worldToLocal(rig.joints['lower_arm_'+side].getWorldPosition(new THREE.Vector3()));
+   const wrist=rig.group.worldToLocal(rig.joints['hand_'+side].getWorldPosition(new THREE.Vector3()));
+   const normal=new THREE.Vector3(0,0,1).applyQuaternion(rig.joints['hand_'+side].getWorldQuaternion(new THREE.Quaternion())).applyQuaternion(inverse);
+   assert.ok(elbow.y<shoulder.y-.55&&Math.abs(elbow.x-shoulder.x)<.05,'elbow hangs below the shoulder');
+   assert.ok(wrist.y<shoulder.y-1&&Math.abs(wrist.x-shoulder.x)<.08,'wrist stays beside the hip');
+   assert.ok(normal.x*sign<-.98,'palm faces the thigh');
+  }
+ }
 });
 
 test('distance-driven feet stay planted through walking, running and gentle turns',()=>{
