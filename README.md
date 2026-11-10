@@ -1,10 +1,20 @@
-# Emberwild — De laatste vonk · versie 1.8
+# Emberwild — De laatste vonk · versie 1.9
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.8 bevat vernieuwde Bram, Mira en Tovin, een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.9 bevat een volledig vernieuwde Doornwachter, vernieuwde Bram, Mira en Tovin, een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
 Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. De game is bedoeld voor toetsenbord en muis op een laptop of desktop; er is nog geen mobiele besturing.
+
+## Doornwachter — oorspronkelijk eindbaasmodel
+
+De Doornwachter heeft sinds versie 1.9 een eigen vervormbaar model: een doorlopende stam met gelaagde schors en wortelribben, een verzonken amberkern, uitgesneden gezicht, doornige takkenkroon, mos, bladeren, afzonderlijke wortelvingers en brede wortelvoeten. Zijn schors heeft een originele 512 × 512 houtnerfkaart met reliëf. Zowel de geometrie als de textuur worden lokaal en reproduceerbaar opgebouwd in `js/thorn-guardian.js`; er zijn geen externe modellen of downloads nodig.
+
+Het model gebruikt 44 botten en zes samengevoegde materiaalvlakken. Geometrie en houtnerf worden gedeeld; skelet en veranderlijke materialen horen bij de afzonderlijke instantie. Afstandsafhankelijke stappen houden de steunvoeten op de grond. De bestaande 1,15 seconde voorbereiding tilt beide armen op; op het bestaande schademoment slaan de klauwen omlaag en springen schorsdeeltjes weg. Kleine reacties op treffers herstellen vloeiend. Pauze bevriest ook deze animaties.
+
+Bij verslaan volgen de bestaande voortgang en buit direct. Een tijdelijk, niet-interactief visueel model zakt in en dooft uit, terwijl de logische vijand meteen verdwijnt. Het effect wordt na 2,7 seconde opgeruimd en ook gewist bij gebieds- of personagewissels. De Doornwachter verschijnt nog steeds pas bij de juiste hoofdopdracht. Gezondheid, schade, bereik, aanvalstijden en beloningen zijn gelijk gebleven; de Wortelmoeder gebruikt haar bestaande model en gevecht.
+
+[Modelvoorbeeld met de speler als schaalreferentie](assets/previews/doornwachter.png)
 
 ## Bram, Mira en Tovin
 
