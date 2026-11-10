@@ -1,17 +1,25 @@
 const { chromium } = require('playwright');
 async function currentState(page){return page.evaluate(()=>{const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));return roster?.slots[roster.active]?.state;});}
 async function continueHero(page,index=0){await page.locator('#play').click();await page.locator('#character-play-'+index).click();}
+async function observeForest(page){await page.addInitScript(()=>{
+ Object.defineProperty(window,'EmberForestActors',{configurable:true,set(api){
+  const makeElin=api.createElin,makeWolf=api.createWolf;
+  api.createElin=(...args)=>window.__elinActor=makeElin(...args);
+  api.createWolf=(...args)=>{const wolf=makeWolf(...args);(window.__wolves??=[]).push(wolf);return wolf;};
+  Object.defineProperty(window,'EmberForestActors',{value:api,writable:true,configurable:true});
+ }});
+});}
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.EMBERWILD_CHROMIUM_PATH?{executablePath:process.env.EMBERWILD_CHROMIUM_PATH}:{}),args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
  const page=await browser.newPage();
  // Observe the real production controllers without adding game-only test APIs.
  await page.addInitScript(()=>{
   Object.defineProperty(window,'EmberModelAssets',{configurable:true,set(api){
-   const attach=api.attach;api.attach=(...args)=>{const controller=attach(...args);(window.__modelInstances??=[]).push({controller,rig:args[1]});return controller;};
+   const attach=api.attach;api.attach=(...args)=>{const controller=attach(...args);if(!args[1].group.userData.npc)(window.__modelInstances??=[]).push({controller,rig:args[1]});return controller;};
    Object.defineProperty(window,'EmberModelAssets',{value:api,writable:true,configurable:true});
   }});
  });
- const errors=[];
+ const errors=[];await observeForest(page);
  page.on('pageerror',e=>errors.push(e.stack||e.message));
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  await page.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});
@@ -60,6 +68,9 @@ async function continueHero(page,index=0){await page.locator('#play').click();aw
  if(importedLook!=='b77a56')errors.push('Saved skin tone did not reach the imported game model');
  await page.locator('#world').hover();await page.mouse.wheel(0,-400);await page.waitForTimeout(300);
  await page.screenshot({path:'/tmp/emberwild-model-play.png'});
+ await page.waitForFunction(()=>window.__elinActor?.assets?.status==='ready');
+ const forest=await page.evaluate(()=>({wolves:window.__wolves?.length,quiver:!!window.__elinActor.group.getObjectByName('ElinQuiver'),hidden:window.__wolves.every(w=>!w.group.visible)}));
+ if(forest.wolves!==4||!forest.quiver||!forest.hidden)errors.push('Forest actors/gating incorrect: '+JSON.stringify(forest));
  // Execute all three melee stages in the actual WebGL game, without needing an enemy.
  for(let step=1;step<=3;step++){
    if(step>1)await page.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});
@@ -201,12 +212,22 @@ async function continueHero(page,index=0){await page.locator('#play').click();aw
  if(!((await magePage.locator('#player-name').textContent()).includes('Liora')))mageErrors.push('Selected hero name missing from HUD');
  errors.push(...mageErrors.map(e=>'Mage/roster: '+e));await magePage.close();
  // Real-browser migration keeps the original save bytes and never reimports a deleted hero.
- const migrated=await browser.newPage();migrated.on('pageerror',e=>errors.push('Migration: '+e.message));
+ const migrated=await browser.newPage();await observeForest(migrated);legacyFixture.x=-3;legacyFixture.z=18;migrated.on('pageerror',e=>errors.push('Migration: '+e.message));
  await migrated.addInitScript(raw=>{localStorage.setItem('emberwild-save-v1',raw);},JSON.stringify(legacyFixture));
  await migrated.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});
  const migration=await migrated.evaluate(()=>({roster:JSON.parse(localStorage.getItem('emberwild-characters-v1')),backup:localStorage.getItem('emberwild-save-v1')}));
  if(migration.roster.slots[0]?.state.lootEquipped.hands!==77||migration.backup!==JSON.stringify(legacyFixture))errors.push('Legacy loot/backup did not migrate');
- await migrated.locator('#play').click();await migrated.locator('#character-delete-0').click();await migrated.locator('#character-delete-accept').click();await migrated.reload({waitUntil:'load'});await migrated.locator('#play').click();
+ await continueHero(migrated);await migrated.keyboard.press('e');
+ await migrated.waitForFunction(()=>window.__elinActor?.talkBlend>.4&&window.__elinActor.assets.status==='ready',null,{timeout:30000});
+ const dialogueHealth=await migrated.locator('#health-label').textContent();await migrated.waitForTimeout(350);if(await migrated.locator('#health-label').textContent()!==dialogueHealth)errors.push('Gameplay continued during Elin dialogue');
+ await migrated.screenshot({path:'/tmp/emberwild-elin-dialogue.png'});await migrated.locator('#dialog-action').click();
+ if(await migrated.evaluate(()=>window.__elinActor.talking||window.__wolves.some(w=>!w.group.visible)))errors.push('Elin dialogue/accepted wolves did not synchronize');
+ await migrated.keyboard.press('Escape');
+ await migrated.addInitScript(()=>{if(sessionStorage.getItem('wolf-fixture'))return;const raw=localStorage.getItem('emberwild-characters-v1');if(!raw)return;const roster=JSON.parse(raw),state=roster.slots[0].state;state.x=-13;state.z=-4;state.quest=1;localStorage.setItem('emberwild-characters-v1',JSON.stringify(roster));sessionStorage.setItem('wolf-fixture','1');});
+ await migrated.reload({waitUntil:'load'});await continueHero(migrated);
+ await migrated.waitForFunction(()=>window.__wolves?.[0]?.motion.warning>.4,null,{timeout:30000});await migrated.screenshot({path:'/tmp/emberwild-wolf-warning.png'});
+ await migrated.waitForFunction(()=>window.__wolves?.[0]?.motion.strike>.2,null,{timeout:30000});
+ await migrated.keyboard.press('Escape');await migrated.locator('#new').click();await migrated.locator('#character-delete-0').click();await migrated.locator('#character-delete-accept').click();await migrated.reload({waitUntil:'load'});await migrated.locator('#play').click();
  if(await migrated.locator('[id^="character-play-"]').count()!==0||await migrated.locator('[id^="character-create-"]').count()!==3)errors.push('Deleted legacy hero was imported again');
  await migrated.close();
 

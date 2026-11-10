@@ -11,7 +11,7 @@ function environment(){
   // Node tests exercise glTF parsing/bindings; real PNG decoding/rendering runs in Chromium CI.
   createImageBitmap:async()=>({width:64,height:64,close(){}})};
  sandbox.window=sandbox;sandbox.self=sandbox;vm.createContext(sandbox);
- for(const file of ['js/hero-art.js','js/character-rig.js','js/flame-guardian.js','js/appearance.js','vendor/GLTFLoader.js','js/character-assets-data.js','js/model-assets.js'])vm.runInContext(fs.readFileSync(path.join(ROOT,file),'utf8'),sandbox,{filename:file});
+ for(const file of ['js/hero-art.js','js/character-rig.js','js/flame-guardian.js','js/appearance.js','vendor/GLTFLoader.js','js/character-assets-data.js','js/model-assets.js','js/forest-actors.js'])vm.runInContext(fs.readFileSync(path.join(ROOT,file),'utf8'),sandbox,{filename:file});
  return sandbox;
 }
 function avatar(env){
@@ -103,4 +103,11 @@ test('rolling keeps the weighted body above the floor',async()=>{
    assert.ok(min>=-.11,'weighted body clears the ground: '+skin+' at '+p);assert.ok(min<.8,'roll remains close to the ground');
   }
  }
+});
+
+
+test('Elin reuses weighted geometry with her own materials and leaves the player unchanged',async()=>{
+ const env=environment(),player=avatar(env),elin=env.EmberForestActors.createElin(THREE);player.assets.setLook('classic',{},'guardian');await Promise.all([player.assets.ready,elin.ready]);
+ assert.equal(elin.assets.status,'ready');const npc=elin.assets.models.getObjectByName('classic_fabric'),hero=player.assets.models.getObjectByName('classic_fabric');assert.strictEqual(npc.geometry,hero.geometry);assert.notStrictEqual(npc.material,hero.material);assert.equal(npc.material.color.getHexString(),'526f58');assert.equal(hero.material.color.getHexString(),'46697a');
+ const before=hero.material.color.getHexString();elin.setTalking(true);for(let i=0;i<30;i++)elin.update(1/60,{x:1,z:2});assert.equal(hero.material.color.getHexString(),before);assert.ok(elin.assets.models.getObjectByName('classic_skin').isSkinnedMesh);assert.ok(elin.appearance.groups.braid.visible);
 });

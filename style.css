@@ -96,3 +96,9 @@ header #sound{font-size:10px}#equip{color:#bde9d2;border:1px solid #a1cbb670;bor
 .storage-notice button{margin-left:12px;border:1px solid #d4a77e;background:#6b5140;border-radius:4px;padding:5px 9px}
 .vitals b{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:760px){.character-slots{grid-template-columns:1fr}.character-slot{padding:18px}.character-emblem{width:58px;height:58px;font-size:33px;margin:12px 0 8px}.character-slot .character-quest{min-height:0}.character-slot h3{font-size:25px}#characters>div.character-panel{padding:21px}.vitals b{max-width:115px}}
+
+/* Elin remains visible while she speaks; other dialogue keeps its existing layout. */
+@media(min-width:901px){
+ #dialog[data-speaker=elin]{place-items:center end;padding:4vw;background:linear-gradient(90deg,transparent 30%,#0c1e1a99);backdrop-filter:none}
+ #dialog[data-speaker=elin]>div{width:min(440px,42vw);max-height:88svh;overflow:auto}
+}
