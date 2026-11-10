@@ -27,7 +27,7 @@ function save(title){
  if(characters.locked&&mode!=='characters')showCharacters(false);
  return result;
 }
-function showCharacters(saveCurrent=true){
+function showCharacters(saveCurrent=true){world.setConversation(false);
  if(hasSession&&saveCurrent)save();
  cancelCharge();keys.clear();drag=null;dialogAction=null;mode='characters';
  $('overlay').hidden=true;$('class-select').hidden=true;$('dialog').hidden=true;$('inventory').hidden=true;$('hud').hidden=true;$('characters').hidden=false;
@@ -47,14 +47,14 @@ function removeCharacter(index){
 function cancelCharge(cancelMelee=true){charging=false;charge=0;if(cancelMelee)meleeStrike=null;}
 function loadout(){EmberLoot.clean(state);EmberEquipment.syncRewards(state);world.setWeapon(state.equipped,state.weapon);world.setClass(state.classId);world.setAppearance(state.skinId,state.classId,state.appearance);world.setArmor(state);archery.sync(state);}
 function syncQuestObjects(){const v=RPG.questVisibility(state);dungeon.sync(state);exploration.sync(state);archery.sync(state);for(const e of world.enemies)e.mesh.visible=RPG.enemyVisible(state,e);for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&v.crystals&&!state.crystals.includes(c.id);world.sigil.visible=state.area==='valley'&&(v.forestBoss||v.dungeon);if(target&&!target.mesh.visible)target=null;}
-function sync(){cancelCharge();for(const a of arrows)world.scene.remove(a.mesh);arrows.length=0;dungeon.setArea(state.area);dungeon.sync(state);exploration.sync(state);if(state.area==='roots'&&!EmberDungeon.canStand(state.x,state.z,state.gateOpen)){state.x=100;state.z=14;}combat.remaining=0;combat.cooldown=0;EmberCombat.resetCombo(combo);for(const p of projectiles)world.scene.remove(p.mesh);projectiles.length=0;world.player.model.rotation.x=0;loadout();world.setAmulet(state.amulet&&state.amuletEquipped);world.player.group.position.set(state.x,0,state.z);world.player.resetMotion?.();for(const e of world.enemies){e.mesh.visible=(e.area||'valley')===state.area&&!state.kills.includes(e.id);e.hp=e.max;e.mesh.position.set(e.homeX,0,e.homeZ);e.attack=1;e.windup=0;e.stagger=0;e.chill=0;if(e.chillHalo)e.chillHalo.visible=false;e.alertTimer=0;e.focusUntil=0;e.pendingAttack=null;e.telegraph=0;e.dodgeTime=0;e.dodgeCooldown=0;e.dodgeVector=null;if(e.warningMesh)e.warningMesh.visible=false;e.mesh.rotation.x=0;e.mesh.rotation.z=0;e.mesh.scale.setScalar(1);e.flash=0;e.lastX=e.homeX;e.lastZ=e.homeZ;}for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&!state.crystals.includes(c.id);world.chest.visible=state.area==='valley'&&!state.chest;world.warning.visible=false;world.syncLoot(state);syncQuestObjects();}
+function sync(){world.resetActors();cancelCharge();for(const a of arrows)world.scene.remove(a.mesh);arrows.length=0;dungeon.setArea(state.area);dungeon.sync(state);exploration.sync(state);if(state.area==='roots'&&!EmberDungeon.canStand(state.x,state.z,state.gateOpen)){state.x=100;state.z=14;}combat.remaining=0;combat.cooldown=0;EmberCombat.resetCombo(combo);for(const p of projectiles)world.scene.remove(p.mesh);projectiles.length=0;world.player.model.rotation.x=0;loadout();world.setAmulet(state.amulet&&state.amuletEquipped);world.player.group.position.set(state.x,0,state.z);world.player.resetMotion?.();for(const e of world.enemies){e.mesh.visible=(e.area||'valley')===state.area&&!state.kills.includes(e.id);e.hp=e.max;e.mesh.position.set(e.homeX,0,e.homeZ);e.attack=1;e.windup=0;e.stagger=0;e.chill=0;if(e.chillHalo)e.chillHalo.visible=false;e.alertTimer=0;e.focusUntil=0;e.pendingAttack=null;e.telegraph=0;e.dodgeTime=0;e.dodgeCooldown=0;e.dodgeVector=null;if(e.warningMesh)e.warningMesh.visible=false;e.mesh.rotation.x=0;e.mesh.rotation.z=0;e.mesh.scale.setScalar(1);e.flash=0;e.lastX=e.homeX;e.lastZ=e.homeZ;}for(const c of world.crystals)c.mesh.visible=state.area==='valley'&&!state.crystals.includes(c.id);world.chest.visible=state.area==='valley'&&!state.chest;world.warning.visible=false;world.syncLoot(state);syncQuestObjects();}
 function begin(index){
  if(!characters.activate(index)){showCharacters(false);return;}
  const next=characters.load(index);if(!next)return;
  EmberAudio.unlock();state=next;hasSession=true;currentSlot=index;
  world.clearLoot();sync();mode='playing';keys.clear();target=null;near=null;drag=null;dialogAction=null;saveTime=hudTime=0;
  $('overlay').hidden=true;$('characters').hidden=true;$('class-select').hidden=true;$('dialog').hidden=true;$('inventory').hidden=true;$('hud').hidden=false;characterMenu.cancelDelete();
- canvas.focus?.({preventScroll:true});attackCD=magicCD=healCD=swing=0;EmberCombat.resetCombo(combo);yaw=0;pitch=.48;camera.position.set(state.x,7,state.z+10);updateHud();save();
+ canvas.focus?.({preventScroll:true});attackCD=magicCD=healCD=swing=0;EmberCombat.resetCombo(combo);yaw=0;pitch=.48;camera.position.set(state.x,7,state.z+10);camera.lookAt(state.x,1.8,state.z);updateHud();save();
  toast('Welkom'+(state.quest>0?' terug':'')+', '+characters.name+'. '+(state.quest===0?'Zoek Elin in Lindehaard.':'Je avontuur gaat verder.'));
 }
 $('play').onclick=()=>mode==='paused'?resume():showCharacters();$('new').onclick=()=>showCharacters();
@@ -122,9 +122,9 @@ function switchWeapon(requested=null){if(mode!=='playing'&&mode!=='inventory')re
 $('weapon-toggle').onclick=()=>switchWeapon();$('bow-equip').onclick=()=>switchWeapon(state.weapon==='bow'?(state.classId==='mage'?'staff':'sword'):'bow');
 $('staff-equip').onclick=()=>{if(mode!=='inventory'||!RPG.setWeapon(state,'staff'))return;cancelCharge();EmberCombat.resetCombo(combo);loadout();renderInventory();updateHud();save();};
 function pause(){if(mode!=='playing')return;cancelCharge();drag=null;mode='paused';keys.clear();save();if(characters.locked)return;$('overlay').hidden=false;$('title').textContent='Even rust';$('intro-text').textContent=characters.persistent?'De vallei wacht op je. Je voortgang is bewaard bij '+characters.name+'.':characters.message;$('play').textContent='Verder spelen →';$('new').hidden=false;$('save-info').textContent=characters.name+' · '+RPG.classConfig(state).name+' · Niveau '+state.level;}
-function resume(){if(!hasSession||characters.locked){showCharacters(false);return;}EmberAudio.unlock();$('characters').hidden=true;$('hud').hidden=false;$('class-select').hidden=true;mode='playing';keys.clear();$('overlay').hidden=true;$('dialog').hidden=true;$('inventory').hidden=true;canvas.focus?.({preventScroll:true});}
+function resume(){world.setConversation(false);if(!hasSession||characters.locked){showCharacters(false);return;}EmberAudio.unlock();$('characters').hidden=true;$('hud').hidden=false;$('class-select').hidden=true;mode='playing';keys.clear();$('overlay').hidden=true;$('dialog').hidden=true;$('inventory').hidden=true;canvas.focus?.({preventScroll:true});}
 $('pause').onclick=()=>mode==='playing'?pause():mode==='paused'?resume():null;
-function showDialog(speaker,title,text,action,fn){cancelCharge();drag=null;$('dialog-extra').hidden=true;$('dialog-extra').onclick=null;mode='dialog';keys.clear();$('overlay').hidden=true;$('speaker').textContent=speaker;$('dialog-title').textContent=title;$('dialog-text').textContent=text;$('dialog-action').textContent=action;$('dialog').hidden=false;dialogAction=fn;}
+function showDialog(speaker,title,text,action,fn){const elin=speaker.startsWith('ELIN');world.setConversation(elin);$('dialog').setAttribute('data-speaker',elin?'elin':'other');cancelCharge();drag=null;$('dialog-extra').hidden=true;$('dialog-extra').onclick=null;mode='dialog';if(elin)updateConversationCamera(1);keys.clear();$('overlay').hidden=true;$('speaker').textContent=speaker;$('dialog-title').textContent=title;$('dialog-text').textContent=text;$('dialog-action').textContent=action;$('dialog').hidden=false;dialogAction=fn;}
 $('dialog-close').onclick=resume;$('dialog-action').onclick=()=>{const action=dialogAction;dialogAction=null;resume();if(action)action();updateHud();save();};
 function renderLoot(){
  const bag=$('loot-bag');bag.replaceChildren();
@@ -217,7 +217,7 @@ function hit(e,amount,dx=e.mesh.position.x-state.x,dz=e.mesh.position.z-state.z,
  world.magicImpact?.(e.mesh.position.x,e.mesh.position.z,e.spirit?'#d7b7ff':'#ffb45e',e.boss?.8:.52);
  world.damageText(amount,e.mesh.position.x,e.mesh.position.z);
  EmberAudio.play('hit');
- e.flash=.22;e.stagger=e.boss?0:.16;if(!e.boss&&!ranged){e.pendingAttack=null;e.telegraph=0;}
+ e.visual?.hit(dx,dz);e.flash=.22;e.stagger=e.boss?0:.16;if(!e.boss&&!ranged){e.pendingAttack=null;e.telegraph=0;}
  const angle=Math.atan2(dx,dz)-e.mesh.rotation.y;e.hitTiltX=Math.cos(angle);e.hitTiltZ=-Math.sin(angle);if(e.hp===0){e.mesh.visible=false;RPG.kill(state,e.id);const drop=EmberLoot.roll(state,e);if(drop){world.syncLoot(state);world.burst(drop.x,drop.z,EmberLoot.rarity[drop.rarity].color,9);}const l=RPG.loot(e.id);toast(RPG.enemyName(e)+' verslagen · +'+l.xp+' XP · +'+l.gold+' goud');if(state.level>oldLevel){world.burst(state.x,state.z,'#b5f3d2',24);toast('Niveau '+state.level+'! Je gezondheid is volledig hersteld.');}if(e.boss){world.warning.visible=false;EmberAudio.play('loot');toast(e.rootBoss?'De Wortelmoeder is verslagen! Neem het Hartamulet van het altaar.':'Unieke buit: Doornlicht! Open je inventaris met I om het wapen uit te rusten.');save();}else save();}updateHud();}
 function updateAim(){aimMouse.set(mouseX/innerWidth*2-1,-mouseY/innerHeight*2+1);aimRay.setFromCamera(aimMouse,camera);if(!aimRay.ray.intersectPlane(aimPlane,aimPoint))aimPoint.set(state.x+aimRay.ray.direction.x*20,1.5,state.z+aimRay.ray.direction.z*20);let closest=Infinity;for(const item of [...world.enemies.filter(e=>e.mesh.visible),...archery.targets.filter(t=>state.weapon==='bow'&&state.area==='valley'&&RPG.questVisibility(state).bow&&t.mesh.visible)]){const hit=aimRay.intersectObject(item.mesh,true)[0];if(hit&&hit.distance<closest){closest=hit.distance;aimPoint.set(item.mesh.position.x,1.5,item.mesh.position.z);}}}
 function startCharge(){if(mode!=='playing'||state.weapon!=='bow'||combat.remaining>0||attackCD>0||charging)return;charging=true;charge=0;updateAim();}
@@ -378,7 +378,7 @@ function update(dt){EmberMage.regenerate(state,dt);if(charging)charge=Math.min(1
   }
  }
  world.warning.visible=false;
- for(const e of world.enemies){if(!e.mesh.visible)continue;e.attack-=dt;EmberEnemyAI.tick(e,dt);EmberMage.tickEnemy(e,dt);if(e.flash>0){e.flash=Math.max(0,e.flash-dt);const pulse=Math.sin((1-e.flash/.22)*Math.PI)*Math.exp(-(1-e.flash/.22)*2),strength=e.boss?.035:.11;e.mesh.scale.setScalar(1+pulse*(e.boss?.025:.065));e.mesh.rotation.x=pulse*strength*(e.hitTiltX||0);e.mesh.rotation.z=pulse*strength*(e.hitTiltZ||0);}if(e.stagger>0)e.stagger=Math.max(0,e.stagger-dt);if(e.boss&&state.quest<3)continue;const pos=e.mesh.position,ex=state.x-pos.x,ez=state.z-pos.z,d=Math.hypot(ex,ez),homeDist=Math.hypot(state.x-e.homeX,state.z-e.homeZ),aggro=EmberEnemyAI.active(e,state.x,state.z);if(e.spirit){
+ for(const e of world.enemies){if(!e.mesh.visible)continue;e.attack-=dt;EmberEnemyAI.tick(e,dt);EmberMage.tickEnemy(e,dt);if(e.flash>0){e.flash=Math.max(0,e.flash-dt);const pulse=Math.sin((1-e.flash/.22)*Math.PI)*Math.exp(-(1-e.flash/.22)*2),strength=e.boss?.035:.11;if(!e.visual){e.mesh.scale.setScalar(1+pulse*(e.boss?.025:.065));e.mesh.rotation.x=pulse*strength*(e.hitTiltX||0);e.mesh.rotation.z=pulse*strength*(e.hitTiltZ||0);}}if(e.stagger>0)e.stagger=Math.max(0,e.stagger-dt);if(e.boss&&state.quest<3)continue;const pos=e.mesh.position,ex=state.x-pos.x,ez=state.z-pos.z,d=Math.hypot(ex,ez),homeDist=Math.hypot(state.x-e.homeX,state.z-e.homeZ),aggro=EmberEnemyAI.active(e,state.x,state.z);if(e.spirit){
   if(e.pendingAttack==='orb'){
    if(e.telegraph<=0){e.pendingAttack=null;const dd=Math.hypot(state.x-pos.x,state.z-pos.z);
      if(dd>.01&&dd<=25){projectiles.push({mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:(state.x-pos.x)/dd*8,vz:(state.z-pos.z)/dd*8,life:3});world.burst(pos.x,pos.z,'#d3bbff',6);}
@@ -388,19 +388,19 @@ function update(dt){EmberMage.regenerate(state,dt);if(charging)charge=Math.min(1
   if(aggro){e.mesh.rotation.y=Math.atan2(ex,ez);const dir=EmberEnemyAI.movement(e,state.x,state.z);
    if(dir.d>.01){pos.x+=dir.x*1.9*dt*EmberMage.movementScale(e);pos.z+=dir.z*1.9*dt*EmberMage.movementScale(e);}
    if(e.attack<=0&&d>.01){e.attack=2.1;e.pendingAttack='orb';EmberEnemyAI.startWarning(e,.25);world.damageText('VONKSCHOT',pos.x,pos.z,'#eac9ff');}
-  }else{const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);if(h>.1){pos.x+=hx/h*2*dt*EmberMage.movementScale(e);pos.z+=hz/h*2*dt*EmberMage.movementScale(e);}}
+  }else{const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);if(h>.1){if(e.visual)e.mesh.rotation.y=EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(hx,hz),dt*4);pos.x+=hx/h*2*dt*EmberMage.movementScale(e);pos.z+=hz/h*2*dt*EmberMage.movementScale(e);}}
   continue;
  }
  if(e.windup>0){e.windup-=dt;world.warning.position.set(pos.x,.05,pos.z);world.warning.visible=true;world.warning.scale.setScalar(e.rootBoss?(e.pattern===1?.5:5.2/4.6):1);world.warning.material.color.set(e.rootBoss&&e.pattern===1?'#c8a4ea':'#f0a167');if(e.windup<=0){if(e.rootBoss&&e.pattern===1){const angle=e.castAngle;for(const offset of [-.3,0,.3]){const a=angle+offset;projectiles.push({mesh:world.orb(pos.x,pos.z),x:pos.x,z:pos.z,vx:Math.sin(a)*9,vz:Math.cos(a)*9,life:3,damage:18});}EmberAudio.play('magic');}else if(d<(e.rootBoss?5.2:4.6)){if(takeDamage(e.rootBoss?36:30))world.burst(state.x,state.z,'#da9a88',6);}}continue;}
 
  if(e.pendingAttack==='melee'){
-  if(e.telegraph<=0){e.pendingAttack=null;const reach=EmberEnemyAI.config(e).range+.35;
+  if(e.telegraph<=0){e.pendingAttack=null;e.visual?.attack();const reach=EmberEnemyAI.config(e).range+.35;
     if(Math.hypot(state.x-pos.x,state.z-pos.z)<=reach){if(takeDamage(e.damage||10))world.burst(state.x,state.z,'#dca48c',5);}
   }
   continue;
  }
  if(aggro){
-  pos.y=e.boss?0:Math.sin(time*9)*.06;
+  pos.y=e.boss||e.visual?0:Math.sin(time*9)*.06;
   if(e.stagger>0)continue;
   e.mesh.rotation.y=e.shield?EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(ex,ez),dt*1.4):Math.atan2(ex,ez);
   if(!e.boss){
@@ -425,7 +425,7 @@ function update(dt){EmberMage.regenerate(state,dt);if(charging)charge=Math.min(1
   }
  }else{
   pos.y=0;const hx=e.homeX-pos.x,hz=e.homeZ-pos.z,h=Math.hypot(hx,hz);
-  if(h>.1){pos.x+=hx/h*2*dt*EmberMage.movementScale(e);pos.z+=hz/h*2*dt*EmberMage.movementScale(e);}
+  if(h>.1){if(e.visual)e.mesh.rotation.y=EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(hx,hz),dt*4);pos.x+=hx/h*2*dt*EmberMage.movementScale(e);pos.z+=hz/h*2*dt*EmberMage.movementScale(e);}
  }}
  for(const e of dungeon.enemies)if(e.mesh.visible){const p=EmberDungeon.move(e.lastX,e.lastZ,e.mesh.position.x,e.mesh.position.z,state.gateOpen,e.boss?1:.55);e.mesh.position.x=e.lastX=p.x;e.mesh.position.z=e.lastZ=p.z;}
  for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i],oldX=p.x,oldZ=p.z;p.x+=p.vx*dt;p.z+=p.vz*dt;p.life-=dt;p.mesh.position.set(p.x,1.4,p.z);const hit=EmberCombat.segmentHit(oldX,oldZ,p.x,p.z,state.x,state.z,.85),blocked=state.area==='roots'?!EmberDungeon.canStand(p.x,p.z,state.gateOpen,.18):world.colliders.some(c=>EmberCombat.segmentHit(oldX,oldZ,p.x,p.z,c.x,c.z,c.r));if(hit||blocked||p.life<=0){if(hit)takeDamage(p.damage||14);world.scene.remove(p.mesh);projectiles.splice(i,1);}}
@@ -444,6 +444,18 @@ function drawMap(){map.clearRect(0,0,160,160);map.fillStyle=state.area==='roots'
  else{map.strokeStyle='#a2a07988';map.lineWidth=7;map.beginPath();map.moveTo(80,16);map.lineTo(80,145);map.stroke();dot(-3,17,'#f1d192',4);dot(6,25,'#ecc2a0',3);if(state.sideQuest===1&&Math.hypot(state.x+23,state.z+32)<12)dot(-23,-32,'#9dd9e5',3);if(RPG.questVisibility(state).shrine&&state.shrineSeen)dot(-26,-48,'#c6f4db',3);for(const h of RPG.herbs)if(RPG.questVisibility(state).herbalist&&!state.gathered.includes(h.id)&&Math.hypot(state.x-h.x,state.z-h.z)<13)dot(h.x,h.z,'#d3dda1',2);dot(8,19,'#c8d4c5');if(RPG.questVisibility(state).dungeon)dot(0,-58.5,'#a9d7d1',4);for(const c of world.crystals)if(c.mesh.visible)dot(c.x,c.z,'#97e6cb');}
  if(!inside&&state.bowQuest===1)for(const t of RPG.bowTargets)dot(t.x,t.z,state.bowPractice.includes(t.id)?'#9bd4b2':'#efd795',3);for(const e of world.enemies)if(e.mesh.visible)dot(e.mesh.position.x,e.mesh.position.z,e.boss?'#eeae68':e.spirit?'#d5b1ed':'#c67c71',e.boss?4:2.5);dot(state.x,state.z,'#ffffff',4);map.fillStyle='#eee4bb';map.font='9px system-ui';map.textAlign='center';map.fillText('N',80,10);}
 function updateCamera(dt){const pos=world.player.group.position,aim=new THREE.Vector3(pos.x,1.8,pos.z),offset=new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch)*distance,Math.sin(pitch)*distance,Math.cos(yaw)*Math.cos(pitch)*distance);raycaster.set(aim,offset.clone().normalize());const hit=raycaster.intersectObjects(world.cameraMeshes,false)[0];if(hit&&hit.distance<offset.length())offset.setLength(Math.max(1.2,hit.distance-.5));const desired=aim.clone().add(offset);camera.position.lerp(desired,1-Math.exp(-8*dt));camera.position.y=Math.max(1,camera.position.y);camera.lookAt(aim);}
-function frame(ms){const dt=Math.min((ms-last)/1000||.016,.04);last=ms;time+=dt;if(mode==='playing')update(dt);else if(mode==='start'){yaw=.3+Math.sin(time*.08)*.18;world.update(dt,time,false,0);}if(mode==='playing'||mode==='start')updateCamera(dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)$('toast').style.opacity='0';}const bowMode=mode==='playing'&&state.weapon==='bow',spellMode=mode==='playing'&&state.weapon==='staff';$('aim-reticle').hidden=!bowMode&&!spellMode;$('aim-reticle').setAttribute('data-spell',String(spellMode));$('bow-charge').hidden=!bowMode;$('aim-reticle').style.left=mouseX+'px';$('aim-reticle').style.top=mouseY+'px';$('charge-fill').style.width=charge/1.2*100+'%';$('charge-label').textContent=charging?(charge>=1.15?'Geladen! Laat los om te schieten.':'Boog spannen…'):'Richt met muis · Houd klik / 1 vast';canvas.style.cursor=bowMode||spellMode?'none':'default';EmberAudio.update(dt,state.area,mode==='playing');renderer.render(world.scene,camera);if(mode==='class-select')creatorPreview?.update(time);requestAnimationFrame(frame);}
+// Keep Elin to the left of her dialogue, with a clear view around buildings.
+const talkOrigin=new THREE.Vector3(),talkForward=new THREE.Vector3(),talkRight=new THREE.Vector3(),talkOffset=new THREE.Vector3(),talkAim=new THREE.Vector3(),talkDesired=new THREE.Vector3();
+function updateConversationCamera(dt){
+ if(!world.ranger.talking)return;
+ talkOrigin.copy(world.ranger.group.position);talkOrigin.y=1.75;
+ talkForward.set(0,0,1);talkRight.set(1,0,0);
+ talkOffset.copy(talkForward).multiplyScalar(4.4).addScaledVector(talkRight,3.2);talkOffset.y=1.05;
+ raycaster.set(talkOrigin,talkDesired.copy(talkOffset).normalize());const hit=raycaster.intersectObjects(world.cameraMeshes,false)[0];
+ if(hit&&hit.distance<talkOffset.length())talkOffset.setLength(Math.max(1.5,hit.distance-.45));
+ talkDesired.copy(talkOrigin).add(talkOffset);camera.position.lerp(talkDesired,1-Math.exp(-dt*6));camera.position.y=Math.max(1,camera.position.y);
+ talkAim.copy(talkOrigin).addScaledVector(talkRight,.89).addScaledVector(talkForward,-.65);talkAim.y=1.55;camera.lookAt(talkAim);
+}
+function frame(ms){const dt=Math.min((ms-last)/1000||.016,.04);last=ms;time+=dt;if(mode==='playing')update(dt);else if(mode==='start'){yaw=.3+Math.sin(time*.08)*.18;world.update(dt,time,false,0);}else if(mode==='dialog'){world.updateNPC(dt);updateConversationCamera(dt);}if(mode==='playing'||mode==='start')updateCamera(dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)$('toast').style.opacity='0';}const bowMode=mode==='playing'&&state.weapon==='bow',spellMode=mode==='playing'&&state.weapon==='staff';$('aim-reticle').hidden=!bowMode&&!spellMode;$('aim-reticle').setAttribute('data-spell',String(spellMode));$('bow-charge').hidden=!bowMode;$('aim-reticle').style.left=mouseX+'px';$('aim-reticle').style.top=mouseY+'px';$('charge-fill').style.width=charge/1.2*100+'%';$('charge-label').textContent=charging?(charge>=1.15?'Geladen! Laat los om te schieten.':'Boog spannen…'):'Richt met muis · Houd klik / 1 vast';canvas.style.cursor=bowMode||spellMode?'none':'default';EmberAudio.update(dt,state.area,mode==='playing');renderer.render(world.scene,camera);if(mode==='class-select')creatorPreview?.update(time);requestAnimationFrame(frame);}
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();pause();toast('De 3D-weergave is onderbroken. Herlaad de pagina om verder te spelen.');});addEventListener('pagehide',()=>{if(hasSession)save();});sync();camera.position.set(10,8,33);requestAnimationFrame(frame);
 })();
