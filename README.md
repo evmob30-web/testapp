@@ -1,10 +1,18 @@
-# Emberwild — De laatste vonk · versie 1.7.2
+# Emberwild — De laatste vonk · versie 1.8
 
-Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.7.2 bevat een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
+Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.8 bevat vernieuwde Bram, Mira en Tovin, een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
 ## Starten
 
 Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. De game is bedoeld voor toetsenbord en muis op een laptop of desktop; er is nog geen mobiele besturing.
+
+## Bram, Mira en Tovin
+
+Versie 1.8 geeft de overige dorpspersonages een eigen uiterlijk op hetzelfde vervormbare skelet als de speler en Elin. Bram draagt een handelsoutfit met baard, schort, beurs, kasboek en drankflesjes. Mira heeft lang kastanjebruin haar, een omslagdoek met bloemenbroche en een geborduurd schort. Tovin heeft zilvergrijs haar, een bril, rugtas, opgerolde deken, kruiden en zijn blauwe lantaarn. Alle accessoires zijn originele Three.js-geometrie; dezelfde GLB-geometrie wordt gedeeld, met eigen materialen per personage. Onderdelen met hetzelfde materiaal en bot worden samengevoegd om het aantal tekenopdrachten te beperken.
+
+De personages ademen rustig, kijken naar een speler in de buurt en maken kleine gebaren tijdens gesprekken. Tovins lantaarn blijft aan zijn hand hangen. Elk gesprek heeft een passende camerastand; tijdens gesprekken met Elin, Bram, Mira en Tovin verdwijnen de speler, naamplaatjes en het spel-HUD tijdelijk uit beeld. Na sluiten komt de normale camera terug en verschijnt het HUD weer. De spelwereld staat stil tijdens het praten; alleen de personages blijven animeren. Pauzeren bevriest ook de animaties.
+
+Tovin verschijnt pas na het aannemen van Mira’s opdracht en staat na zijn redding weer bij het dorp. Opdrachten, handel, beloningen, bestaande opslag en de verbeterde wapengrepen blijven werken zoals voorheen. De nieuwe outfits, accessoires en animaties staan in `js/village-actors.js`; `world.js` registreert de sprekers en `exploration.js` bewaakt Tovins zichtbaarheid en positie.
 
 ## Questonderdelen verschijnen na aannemen
 

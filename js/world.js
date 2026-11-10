@@ -24,13 +24,12 @@ for(let i=0;i<80;i++){const x=(rand()-.5)*65,z=rand()*90-58;if(Math.abs(x)<3)con
 // Ruin at the north end; gateway is a visual landmark, not a second area.
 const ruin=new T.Group();scene.add(ruin);for(const x of [-6,6]){box(1.4,6,1.4,'#899789',x,3,-58);box(2,.6,2,'#acb5a0',x,6,-58);colliders.push({x,z:-58,r:1});}box(14,.9,1.7,'#a4af9a',0,6.6,-58);const sigil=mesh(new T.TorusGeometry(1,.12,5,24),mat('#c59fdf','#9962cf'),0,4.5,-57);animated.push({mesh:sigil,type:'sigil'});for(const x of [-9,9]){const r=box(2,2.4,2,'#899789',x,1.2,-51);r.rotation.y=.3;colliders.push({x,z:-51,r:1.6});}
 // Character models. Facing is towards +Z in local coordinates.
-function humanoid(color,cloak){const g=new T.Group();const body=box(.75,1,.5,color,0,1.45,0,g);body.castShadow=true;sphere(.36,'#dab58d',0,2.25,0,g);sphere(.37,'#584c3d',0,2.44,-.08,g);const cloth=box(.8,.8,.15,cloak,0,1.45,-.33,g);const left=box(.23,.65,.25,'#514f46',-.23,.4,0,g),right=box(.23,.65,.25,'#514f46',.23,.4,0,g);box(.2,.72,.2,color,-.54,1.4,0,g);const arm=new T.Group();arm.position.set(.55,1.7,0);g.add(arm);box(.2,.65,.2,color,0,-.3,0,arm);const blade=box(.1,1.05,.16,'#d1ded5',0,-.1,.55,arm);const guard=box(.5,.1,.18,'#e2bd78',0,-.6,.55,arm);const model=new T.Group();model.position.y=1.2;for(const child of [...g.children]){g.remove(child);child.position.y-=1.2;model.add(child);}g.add(model);return {group:g,left,right,arm,blade,guard,body,cloth,model};}
 const player=EmberCharacterRig.create(T,{skin:'guardian'});const flameCostume=typeof EmberFlameGuardian!=='undefined'?EmberFlameGuardian.decorate(T,player):{setVisible(){},costumeMeshes:[],animate(){}};const appearance=EmberAppearance.attach(T,player,flameCostume);const armorVisual=EmberEquipment.attach(T,player);const modelAssets=globalThis.EmberModelAssets?.attach(T,player,flameCostume,appearance);const mageView=globalThis.EmberMage?.attach(T,player);player.group.position.set(0,0,22);scene.add(player.group);
 const ornaments=[];for(const side of [-1,1])for(const y of [-.36,-.67]){const thorn=cone(.10,.32,mat('#d5eac0','#6fa87d'),side*.10,y,.12,4,player.joints.weapon_r);thorn.rotation.z=-side*.9;thorn.visible=false;ornaments.push(thorn);}
 const ranger=EmberForestActors.createElin(T);ranger.group.position.set(-3,0,17);ranger.group.rotation.y=.6;scene.add(ranger.group);
-const merchant=humanoid('#b5a57b','#87735f');merchant.group.position.set(8,0,19);merchant.group.rotation.y=-.8;scene.add(merchant.group);
+const merchant=EmberVillageActors.create(T,'bram');merchant.group.position.set(8,0,19);merchant.group.rotation.y=-.8;scene.add(merchant.group);
 function label(text,x,y,z,color='#fff0ba'){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const c=canvas.getContext('2d');c.font='500 32px system-ui';c.textAlign='center';c.fillStyle='#172e28b0';c.fillRect(0,22,512,58);c.fillStyle=color;c.fillText(text,256,61);const texture=new T.CanvasTexture(canvas),s=new T.Sprite(new T.SpriteMaterial({map:texture,transparent:true,depthTest:false}));s.scale.set(4.5,1.125,1);s.position.set(x,y,z);scene.add(s);return s;}
-const elinLabel=label('Elin · Wachter',-3,3.25,17);label('Bram · Handelaar',8,3.25,19);const marker=label('!',-3,4.3,17,'#ffdc7c');label('SCHEMERWOUD',0,5,-3,'#e7e4c4');
+const elinLabel=label('Elin · Wachter',-3,3.25,17),bramLabel=label('Bram · Handelaar',8,3.25,19);const marker=label('!',-3,4.3,17,'#ffdc7c');label('SCHEMERWOUD',0,5,-3,'#e7e4c4');
 for(const e of RPG.enemies){let g=new T.Group();g.position.set(e.x,0,e.z);scene.add(g);let visual=null;if(e.boss){box(2.5,3,1.5,'#655b60',0,2,0,g);sphere(.8,'#85816c',0,4,0,g);for(const side of [-1,1]){const arm=box(.7,2.6,.8,'#696f5e',side*1.7,2.2,0,g);arm.rotation.z=side*.3;cone(.5,2,'#c5b990',side*.6,5.1,0,4,g);}sphere(.22,mat('#ffe1a4','#ffae51'),0,4,.72,g);}else if(e.spirit){const robe=cone(.9,2.4,mat('#8eacc4','#456c8a'),0,1.6,0,7,g);sphere(.48,mat('#c2dfdc','#66aeaa'),0,3,0,g);for(const side of [-1,1]){sphere(.17,mat('#ffe7af','#e9a870'),side*.21,3.08,.37,g);cone(.22,1.3,'#c5c8ab',side*.65,2.6,0,4,g);}const crown=mesh(new T.TorusGeometry(.5,.06,4,12),mat('#c8e6c0','#65bda9'),0,3.6,0,g);crown.rotation.x=Math.PI/2;}else if(e.shield){box(1.15,1.6,.8,'#7d887b',0,1.5,0,g);sphere(.5,'#b2b69c',0,2.65,0,g);for(const side of [-1,1]){box(.28,.9,.35,'#626c61',side*.35,.45,0,g);box(.3,1,.35,'#899282',side*.76,1.5,0,g);}const shield=mesh(new T.CylinderGeometry(.85,.85,.22,10),mat('#a0a58a'),.25,1.5,.75,g);shield.rotation.x=Math.PI/2;box(.15,1.35,.14,'#d5c798',.25,1.5,.9,g);box(1.2,.14,.15,'#d5c798',.25,1.5,.9,g);}else{visual=EmberForestActors.createWolf(T);scene.remove(g);g=visual.group;g.position.set(e.x,0,e.z);scene.add(g);}
  const warningMesh=mesh(new T.RingGeometry(.1,e.boss?3.8:e.spirit?1.2:e.shield?2.2:1.8,36),new T.MeshBasicMaterial({color:e.spirit?'#bb9eff':e.shield?'#ffe1a1':'#ff9c68',transparent:true,opacity:.5,side:T.DoubleSide,depthWrite:false}),e.x,.07,e.z);
  warningMesh.rotation.x=-Math.PI/2;warningMesh.visible=false;
@@ -59,9 +58,24 @@ function syncLoot(state){
  }
 }
 function burst(x,z,color='#ffe0a1',count=12){for(let i=0;i<count&&effects.length<100;i++){const m=sphere(.1+Math.random()*.1,color,x,.8+Math.random(),z);effects.push({mesh:m,vx:(Math.random()-.5)*5,vz:(Math.random()-.5)*5,vy:2+Math.random()*3,life:.6,max:.6});}}
-function updateNPC(dt){ranger.update(dt,player.group.position);if(ranger.talking){elinLabel.visible=false;marker.visible=false;}}
-function setConversation(value){ranger.setTalking(value);player.group.visible=!value;elinLabel.visible=!value&&ranger.group.visible;if(value)marker.visible=false;}
-function resetActors(){setConversation(false);ranger.reset();for(const e of enemies)e.visual?.reset();}
+const npcActors=new Map();let conversation=null;const dialogueHidden=[];
+function registerNPC(id,actor,nameplate,questMarker,camera={}){npcActors.set(id,{id,actor,nameplate,questMarker,camera:{yaw:0,forward:4.8,side:1.3,height:1.05,targetSide:.95,targetForward:-.35,...camera}});}
+registerNPC('elin',ranger,elinLabel,marker,{yaw:0,forward:4.4,side:3.2,targetSide:.89,targetForward:-.65});
+registerNPC('bram',merchant,bramLabel,null,{yaw:-.8,forward:4.8,side:1.3});
+function updateNPC(dt){
+ for(const entry of npcActors.values())entry.actor.update(dt,player.group.position);
+ if(conversation)for(const entry of npcActors.values()){if(entry.nameplate)entry.nameplate.visible=false;if(entry.questMarker)entry.questMarker.visible=false;}
+}
+function setConversation(value){
+ for(const item of dialogueHidden)item.object.visible=item.visible;dialogueHidden.length=0;
+ const id=value===true?'elin':value;conversation=npcActors.get(id)||null;
+ for(const entry of npcActors.values()){
+  entry.actor.setTalking(entry===conversation);
+  if(conversation)for(const object of [entry.nameplate,entry.questMarker])if(object){dialogueHidden.push({object,visible:object.visible});object.visible=false;}
+ }
+ player.group.visible=!conversation;
+}
+function resetActors(){setConversation(false);for(const entry of npcActors.values())entry.actor.reset();for(const e of enemies)e.visual?.reset();}
 function update(dt,time,moving,attacking,roll=0,running=false,comboStep=1){updateNPC(dt);for(const a of animated){if(a.type==='fire'){a.mesh.scale.y=1+Math.sin(time*9)*.12;a.mesh.rotation.y=time;}else a.mesh.rotation.z=time*.3;}for(const c of crystals){c.mesh.rotation.y=time;c.mesh.position.y=1.5+Math.sin(time*2+c.x)*.15;}player.animate(time,moving,attacking,{dt,running,comboStep,worldMotion:true,weapon:player.group.userData.weapon||'sword',roll:roll>0?1-roll/.38:undefined});flameCostume.animate?.(time,{moving,running,attacking});appearance.animate(time);modelAssets?.animate(time,{moving,running});mageView?.update(dt,time,moving);marker.position.y=4.3+Math.sin(time*2)*.12;for(let i=effects.length-1;i>=0;i--){const e=effects[i];e.life-=dt;e.mesh.position.x+=e.vx*dt;e.mesh.position.z+=e.vz*dt;e.mesh.position.y+=e.vy*dt;e.vy-=(e.gravity??9)*dt;if(e.kind==='slash')e.mesh.rotation.z+=dt*7;if(e.kind==='frost')e.mesh.scale.setScalar(e.radius*(1-e.life/e.max));if(e.kind==='pulse')e.mesh.scale.multiplyScalar(1+dt*5);if(e.kind==='magic')e.mesh.rotation.y+=dt*7;if(e.ownedMaterial)e.mesh.material.opacity=Math.max(0,e.life/e.max);if(!e.kind)e.mesh.scale.setScalar(Math.max(0,e.life/e.max));if(e.life<=0){scene.remove(e.mesh);if(!e.sprite)e.mesh.geometry.dispose();if(e.ownedMaterial){if(e.mesh.material.map)e.mesh.material.map.dispose();e.mesh.material.dispose();}effects.splice(i,1);}}for(const entry of lootMeshes.values()){entry.crystal.rotation.y=time*1.3;entry.crystal.position.y=.65+Math.sin(time*2.5+entry.group.position.x)*.12;entry.ring.rotation.z=time*.4;}
 for(const e of enemies){
  e.visual?.update(dt,e);
@@ -117,7 +131,7 @@ function setWeapon(name,weapon='sword'){const thorn=name==='thorn',sword=weapon=
 function setClass(id){player.setSkin(id);mageView?.setClass(id);}
 function setArmor(state){armorVisual.sync(state);}
 function setAppearance(id,classId='guardian',look){const flame=id==='flame_guardian';flameCostume.setVisible(flame);player.setSkin(flame?'flame_guardian':classId);appearance.apply(id,look);modelAssets?.setLook(id,look,classId);}
-return {updateNPC,setConversation,resetActors,mageView,mageBolt,mageNova,modelAssets,scene,colliders,cameraMeshes,sigil,player,ranger,merchant,enemies,crystals,chest,warning,marker,lootMeshes,syncLoot,clearLoot,burst,update,firelight,damageText,slash,beam,magicCast,magicImpact,orb,setWeapon,setClass,setAppearance,setAmulet,setArmor,effects};
+return {registerNPC,npcActors,get conversation(){return conversation;},updateNPC,setConversation,resetActors,mageView,mageBolt,mageNova,modelAssets,scene,colliders,cameraMeshes,sigil,player,ranger,merchant,enemies,crystals,chest,warning,marker,lootMeshes,syncLoot,clearLoot,burst,update,firelight,damageText,slash,beam,magicCast,magicImpact,orb,setWeapon,setClass,setAppearance,setAmulet,setArmor,effects};
 }
 window.EmberWorld={createWorld};
 })();

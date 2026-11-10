@@ -2,6 +2,10 @@ const { chromium } = require('playwright');
 async function currentState(page){return page.evaluate(()=>{const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));return roster?.slots[roster.active]?.state;});}
 async function continueHero(page,index=0){await page.locator('#play').click();await page.locator('#character-play-'+index).click();}
 async function observeForest(page){await page.addInitScript(()=>{
+ Object.defineProperty(window,'EmberVillageActors',{configurable:true,set(api){
+  const create=api.create;api.create=(...args)=>{const actor=create(...args);(window.__villageActors??={})[args[1]]=actor;return actor;};
+  Object.defineProperty(window,'EmberVillageActors',{value:api,writable:true,configurable:true});
+ }});
  Object.defineProperty(window,'EmberForestActors',{configurable:true,set(api){
   const makeElin=api.createElin,makeWolf=api.createWolf;
   api.createElin=(...args)=>window.__elinActor=makeElin(...args);
@@ -233,7 +237,23 @@ async function observeForest(page){await page.addInitScript(()=>{
  const dialogueHealth=await migrated.locator('#health-label').textContent();await migrated.waitForTimeout(350);if(await migrated.locator('#health-label').textContent()!==dialogueHealth)errors.push('Gameplay continued during Elin dialogue');
  await migrated.screenshot({path:'/tmp/emberwild-elin-dialogue.png'});await migrated.locator('#dialog-action').click();
  if(await migrated.evaluate(()=>window.__elinActor.talking||window.__wolves.some(w=>!w.group.visible)))errors.push('Elin dialogue/accepted wolves did not synchronize');
- await migrated.keyboard.press('Escape');
+ // Review each real NPC conversation, including Tovin before and after his rescue.
+ await migrated.addInitScript(()=>{
+  const fixture=sessionStorage.getItem('npc-camera-fixture');if(!fixture)return;
+  const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));Object.assign(roster.slots[0].state,JSON.parse(fixture));localStorage.setItem('emberwild-characters-v1',JSON.stringify(roster));
+ });
+ for(const fixture of [{id:'bram',x:8,z:19,sideQuest:0},{id:'mira',x:6,z:25,sideQuest:0},{id:'tovin',x:-23,z:-32,sideQuest:1},{id:'tovin',x:9,z:27,sideQuest:2}]){
+  await migrated.evaluate(f=>sessionStorage.setItem('npc-camera-fixture',JSON.stringify(f)),{x:fixture.x,z:fixture.z,sideQuest:fixture.sideQuest});
+  await migrated.reload({waitUntil:'load'});await continueHero(migrated);await migrated.keyboard.press('e');
+  await migrated.waitForFunction(id=>window.__villageActors?.[id]?.assets.status==='ready'&&window.__villageActors[id].talkBlend>.8,fixture.id,{timeout:30000});
+  if(await migrated.locator('#hud').isVisible())errors.push('HUD obscures NPC conversation: '+fixture.id);
+  if(await migrated.locator('#dialog').getAttribute('data-speaker')!==fixture.id)errors.push('Wrong NPC dialogue camera: '+fixture.id);
+  const health=await migrated.locator('#health-label').textContent();await migrated.waitForTimeout(250);if(await migrated.locator('#health-label').textContent()!==health)errors.push('Gameplay continued during '+fixture.id+' dialogue');
+  await migrated.screenshot({path:'/tmp/emberwild-'+fixture.id+'-'+fixture.sideQuest+'-dialogue.png'});await migrated.locator('#dialog-close').click();if(!await migrated.locator('#hud').isVisible())errors.push('HUD did not return after '+fixture.id+' dialogue');
+  if(await migrated.evaluate(()=>Object.values(window.__villageActors).some(a=>a.talking)))errors.push('NPC did not leave conversation pose: '+fixture.id);
+  await migrated.keyboard.press('Escape');
+ }
+ await migrated.evaluate(()=>sessionStorage.removeItem('npc-camera-fixture'));
  await migrated.addInitScript(()=>{if(sessionStorage.getItem('wolf-fixture'))return;const raw=localStorage.getItem('emberwild-characters-v1');if(!raw)return;const roster=JSON.parse(raw),state=roster.slots[0].state;state.x=-13;state.z=-4;state.quest=1;localStorage.setItem('emberwild-characters-v1',JSON.stringify(roster));sessionStorage.setItem('wolf-fixture','1');});
  await migrated.reload({waitUntil:'load'});await continueHero(migrated);
  await migrated.waitForFunction(()=>window.__wolves?.[0]?.motion.warning>.4,null,{timeout:30000});await migrated.screenshot({path:'/tmp/emberwild-wolf-warning.png'});
