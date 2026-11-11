@@ -2,8 +2,8 @@
 (function(root){
 'use strict';
 const cache=new WeakMap(),clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n)),mix=(a,b,t)=>a+(b-a)*t;
-function kit(T){
- if(cache.has(T))return cache.get(T);
+function kit(T,coat='shadow'){
+ if(!cache.has(T))cache.set(T,new Map());const entries=cache.get(T);if(entries.has(coat))return entries.get(coat);
  function tint(g,color,shade=.16){
   if(!g.attributes.normal)g.computeVertexNormals();const c=new T.Color(color),n=g.attributes.normal,out=[];
   for(let i=0;i<n.count;i++){const light=.85+shade*(n.getY(i)*.6+n.getZ(i)*.22-n.getX(i)*.12);out.push(c.r*light,c.g*light,c.b*light);}
@@ -17,7 +17,7 @@ function kit(T){
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('normal',new T.Float32BufferAttribute(n,3));g.setAttribute('color',new T.Float32BufferAttribute(c,3));g.setIndex(indices);g.computeBoundingSphere();return g;
  }
  function tuft(w,h,d,color,x=0,y=0,z=0,angle=0){return tint(new T.ConeGeometry(w,h,5).scale(1,1,d/w).rotateX(angle).translate(x,y,z),color);}
- const fur='#718793',dark='#465c6b',pale='#bdc9c5';
+ const fur=coat==='gray'?'#969c9b':'#718793',dark=coat==='gray'?'#626966':'#465c6b',pale=coat==='gray'?'#d5d6c9':'#bdc9c5';
  function loft(rings,color,underside,axis='z'){
   const p=[],ix=[],colors=[],segments=20,base=new T.Color(color),pale=new T.Color(underside);
   for(let r=0;r<rings.length;r++)for(let i=0;i<=segments;i++){
@@ -41,10 +41,10 @@ function kit(T){
  const rearUpper=oval(.31,.46,.35,fur,0,-.16,0),rearLower=merge([taper(.075,.044,.42,dark,0,-.21,0),oval(.13,.17,.16,fur,0,-.015,0)]);
  const tails=[taper(.14,.065,.34,fur,0,0,0),taper(.10,.055,.37,fur,0,0,0),taper(.07,.008,.31,pale,0,0,0)].map(g=>g.rotateX(Math.PI/2).translate(0,0,-.17));
  const material=new T.MeshStandardMaterial({color:'#ffffff',vertexColors:true,roughness:.92,metalness:0});
- const result={body,neck,head,eyes,jaw,ear,paw,foreUpper,foreLower,rearUpper,rearLower,tails,material};cache.set(T,result);return result;
+ const result={body,neck,head,eyes,jaw,ear,paw,foreUpper,foreLower,rearUpper,rearLower,tails,material};entries.set(coat,result);return result;
 }
-function createWolf(T){
- const art=kit(T),group=new T.Group();group.name='Schemerwolf';group.userData.actor='wolf';
+function createWolf(T,{coat='shadow'}={}){
+ const art=kit(T,coat),group=new T.Group();group.name=coat==='gray'?'Grijze wolf':'Schemerwolf';group.userData.actor='wolf';
  const model=new T.Bone();model.name='wolf_root';group.add(model);const joints={root:model};
  function bone(name,parent,x,y,z){const b=new T.Bone();b.name=name;b.position.set(x,y,z);parent.add(b);joints[name]=b;return b;}
  function part(name,parent,geometry){const mesh=new T.Mesh(geometry,art.material);mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;}
@@ -63,9 +63,11 @@ function createWolf(T){
   legs.push({upper,lower,paw,a,b,front,side,offset:(front?side<0:side>0)?0:.5,phase:0,stance:null,anchor:new T.Vector3(),target:new T.Vector3(),takeoff:new T.Vector3(),landing:new T.Vector3(),start:0,contact:true});
  }
  const previous=new T.Vector3(),position=new T.Vector3(),velocity=new T.Vector3(),target=new T.Vector3(),pole=new T.Vector3(),origin=new T.Vector3(),direction=new T.Vector3(),elbow=new T.Vector3(),bend=new T.Vector3(),resolved=new T.Vector3(),local=new T.Vector3(),q=new T.Quaternion(),worldQ=new T.Quaternion(),down=new T.Vector3(0,-1,0);
+ const deathAnchor=new T.Group();deathAnchor.name='WolfCorpse';let dying=false,deathTime=0,held=false;
  let initialized=false,elapsed=0,phase=.15,locomotion=0,strike=0,recoil=0,recoilSide=1,wasMoving=false;
  const motion={speed:0,locomotion:0,warning:0,strike:0,contacts:[true,true,true,true]};
- function reset(){initialized=false;phase=.15;locomotion=strike=recoil=0;wasMoving=false;elapsed=0;for(const leg of legs)leg.stance=null;}
+ function reset(){if(model.parent!==group){group.add(model);deathAnchor.removeFromParent();}dying=false;held=false;deathTime=0;model.visible=true;model.position.set(0,0,0);model.rotation.set(0,0,0);initialized=false;phase=.15;locomotion=strike=recoil=0;wasMoving=false;elapsed=0;for(const leg of legs)leg.stance=null;}
+ function defeat(scene,options={}){if(dying||!scene)return;deathAnchor.position.copy(group.position);deathAnchor.quaternion.copy(group.quaternion);scene.add(deathAnchor);deathAnchor.add(model);dying=true;held=options.hold===true;deathTime=0;motion.state='defeat';}
  function attack(){strike=.28;}
  function hit(dx=0,dz=1){recoil=.22;recoilSide=Math.sign(dx*Math.cos(group.rotation.y)-dz*Math.sin(group.rotation.y))||1;}
  function rest(leg){return target.set(leg.side*(leg.front?.31:.30),.045,leg.front?.50:-.57).applyMatrix4(group.matrixWorld);}
@@ -78,6 +80,7 @@ function createWolf(T){
   leg.lower.getWorldQuaternion(q).invert();leg.paw.quaternion.copy(q).multiply(worldQ);
  }
  function update(dt,e={}){
+  if(dying){dt=clamp(Number.isFinite(dt)?dt:0,0,.05);deathTime=Math.min(deathTime+dt,held?.85:Infinity);const t=clamp(deathTime/.7),ease=t*t*(3-2*t);model.rotation.z=-1.445*ease;model.position.y=.48*ease;head.rotation.x=.12*ease;jaw.rotation.x=.12;for(const leg of legs){leg.upper.rotation.x=.18*ease;leg.lower.rotation.x=.25*ease;}motion.state='defeat';motion.defeat=ease;if(!held&&deathTime>=1.2){model.visible=false;group.add(model);deathAnchor.removeFromParent();dying=false;}return;}
   if(!group.visible){reset();return;}dt=clamp(Number.isFinite(dt)?dt:0,0,.05);elapsed+=dt;strike=Math.max(0,strike-dt);recoil=Math.max(0,recoil-dt);
   group.updateWorldMatrix(true,false);group.getWorldPosition(position);group.getWorldQuaternion(worldQ);velocity.subVectors(position,previous);const teleport=!initialized||velocity.length()>1.5;
   if(teleport){velocity.set(0,0,0);initialized=true;for(const leg of legs){leg.target.copy(rest(leg));leg.anchor.copy(leg.target);leg.stance=null;}}
@@ -110,10 +113,10 @@ function createWolf(T){
   model.position.y-=clamp(supportDrop,0,.20);model.updateMatrixWorld(true);for(const leg of legs)solve(leg);
   motion.speed=speed;motion.locomotion=locomotion;motion.warning=crouch;motion.strike=lunge;legs.forEach((leg,i)=>motion.contacts[i]=leg.contact);
  }
- update(0);return {group,model,joints,legs,motion,update,reset,attack,hit};
+ update(0);return {group,model,joints,legs,motion,update,reset,attack,hit,defeat,get dying(){return dying;}};
 }
-function createElin(T){
- const rig=root.EmberCharacterRig.create(T,{skin:'ranger'});rig.group.name='Elin';rig.group.userData.npc='elin';
+function createElin(T,options={}){
+ const rig=root.EmberCharacterRig.create(T,{skin:'ranger'});rig.group.name=options.id||'Elin';rig.group.userData.npc=options.id||'elin';
  const baseMeshes=[];rig.group.traverse(m=>{if(m.isMesh)baseMeshes.push(m);});rig.blade.visible=rig.guard.visible=false;
  const appearance=root.EmberAppearance.attach(T,rig,null),look={hairStyle:'braid',hairColor:'chestnut',skinTone:'warm',eyeColor:'hazel'};appearance.apply('classic',look);
  const assets=root.EmberModelAssets?.attach(T,rig,{baseMeshes,costumeMeshes:[]},appearance);assets?.setLook('classic',look,'ranger');
@@ -160,5 +163,5 @@ function createElin(T){
  }
  return {...rig,assets,appearance,ready,back,bow,setTalking,update,reset,get talking(){return talking;},get talkBlend(){return talkBlend;}};
 }
-root.EmberForestActors={createWolf,createElin};
+root.EmberForestActors={createWolf,createElin,createRangerNPC:createElin};
 })(typeof window==='undefined'?globalThis:window);

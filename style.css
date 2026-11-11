@@ -102,3 +102,35 @@ header #sound{font-size:10px}#equip{color:#bde9d2;border:1px solid #a1cbb670;bor
  #dialog[data-speaker]:not([data-speaker=other]){place-items:center end;padding:4vw;background:linear-gradient(90deg,transparent 30%,#0c1e1a99);backdrop-filter:none}
  #dialog[data-speaker]:not([data-speaker=other])>div{width:min(440px,42vw);max-height:88svh;overflow:auto}
 }
+
+/* Quest and corpse interfaces share the game's parchment, ink and gold palette. */
+#quest-button{white-space:nowrap}
+.quest{max-height:calc(100vh - 230px);overflow-y:auto;scrollbar-width:thin}
+.extra-quest-tracker{margin:16px 0;border-top:1px solid #edd5a43d;padding-top:8px}
+.journal-card{padding:14px 0;border-bottom:1px solid #e4d6b52b}
+.journal-card h3,.journal-card h4{color:#f0d19a;margin:0 0 8px;font-size:17px}
+.journal-card h4{font-size:15px}.journal-card p{margin:8px 0;line-height:1.6}
+.objective-list{list-style:none;padding:0;margin:8px 0;display:grid;gap:7px}
+.objective-list li{display:flex;justify-content:space-between;gap:16px;font-size:13px}
+.objective-list strong{white-space:nowrap;font-variant-numeric:tabular-nums;color:#e7d19f}
+.objective-done span,.objective-done strong{color:#a9dcc0}
+.quest-ready{color:#c2e3ae!important;font-size:13px!important}
+.quest-rewards{color:#dfbd7b;font-size:13px}.journal-empty{opacity:.7;font-size:13px}
+.quest-log-panel{width:min(720px,92vw)!important;max-height:86vh;overflow:auto;text-align:left!important}
+.quest-log-panel>h3{margin-top:22px;font-size:15px;letter-spacing:.05em;color:#b8cbb9}
+.quest-log-panel>button{margin-top:22px}#journal-story{font-size:13px;line-height:1.6;opacity:.8}
+.loot-modal{background:#07181480!important}.corpse-loot-panel{width:min(430px,92vw)!important;text-align:left!important}
+.corpse-loot-panel h2{margin-bottom:4px}.corpse-loot-panel>p{font-size:13px;opacity:.8}
+#corpse-loot-list{display:grid;gap:7px;max-height:44vh;overflow:auto}
+.corpse-loot-row{display:flex!important;align-items:center;gap:12px;width:100%;padding:12px!important;text-align:left!important;background:#1e3631!important;border:1px solid #a7b9a83d!important;border-radius:7px!important;color:#e5e6d6!important}
+.corpse-loot-row:hover,.corpse-loot-row:focus-visible{background:#2e4840!important;border-color:#d1b478!important}
+.item-symbol{display:grid;place-items:center;flex:0 0 37px;height:37px;background:#0c211f;border:1px solid #c6b88b55;border-radius:5px;font-size:24px;color:#dbc588}
+.loot-item-words{display:grid;gap:4px;flex:1}.loot-item-words strong{font-size:14px}.loot-item-words small{font-size:11px;opacity:.75;letter-spacing:normal;text-transform:none}
+.corpse-loot-row[data-kind="quest"]{border-color:#d1b36a88!important}.corpse-loot-row[data-kind="quest"] small{color:#efd18b;opacity:1}
+.corpse-loot-row[data-rarity="rare"] strong{color:#70b7f2}.corpse-loot-row[data-rarity="epic"] strong{color:#c38cff}.corpse-loot-row[data-rarity="legendary"] strong{color:#ffb44f}
+.loot-actions{display:flex;align-items:center;gap:12px;margin-top:16px}.loot-actions button{flex:1}
+#corpse-loot-notice{color:#f0c790;min-height:1em;margin:8px 0}
+.material-row{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid #d5d5bb22;font-size:13px}.material-row strong{margin-left:auto}.material-row .item-symbol{font-size:18px;height:30px;flex-basis:30px}
+#npc-quest-options{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}#npc-quest-options[hidden]{display:none}
+@media(max-width:1000px){header .tag{display:none}header{gap:8px}#quest-button{font-size:11px}.quest{max-height:calc(100vh - 240px)}}
+@media(max-width:700px){.quest-log-panel{max-height:80vh}.loot-actions{flex-wrap:wrap}header>button{padding:8px;font-size:10px}.extra-quest-tracker .journal-card{padding:5px 0}.objective-list li{font-size:11px}}

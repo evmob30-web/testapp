@@ -1,4 +1,9 @@
-# Emberwild — De laatste vonk · versie 1.10
+# Emberwild — Quest-, loot- en respawnsysteem · reviewbranch
+
+
+Deze branch **`feature/quest-loot-system`** voegt een geïntegreerd quest-, corpse-loot- en respawnsysteem toe bovenop versie 1.10. `main` en de live game worden niet aangepast: beoordeel eerst de Pull Request. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
+
+Ga naar **Jager Rowan**, ten oosten van het kampvuur. **De wolvenplaag** vraagt vijf wolventanden van de al rondlopende grijze wolven (60% dropkans). Open een lichaam met een klik of **E**, pak een item of **Alles verzamelen**, volg de quest met **J** en lever bij Rowan in voor eenmalig **250 XP en 50 goud**. Elke spawn keert onafhankelijk na **30 seconden speeltijd** terug. Opdrachtstatus, materiaal/questinventaris, vaste loot en resterende respawntijd worden per personage opgeslagen. Menu's, gesprekken en offline tijd pauzeren deze klok.
 
 Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.10 bevat vernieuwde Bosgeesten en een vernieuwde Wortelmoeder, een volledig vernieuwde Doornwachter, vernieuwde Bram, Mira en Tovin, een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
@@ -12,7 +17,7 @@ De Bosgeest heeft een zwevend, hol wortellichaam met een lichtgevende zaadkern, 
 
 De Wortelmoeder heeft een eigen silhouet met zes wortelpoten, paddenstoelschouders met lichtende sporen, een bloem rond de groene kern en een hoge bladerkroon. De steunpoten blijven bij lopen op hun plek staan. Bij **Zaadsalvo** opent de bloem en kleurt de kern violet; bij **Wortelslag** gaan de armen omhoog en komen de klauwen op het bestaande schademoment omlaag. Bladeren, wortelvingers, terugslag en de tijdelijke instorting animeren afzonderlijk.
 
-Beide modellen worden origineel en lokaal opgebouwd in `js/grove-creatures.js`. De Bosgeest gebruikt 48 botten en 32.012 driehoeken; de Wortelmoeder 66 botten en 63.170 driehoeken. Elk gebruikt zes materiaalbatches met gedeelde geometrie en een gecachete houtnerftextuur; veranderlijke materialen en botten zijn per instantie gescheiden. De animaties verplaatsen de logische vijand niet. Pauze bevriest de animaties, en verslaan levert direct de bestaande voortgang en buit op. Het tijdelijke visuele model wordt automatisch opgeruimd of bij wisselen gewist.
+Beide modellen worden origineel en lokaal opgebouwd in `js/grove-creatures.js`. De Bosgeest gebruikt 48 botten en 32.012 driehoeken; de Wortelmoeder 66 botten en 63.170 driehoeken. Elk gebruikt zes materiaalbatches met gedeelde geometrie en een gecachete houtnerftextuur; veranderlijke materialen en botten zijn per instantie gescheiden. De animaties verplaatsen de logische vijand niet. Pauze bevriest de animaties, en verslaan levert direct XP en verhaalvoortgang op; goud en voorwerpen verzamel je via het lootvenster. Het tijdelijke visuele model wordt automatisch opgeruimd of bij wisselen gewist.
 
 De **Schildwacht is verwijderd**. De boogtraining bestaat uit de drie oefendoelen en blijft volledig speelbaar. Eerdere overwinningen op de Schildwacht blijven in oude opslag bewaard, evenals goud, XP, voorwerpen, classes en questvoortgang. Het opslagformaat is ongewijzigd.
 
@@ -24,7 +29,7 @@ De Doornwachter heeft sinds versie 1.9 een eigen vervormbaar model: een doorlope
 
 Het model gebruikt 44 botten en zes samengevoegde materiaalvlakken. Geometrie en houtnerf worden gedeeld; skelet en veranderlijke materialen horen bij de afzonderlijke instantie. Afstandsafhankelijke stappen houden de steunvoeten op de grond. De bestaande 1,15 seconde voorbereiding tilt beide armen op; op het bestaande schademoment slaan de klauwen omlaag en springen schorsdeeltjes weg. Kleine reacties op treffers herstellen vloeiend. Pauze bevriest ook deze animaties.
 
-Bij verslaan volgen de bestaande voortgang en buit direct. Een tijdelijk, niet-interactief visueel model zakt in en dooft uit, terwijl de logische vijand meteen verdwijnt. Het effect wordt na 2,7 seconde opgeruimd en ook gewist bij gebieds- of personagewissels. De Doornwachter verschijnt nog steeds pas bij de juiste hoofdopdracht. Gezondheid, schade, bereik, aanvalstijden en beloningen zijn gelijk gebleven.
+Bij verslaan volgen XP en verhaalvoortgang direct; goud en voorwerpen blijven in het lootbare lichaam. De logische vijand wordt direct niet meer aanvalbaar. Zijn bestaande instorting blijft zichtbaar als lootbaar lichaam tot het looten of verlopen. De Doornwachter is onafhankelijk van de hoofdopdracht zichtbaar en krijgt dezelfde onafhankelijke respawnlifecycle. Gezondheid, schade, bereik, aanvalstijden en beloningen zijn gelijk gebleven.
 
 [Modelvoorbeeld met de speler als schaalreferentie](assets/previews/doornwachter.png)
 
@@ -40,8 +45,8 @@ Tovin verschijnt pas na het aannemen van Mira’s opdracht en staat na zijn redd
 
 Questobjecten verschijnen pas nadat je hun opdracht hebt aangenomen. Eén gedeelde set regels (`RPG.questVisibility` / `RPG.enemyVisible`) stuurt de wereld, interacties, kaartmarkeringen en projectielbotsingen:
 
-- Wolven verschijnen na het aannemen van Elins eerste opdracht.
-- Lichtkristallen verschijnen na het aannemen van de kristallenopdracht; de Doornwachter verschijnt na ontvangst van het sterrenlicht.
+- Levende vijanden zijn onafhankelijk van questacceptatie zichtbaar; een eerder behaalde kill verbergt een nieuwe spawn niet.
+- Lichtkristallen verschijnen na het aannemen van de kristallenopdracht. De Doornwachter is al zichtbaar; een vroege overwinning blijft geldig voor het verhaal.
 - De grotingang verschijnt na het aannemen van de Wortelgrottenopdracht. Het amulet verschijnt na het verslaan van de Wortelmoeder.
 - Oefendoelen verschijnen na het aannemen van boogtraining, ook als je als Woudloper al een boog hebt.
 - Tovin, kruiden en het Verkenning-paneel verschijnen na het aannemen van Mira’s opdracht. Het bloemspoor en heiligdom volgen nadat Tovin zijn aanwijzing geeft.
@@ -76,6 +81,8 @@ Een volle plek wordt nooit door een nieuwe held vervangen. **Verwijderen** opent
 
 
 ## Besturing
+
+**J** opent het nieuwe questlog; **E** of een klik op een lichaam opent de buit.
 
 | Invoer | Actie |
 | --- | --- |
@@ -183,6 +190,8 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 - `js/village-actors.js`: oorspronkelijke outfits, accessoires en gespreksanimaties van Bram, Mira en Tovin.
 - `js/thorn-guardian.js`: gedetailleerde Doornwachter, wortelstappen, slagen, instorting en gedeelde schorsdeeltjes.
 - `js/grove-creatures.js`: gewogen modellen, materialen en animaties van de Bosgeest en Wortelmoeder.
+- `js/adventure-data.js`, `js/quest-system.js`, `js/encounters.js`: contentdefinities, persoonlijke quests/inventaris en onafhankelijke enemy-/loot-/respawnlogica.
+- `js/adventure-world.js`, `js/adventure-ui.js`: Rowan, lichamen, indicatoren, questlog/tracker en lootvenster.
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
 - `js/dungeon.js`: drie kamers, vloeren, wanden, deur, sleutel, altaar, gebiedsweergave en loopruimte.
 - `js/exploration.js`: Mira, Tovin, kruiden, heiligdom en bloemspoor.
@@ -193,7 +202,8 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 - `assets/characters/*.glb`: de twee volledige 3D-personages met skelet, botgewichten en ingesloten PNG-textuur.
 - `scripts/build-character-assets.cjs`: originele model- en textuurgenerator; uitvoeren met Node.js na bronwijzigingen.
 - `vendor/three.min.js`, `vendor/GLTFLoader.js`: Three.js 0.160.1 en de officiële GLTFLoader, MIT-licentie in `vendor/THREE-LICENSE.txt`.
-- `tests/`: Node.js-tests.
+- `tests/`: Node.js-tests, inclusief quest/loot-idempotentie, respawns en compatibele personageopslag.
+- `scripts/browser-quest-loot.cjs`: volledig Rowan-traject, echte lichaamselectie, onafhankelijke quests en herladen.
 - `scripts/browser-start.cjs`: Playwright-smoketest voor starten, character creator, combo’s, pantser, loot en opslagherstel.
 - `.github/workflows/`: automatische Node.js- en browsercontroles in GitHub Actions.
 
@@ -201,7 +211,7 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-De huidige testsuite bevat 89 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questafscherming, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
+De huidige testsuite bevat 130 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questitemafscherming, permanente vijandzichtbaarheid, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert daarvoor Playwright en Chromium; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
@@ -270,7 +280,7 @@ Zwaardaanvallen volgen een 3-staps combo: **Snelle slag** (100% schade), **Kruis
 
 Vijanden kunnen bij verslaan willekeurige uitrusting laten vallen. Gewone vijanden hebben ongeveer 57% dropkans; geesten 78% en eindbazen altijd een drop. De verdeling van gewone drops is 55% **gewoon**, 28% **zeldzaam**, 13% **episch** en 4% **legendarisch**. Eindbazen hebben betere kansen op epische of legendarische stukken. Iedere drop combineert een bestaand van vijf armor-slots (helm, schouders, borst, handschoenen, laarzen) met een zeldzaamheid en een willekeurig kenmerk: Levenskracht, Woede, Scherpschutter, Bescherming of Sintelvuur.
 
-Na het verslaan verschijnt een draaiende 3D-kristal op de grond, gekleurd naar zeldzaamheid. Ga binnen 2,5 speleenheden staan en druk op **E** om de buit op te pakken. Buit die nog op de grond ligt, wordt net als de verzamelde loot opgeslagen bij je avontuur en opnieuw getoond na laden. De inventaris onder **I → Gevonden buit** toont statvergelijkingen met het momenteel uitgeruste item, een knop voor uitrusten/afleggen en een verkoopknop. Er passen maximaal 32 gevonden items in je reistas en 32 zichtbare drops in de wereld. Verkoop is onmogelijk zolang een item is uitgerust.
+Na het verslaan blijft een lichaam met subtiele glinstering achter. Klik erop of druk binnen 3,1 speleenheden op **E** om het lootvenster te openen en uitrusting, goud, materialen en eventuele geldige questitems te verzamelen. Oude saves met grondkristallen behouden ook de bestaande E-pickup. Buit die nog op de grond ligt, wordt net als de verzamelde loot opgeslagen bij je avontuur en opnieuw getoond na laden. De inventaris onder **I → Gevonden buit** toont statvergelijkingen met het momenteel uitgeruste item, een knop voor uitrusten/afleggen en een verkoopknop. Er passen maximaal 32 gevonden items in je reistas en 32 zichtbare drops in de wereld. Verkoop is onmogelijk zolang een item is uitgerust.
 
 De gemaakte combinaties zijn cosmetisch zichtbaar via de reeds bestaande 3D-pantsermodellen, nu met hun zeldzaamheidskleur. Basispantser en unieke loot gebruiken hetzelfde armor-slot, dus bonussen tellen niet dubbel. Extra statistieken naast HP en schade zijn **boogschade** (Scherpschutter / Sintelvuur) en **schadevermindering** (Bescherming). De bestaande vijanden, quests, unieke boss-buit, character creator en opslagsleutel blijven intact. Bij het laden worden items en terreinlocaties strikt gevalideerd; savebestanden kunnen geen willekeurige itemnamen, IDs of statistieken injecteren. De waarde van bonussen komt alleen uit vooraf gedefinieerde itemtemplates, niet uit opgeslagen invoer.
 
@@ -295,7 +305,7 @@ Elin gebruikt het gedetailleerde gezicht en gedeelde skelet van de oorspronkelij
 
 De vier schemerwolven hebben een gevormde romp en snuit, bek met tanden, oren, klauwen en een staart met drie beweegbare delen. Gedeelde, onveranderlijke geometrie en materialen houden het aantal tekenaanroepen begrensd; botten en animatiestatus zijn per wolf gescheiden. Lopen en rennen volgen de werkelijk afgelegde afstand, met geplante steunpoten. De wolf zakt tijdens de bestaande waarschuwing door zijn poten en legt zijn oren naar achteren. De beet volgt het bestaande slagmoment; geraakt worden geeft een korte terugslag van kop en romp. Dit beweegt alleen de zichtbare onderdelen, niet het bereik of de positie die de gevechtsregels gebruiken.
 
-Wolven blijven verborgen tot hun quest is aangenomen. Pauze stopt hun animaties. Wisselen van personage, herladen en doodgaan resetten de tijdelijke houdingen. Elin hergebruikt de bestaande ingebedde GLBs; er worden geen extra modellen van internet opgehaald. Spelregels, buit, quests en de drie personagesaves veranderen niet.
+Wolven blijven zichtbaar onafhankelijk van quests; questitems vereisen hun eigen actieve objective. Pauze stopt hun animaties. Wisselen van personage, herladen en doodgaan resetten de tijdelijke houdingen. Elin hergebruikt de bestaande ingebedde GLBs; er worden geen extra modellen van internet opgehaald. Spelregels, buit, quests en de drie personagesaves veranderen niet.
 
 Zes aanvullende modeltests controleren gedeelde geometrie met afzonderlijke botten/materialen, voetcontact bij verschillende snelheden en tijdstappen, waarschuwing/beet/terugslag zonder verplaatste spelpositie, resets en Elins gesprekshouding. De volledige gameplaytest controleert gesprekspauze en bevroren wolfanimaties. De Chromium-test controleert Elins geladen model en gesprek, de zichtbaarheid van wolven na acceptatie en een echte waarschuwing/beet in de game.
 

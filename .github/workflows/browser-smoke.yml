@@ -7,6 +7,7 @@ on:
       - 'vendor/GLTFLoader.js'
       - 'index.html'
       - 'scripts/browser-start.cjs'
+      - 'scripts/browser-quest-loot.cjs'
       - '.github/workflows/browser-smoke.yml'
 jobs:
   browser:

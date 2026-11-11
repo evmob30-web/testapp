@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const questLootBrowser=require('./browser-quest-loot.cjs');
 async function currentState(page){return page.evaluate(()=>{const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));return roster?.slots[roster.active]?.state;});}
 async function continueHero(page,index=0){await page.locator('#play').click();await page.locator('#character-play-'+index).click();}
 async function observeForest(page){await page.addInitScript(()=>{
@@ -17,13 +18,15 @@ async function observeForest(page){await page.addInitScript(()=>{
   Object.defineProperty(window,'EmberForestActors',{value:api,writable:true,configurable:true});
  }});
 });}
+async function lootBody(page,worldName,id){const p=await page.evaluate(({worldName,id})=>{window.__questWorld=window[worldName];const e=__questWorld.enemies.find(e=>e.id===id);return {x:e.mesh.position.x,z:e.mesh.position.z,d:Math.hypot(__questWorld.player.group.position.x-e.mesh.position.x,__questWorld.player.group.position.z-e.mesh.position.z)};},{worldName,id});if(p.d>2.8)await questLootBrowser.walkTo(page,p.x,p.z,2.3);await page.keyboard.press('KeyE');await page.waitForFunction(()=>!document.getElementById('corpse-loot').hidden,null,{timeout:60000});await page.locator('#loot-all').click();await page.waitForFunction(()=>document.getElementById('corpse-loot').hidden);}
 async function checkGrove(browser,errors){
- for(const kind of ['spirit','mother']){
+ for(const kind of ['spirit','mother']){console.log('Browser: grove '+kind);
   const page=await browser.newPage({viewport:{width:960,height:640}});
   page.on('pageerror',e=>errors.push(kind+': '+e.message));page.on('console',m=>{if(m.type()==='error')errors.push(kind+': '+m.text());});
   await page.addInitScript(kind=>{
    if(!sessionStorage.getItem('grove-fixture')){
     sessionStorage.setItem('grove-fixture','1');const state={version:1,classId:'guardian',level:8,hp:240,quest:5,equipped:'thorn',kills:['w1','w2','w3','w4','boss','g1'],crystals:['c1','c2','c3'],bowUnlocked:true,bowQuest:1,bowPractice:['t1'],potions:3,x:21,z:-35};
+    state.encounters={version:1,worldId:'grove-fixture',clock:0,seed:1,spawns:Object.fromEntries(['w1','w2','w3','w4','d1','d2','d3'].map(id=>[id,{status:'dead',deadAt:0,generation:1,hp:0,corpse:null}]))};
     if(kind==='mother')Object.assign(state,{area:'roots',dungeon:1,caveKey:true,gateOpen:true,x:100,z:-52,kills:[...state.kills,'d1','d2','d3']});
     localStorage.setItem('emberwild-characters-v1',JSON.stringify({version:1,active:0,slots:[{name:'Woudproef',state},null,null]}));
    }
@@ -58,17 +61,18 @@ async function checkGrove(browser,errors){
   await page.waitForFunction(()=>!__groveEnemy.mesh.visible,null,{timeout:60000});await page.keyboard.press('Escape');
   const defeat=await page.evaluate(()=>({dying:__groveActor.dying,separate:__groveActor.model.parent!==__groveEnemy.mesh,killed:JSON.parse(localStorage.getItem('emberwild-characters-v1')).slots[0].state.kills.includes(__groveEnemy.id),phase:__groveActor.motion.defeat}));
   if(!defeat.dying||!defeat.separate||!defeat.killed)errors.push(kind+' logical/cosmetic defeat incorrect: '+JSON.stringify(defeat));await page.waitForTimeout(200);if(await page.evaluate(phase=>__groveActor.motion.defeat!==phase,defeat.phase))errors.push(kind+' defeat moved during pause');
-  await page.screenshot({path:'/tmp/emberwild-grove-'+kind+'-defeat.png'});await page.keyboard.press('Escape');await page.waitForFunction(()=>!__groveActor.dying,null,{timeout:60000});
+  await page.screenshot({path:'/tmp/emberwild-grove-'+kind+'-defeat.png'});await page.keyboard.press('Escape');await lootBody(page,'__groveWorld',kind==='mother'?'rootboss':'s1');await page.waitForFunction(()=>!__groveActor.dying,null,{timeout:60000});
   if(await page.evaluate(()=>!!__groveWorld.scene.getObjectByName('RootMotherDefeat')||!!__groveWorld.scene.getObjectByName('ForestSpiritDefeat')))errors.push(kind+' defeat visual was not cleaned up');
   const saved=await currentState(page);if(!saved.kills.includes('g1')||saved.bowPractice.length!==1)errors.push(kind+' old progress was lost');
   await page.reload({waitUntil:'load'});await continueHero(page);
-  if(await page.evaluate(id=>__groveWorld.enemies.find(e=>e.id===id).mesh.visible,kind==='mother'?'rootboss':'s1'))errors.push(kind+' returned after reload');await page.close();
+  console.log('Browser: grove '+kind+' fight/loot/reload completed');if(await page.evaluate(id=>__groveWorld.enemies.find(e=>e.id===id).mesh.visible,kind==='mother'?'rootboss':'s1'))errors.push(kind+' returned before its saved respawn time');await page.close();
  }
 }
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.EMBERWILD_CHROMIUM_PATH?{executablePath:process.env.EMBERWILD_CHROMIUM_PATH}:{}),args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
+ if(process.argv.includes('--quest-loot-only')){const errors=[];await questLootBrowser.run(browser,errors);console.log('Quest/loot',JSON.stringify({errors}));await browser.close();if(errors.length)process.exit(1);return;}
  if(process.argv.includes('--grove-only')){const errors=[];await checkGrove(browser,errors);console.log('Grove creatures',JSON.stringify({errors}));await browser.close();if(errors.length)process.exit(1);return;}
- const page=await browser.newPage();
+ const page=await browser.newPage({viewport:{width:960,height:700}});
  // Observe native sources: opening/starting stays silent and attacks retain effects.
  await page.addInitScript(()=>{
   const Audio=window.AudioContext||window.webkitAudioContext;window.__audioProbe={available:!!Audio,buffers:0,notes:0};if(!Audio)return;
@@ -136,7 +140,7 @@ async function checkGrove(browser,errors){
  await page.screenshot({path:'/tmp/emberwild-model-play.png'});
  await page.waitForFunction(()=>window.__elinActor?.assets?.status==='ready');
  const forest=await page.evaluate(()=>({wolves:window.__wolves?.length,quiver:!!window.__elinActor.group.getObjectByName('ElinQuiver'),hidden:window.__wolves.every(w=>!w.group.visible)}));
- if(forest.wolves!==4||!forest.quiver||!forest.hidden)errors.push('Forest actors/gating incorrect: '+JSON.stringify(forest));
+ if(forest.wolves!==7||!forest.quiver||forest.hidden)errors.push('Forest actors/permanent visibility incorrect: '+JSON.stringify(forest));
  // Execute all three melee stages in the actual WebGL game, without needing an enemy.
  for(let step=1;step<=3;step++){
    if(step>1)await page.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});
@@ -212,10 +216,10 @@ async function checkGrove(browser,errors){
  const legacyFixture=await currentState(page);
  const fatal=await page.locator('#fatal').evaluate(n=>({hidden:n.hidden,text:n.textContent}));
  const overlay=await page.locator('#overlay').evaluate(n=>n.hidden);
- await page.screenshot({path:'/tmp/emberwild-start.png'});await page.close();
+ await page.screenshot({path:'/tmp/emberwild-start.png'});await page.close();console.log('Browser: base flow',JSON.stringify({errors}));
 
  // A separate context exercises the new class without replacing the legacy test save.
- const magePage=await browser.newPage();const mageErrors=[];
+ const magePage=await browser.newPage({viewport:{width:960,height:700}});const mageErrors=[];
  magePage.on('pageerror',e=>mageErrors.push(e.message));magePage.on('console',m=>{if(m.type()==='error')mageErrors.push(m.text());});
  await magePage.addInitScript(()=>{
   Object.defineProperty(window,'EmberMage',{configurable:true,set(api){
@@ -278,9 +282,9 @@ async function checkGrove(browser,errors){
  if(await magePage.locator('#character-create-2').count()!==1)mageErrors.push('Confirmed deletion did not free the third slot');
  await magePage.locator('#character-play-1').click();
  if(!((await magePage.locator('#player-name').textContent()).includes('Liora')))mageErrors.push('Selected hero name missing from HUD');
- errors.push(...mageErrors.map(e=>'Mage/roster: '+e));await magePage.close();
+ errors.push(...mageErrors.map(e=>'Mage/roster: '+e));await magePage.close();console.log('Browser: mage/roster flow',JSON.stringify({errors}));
  // Real-browser migration keeps the original save bytes and never reimports a deleted hero.
- const migrated=await browser.newPage();await observeForest(migrated);legacyFixture.x=-3;legacyFixture.z=18;migrated.on('pageerror',e=>errors.push('Migration: '+e.message));
+ const migrated=await browser.newPage({viewport:{width:960,height:700}});await observeForest(migrated);legacyFixture.x=-3;legacyFixture.z=18;migrated.on('pageerror',e=>errors.push('Migration: '+e.message));
  await migrated.addInitScript(raw=>{localStorage.setItem('emberwild-save-v1',raw);},JSON.stringify(legacyFixture));
  await migrated.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});
  const migration=await migrated.evaluate(()=>({roster:JSON.parse(localStorage.getItem('emberwild-characters-v1')),backup:localStorage.getItem('emberwild-save-v1')}));
@@ -313,7 +317,7 @@ async function checkGrove(browser,errors){
  await migrated.waitForFunction(()=>window.__wolves?.[0]?.motion.strike>.2,null,{timeout:30000});
  await migrated.keyboard.press('Escape');await migrated.locator('#new').click();await migrated.locator('#character-delete-0').click();await migrated.locator('#character-delete-accept').click();await migrated.reload({waitUntil:'load'});await migrated.locator('#play').click();
  if(await migrated.locator('[id^="character-play-"]').count()!==0||await migrated.locator('[id^="character-create-"]').count()!==3)errors.push('Deleted legacy hero was imported again');
- await migrated.close();
+ await migrated.close();console.log('Browser: migration/NPC flow',JSON.stringify({errors}));
 
  // A real boss fight exercises the weighted model, timed slam and cosmetic defeat.
  const bossPage=await browser.newPage({viewport:{width:960,height:640}});await observeForest(bossPage);bossPage.on('pageerror',e=>errors.push('Doornwachter: '+e.message));
@@ -337,15 +341,16 @@ async function checkGrove(browser,errors){
  }
  await bossPage.waitForFunction(()=>!__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible,null,{timeout:15000});await bossPage.keyboard.press('Escape');
  const defeat=await bossPage.evaluate(()=>({dying:__thornBoss.dying,separate:__thornBoss.model.parent!==__thornBoss.group,killed:JSON.parse(localStorage.getItem('emberwild-characters-v1')).slots[0].state.kills.includes('boss'),phase:__thornBoss.motion.defeat}));if(!defeat.dying||!defeat.separate||!defeat.killed)errors.push('Boss defeat/reward did not separate visuals from gameplay: '+JSON.stringify(defeat));await bossPage.waitForTimeout(200);if(await bossPage.evaluate(p=>__thornBoss.motion.defeat!==p,defeat.phase))errors.push('Cosmetic defeat moved during pause');
- await bossPage.screenshot({path:'/tmp/emberwild-thorn-defeat.png'});await bossPage.keyboard.press('Escape');await bossPage.waitForFunction(()=>!__thornBoss.dying,null,{timeout:60000});
+ await bossPage.screenshot({path:'/tmp/emberwild-thorn-defeat.png'});await bossPage.keyboard.press('Escape');await lootBody(bossPage,'__thornWorld','boss');await bossPage.waitForFunction(()=>!__thornBoss.dying,null,{timeout:60000});
  if(await bossPage.evaluate(()=>!!__thornWorld.scene.getObjectByName('DoornwachterDefeat')))errors.push('Boss corpse was not cleaned up');
- await bossPage.reload({waitUntil:'load'});await continueHero(bossPage);if(await bossPage.evaluate(()=>__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible||__thornBoss.dying))errors.push('Boss returned after reloading a completed save');await bossPage.close();
+ await bossPage.reload({waitUntil:'load'});await continueHero(bossPage);if(await bossPage.evaluate(()=>__thornWorld.enemies.find(e=>e.id==='boss').mesh.visible||__thornBoss.dying))errors.push('Boss returned before its saved respawn time');await bossPage.close();console.log('Browser: Doornwachter flow',JSON.stringify({errors}));
 
  await checkGrove(browser,errors);
+ await questLootBrowser.run(browser,errors);
  console.log('HTTP game flow completed',JSON.stringify({errors}));
  if(!process.argv.includes('--http-only')){
  // The embedded assets must also work when index.html is opened directly, without HTTP.
- const offline=await browser.newPage();const offlineErrors=[];
+ const offline=await browser.newPage({viewport:{width:960,height:700}});const offlineErrors=[];
  offline.on('pageerror',e=>offlineErrors.push(e.message));
  offline.on('console',m=>{if(m.type()==='error')offlineErrors.push(m.text());});
  await offline.goto(require('node:url').pathToFileURL(require('node:path').resolve('index.html')).href,{waitUntil:'load'});
