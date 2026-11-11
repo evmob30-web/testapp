@@ -9,6 +9,7 @@ on:
       - 'scripts/browser-start.cjs'
       - 'scripts/browser-quest-loot.cjs'
       - 'scripts/browser-terrain.cjs'
+      - 'scripts/browser-wolves.cjs'
       - '.github/workflows/browser-smoke.yml'
 jobs:
   browser:

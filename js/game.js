@@ -440,7 +440,7 @@ function update(dt){EmberEncounters.tick(state.encounters,dt);adventure.reconcil
  if(aggro){
   pos.y=e.boss||e.visual?0:Math.sin(time*9)*.06;
   if(e.stagger>0)continue;
-  e.mesh.rotation.y=Math.atan2(ex,ez);
+  e.mesh.rotation.y=e.mesh.userData.actor==='wolf'?EmberCombat.turnToward(e.mesh.rotation.y,Math.atan2(ex,ez),dt*7):Math.atan2(ex,ez);
   if(!e.boss){
    const evade=EmberEnemyAI.dodgeArrow(e,arrows);if(evade){e.dodgeVector=evade;world.burst(pos.x,pos.z,'#b2dfd1',3);}
    if(e.dodgeTime>0&&e.dodgeVector){
