@@ -20,7 +20,15 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save playwright
-      - run: npx playwright install --with-deps chromium
+      - name: Prepare Chromium
+        run: |
+          emberwild_browser_path="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$emberwild_browser_path" ]; then
+            "$emberwild_browser_path" --version
+            printf 'EMBERWILD_CHROMIUM_PATH=%s\n' "$emberwild_browser_path" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
       - run: nohup python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/emberwild-http.log 2>&1 &
       - run: node scripts/browser-start.cjs
       - uses: actions/upload-artifact@v4

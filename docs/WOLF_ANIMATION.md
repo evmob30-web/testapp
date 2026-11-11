@@ -26,3 +26,5 @@ EMBERWILD_BASE_URL=http://127.0.0.1:8781/ node scripts/browser-wolves.cjs
 ```
 
 Start voor de browsertest een HTTP-server vanuit de projectroot. De game zelf blijft rechtstreeks via `index.html` speelbaar. De wijziging wordt alleen op `feature/quest-loot-system` aangeboden.
+
+GitHub Actions gebruikt de al aanwezige Chrome-/Chromium-browser van de runner. Alleen als die ontbreekt, installeert de workflow Playwright Chromium met zijn systeemafhankelijkheden. Daardoor is voor de standaardrunner geen extra Ubuntu-pakketdownload nodig.
