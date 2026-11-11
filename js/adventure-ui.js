@@ -32,8 +32,8 @@ function create(doc,callbacks){
    append(button,el('span',item.icon,'item-symbol'),words,el('b','×'+entry.quantity));button.onclick=()=>callbacks.lootOne(spawnId,entry.id);$('corpse-loot-list').appendChild(button);
   });return rows.length;
  }
- function offers(npcId,selected){
-  const list=D.quests.filter(q=>q.giver===npcId||q.turnIn===npcId);$('npc-quest-options').replaceChildren();$('npc-quest-options').hidden=list.length<2;for(const q of list){const button=el('button',q.title,'quiet');button.type='button';button.setAttribute('aria-pressed',String(q.id===selected));button.onclick=()=>callbacks.showQuest(npcId,q.id);$('npc-quest-options').appendChild(button);}
+ function offers(npcId,selected,journal){
+  const list=Q.npcQuests(journal,npcId);$('npc-quest-options').replaceChildren();$('npc-quest-options').hidden=list.length<2;for(const q of list){const button=el('button',q.title,'quiet');button.type='button';button.setAttribute('aria-pressed',String(q.id===selected));button.onclick=()=>callbacks.showQuest(npcId,q.id);$('npc-quest-options').appendChild(button);}
  }
  $('quest-button').onclick=callbacks.openLog;$('quest-log-close').onclick=callbacks.closeLog;$('corpse-loot-close').onclick=callbacks.closeLoot;$('loot-all').onclick=callbacks.lootAll;
  return {render,renderLoot,offers,reset(){signature='';}};

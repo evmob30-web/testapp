@@ -13,9 +13,9 @@ Download of checkout deze branch en open `index.html`. De game blijft statisch e
 - **I**: uitrusting, gevonden pantser, materialen en questitems.
 - **Esc**: sluiten of pauzeren. Bestaande besturing blijft werken.
 
-Jager Rowan staat ten oosten van het kampvuur, op `(12, 9)`. Zijn opdracht **De wolvenplaag** vraagt vijf wolventanden van grijze wolven. Drie onafhankelijke spawnplaatsen liggen in het oostelijke woud op `(22, 4)`, `(25, -5)` en `(18, -12)`. Ze zijn al zichtbaar zonder opdracht. Elke geldige dood heeft 60% kans op één questgebonden tand. Een mislukte worp is mogelijk; een nieuwe spawn biedt een nieuwe kans. Reguliere vachten, goud en eventuele uitrusting blijven ook zonder quest beschikbaar.
+Jager Rowan staat ten oosten van het kampvuur, op `(12, 9)`. Zijn opdracht **De wolvenplaag** vraagt tien wolventanden van grijze wolven. Zes onafhankelijke spawnplaatsen liggen in het oostelijke woud op `(22, 4)`, `(25, -5)`, `(18, -12)`, `(30, -16)`, `(29, -28)` en `(18, -24)`. Ze zijn al zichtbaar zonder opdracht. Elke geldige dood heeft 60% kans op één questgebonden tand. Een mislukte worp is mogelijk; een nieuwe spawn biedt een nieuwe kans. Reguliere vachten, goud en eventuele uitrusting blijven ook zonder quest beschikbaar.
 
-Bij vijf opgepakte tanden wordt de opdracht `READY_TO_TURN_IN`. Rowan toont een geel vraagteken en geeft bij inleveren precies één keer **250 XP en 50 goud**. De vijf tanden worden verbruikt. Wolven en hun reguliere buit blijven daarna respawnen.
+Bij tien opgepakte tanden wordt de opdracht `READY_TO_TURN_IN`. Rowan toont een geel vraagteken en geeft bij inleveren precies één keer **250 XP en 50 goud**. De tien tanden worden verbruikt. Wolven en hun reguliere buit blijven daarna respawnen.
 
 ## Bestandsverdeling
 
@@ -26,6 +26,7 @@ Bij vijf opgepakte tanden wordt de opdracht `READY_TO_TURN_IN`. Rowan toont een 
 | `js/encounters.js` | Persistente enemy instances, unieke spawn-generaties, vaste corpse-loot, onafhankelijke respawnklok en claims. |
 | `js/adventure-world.js` | Bestaande 3D-actoren koppelen aan instances, Rowan, NPC-indicatoren, lichamen, glinstering, raycastselectie en rondlopen. |
 | `js/adventure-ui.js` | Questlog, tracker, materialen/questitems en het lootvenster. Alle inhoud komt uit definities en spelerstatus. |
+| `js/terrain.js`, `js/world.js` | Eén gesloten grondoppervlak met de oorspronkelijke graskleuren en paden; zie [terreinonderzoek](TERRAIN_FIX.md). |
 | `js/game.js` | Adapter voor bestaande gevechten, invoer, NPC-gesprekken, inventory, HUD en opslaan. |
 | `js/core.js` | Compatibele save-migratie, verhaalvlaggen en de nieuwe onafhankelijke vijandzichtbaarheid. |
 | `js/loot.js` | Bestaande pantsersystemen; genereert nu ook uitrusting voor een lichaam en ontvangt die veilig in de reistas. |
@@ -51,7 +52,8 @@ state.encounters = {
   version: 1,
   worldId: '...',
   clock: 0,
-  seed: 123,
+  seed: 123,        // loot-RNG
+  respawnSeed: 456, // onafhankelijke RNG voor respawntijden
   spawns: {}        // per spawn: generatie, instanceId, HP, positie, dood en loot
 };
 ```
@@ -60,11 +62,21 @@ De unieke instance-ID bevat wereld, spawn-ID en generatie. Elke bestaande en nie
 
 Bij dood wordt de loot precies één keer samengesteld en opgeslagen. Het lichaam bevat eigen entry-ID's. Een pickup verwijdert de betreffende entry; opnieuw klikken of opnieuw openen kan haar niet nogmaals geven. Herladen herstelt dezelfde lijst, al verzamelde items blijven verdwenen en de timer behoudt de resterende tijd. Uitrusting in nog niet gelote lichamen reserveert haar UID, zodat latere uitrusting daarmee niet kan botsen.
 
-De standaard respawn is **30 seconden speeltijd vanaf de dood**. Een niet leeggeloot lichaam verdwijnt standaard na 25 seconden; een leeg lichaam verdwijnt meteen. Respawn blijft op de oorspronkelijke 30-seconden-deadline. Een respawn krijgt volledige HP, een nieuwe instance-ID en een nieuwe lootmogelijkheid. Afzonderlijke spawnplaatsen lopen onafhankelijk. Instellingen staan in de data.
+De timer start bij de dood. Iedere spawn trekt onafhankelijk één wachttijd uit zijn bereik en bewaart `respawnDelay` en de absolute `respawnAt` op de spelklok. Looten, quests accepteren/inleveren en herladen trekken geen nieuwe tijd. Een niet leeggeloot lichaam verdwijnt standaard na 25 seconden; een leeg lichaam verdwijnt meteen. Beide veranderen de gekozen respawndeadline niet. Een respawn krijgt volledige HP, een nieuwe instance-ID en een nieuwe lootmogelijkheid.
+
+| Profiel | Seconden speeltijd |
+| --- | --- |
+| Dieren, beide wolventypes | 120–180 |
+| Gewone monsters, Bosgeest en Wortelwacht | 120–240 |
+| Sterkere monsters, Sporenwachter | 180–300 |
+| Eliteprofiel, beschikbaar voor toekomstige definities | 300–600 |
+| Doornwachter / Wortelmoeder | 300 / 600, individueel instelbaar |
+
+Een enemy definition gebruikt bijvoorbeeld `respawnSeconds: [120, 180]`; een spawn kan dit met zijn eigen bereik of vast aantal seconden overschrijven. De RNG voor de timer staat los van die voor loot. Oude dode instances zonder opgeslagen wachttijd migreren deterministisch vanuit hun instance-ID naar het nieuwe bereik, zonder hun loot opnieuw te rollen. Een reeds opgeslagen geldige wachttijd blijft staan, ook na een latere configuratiewijziging.
 
 **Tijdkeuze:** pauze, gesprekken, questlog, lootvenster en inventaris pauzeren de spelklok, net als andere bestaande spelsystemen. Offline verstreken tijd telt niet mee. Herladen start de timer niet opnieuw. Deze eerste versie is singleplayer met lokale opslag; er is geen server of multiplayer-validatie. Bestaande bescherming tegen overschrijven door een verouderd tabblad blijft gelden.
 
-Bestaande questvlaggen en eerder behaalde verhaalbeloningen blijven bewaard. Ze bepalen niet meer of een nieuwe vijand-instance zichtbaar mag zijn. Elins bestaande verhaal, kristallen, ingang, oefendoelen en verkenningsobjecten behouden hun eigen questvoorwaarden. Een vroeg verslagen Doornwachter blokkeert het verhaal niet: na de kristallen kun je het al behaalde resultaat inleveren.
+Bestaande questvlaggen en eerder behaalde verhaalbeloningen blijven bewaard. Ze bepalen niet meer of een nieuwe vijand-instance zichtbaar mag zijn. Elins bestaande verhaal, kristallen, ingang, oefendoelen en verkenningsobjecten behouden hun eigen questvoorwaarden. Elins wolvenopdracht telt eveneens nieuwe instances van hetzelfde type: drie opeenvolgende schemerwolven van dezelfde spawn voldoen. Oude unieke killvlaggen blijven voor verhaalbeloningen bewaard; oude saves krijgen hun eerdere wolvenprogressie mee. Een vroeg verslagen Doornwachter blokkeert het verhaal niet: na de kristallen kun je het al behaalde resultaat inleveren.
 
 ## Questregels
 
@@ -84,7 +96,9 @@ Questloot wordt uitsluitend gegenereerd wanneer quest én objective geldig zijn,
 
 Een questitem kan niet via een gewone loot table in de materiaalinventaris terechtkomen. Elke questloot-entry bevat `questId` en `objectiveId`. Twee quests kunnen dezelfde wolf en hetzelfde itemtemplate gebruiken, maar ontvangen afzonderlijke entries en afzonderlijke stapels. Eén tand wordt nooit onbedoeld aan beide quests toegekend. KILL-voortgang is onafhankelijk van de vraag of een questitem dropt of wordt opgepakt.
 
-NPC-indicatoren volgen de persoonlijke voortgang: geel `!` voor een nieuwe opdracht, grijs `?` voor een actieve opdracht en geel `?` voor inleveren. Bij meerdere opdrachten krijgt een in te leveren opdracht voorrang. Het NPC-venster biedt knoppen om tussen zijn opdrachten te kiezen.
+NPC-indicatoren volgen de persoonlijke voortgang: geel `!` voor een nieuwe opdracht, grijs `?` voor een actieve opdracht en geel `?` voor inleveren. Bij meerdere opdrachten krijgt een in te leveren opdracht voorrang. Alleen de juiste inlever-NPC toont het gele vraagteken. Dezelfde statusfunctie stuurt de indicatoren en de tracker aan. Dit geldt ook voor Elins hoofdverhaal/boogtraining en Mira's opdracht; de oude uitroeptekens zijn uit de scene gehaald. Het NPC-venster biedt knoppen om tussen zijn opdrachten te kiezen.
+
+Bij migratie van de oude vijf-tandenopdracht blijven vijf verzamelde tanden behouden als 5/10. Een eerder ingeleverde opdracht blijft voltooid (10/10), verbruikt geen extra items en betaalt nooit opnieuw.
 
 ## Uitbreiden met data
 
@@ -124,6 +138,8 @@ EMBERWILD_BASE_URL=http://127.0.0.1:8780/ node scripts/browser-quest-loot.cjs
 
 Met `EMBERWILD_CHROMIUM_PATH` kan een bestaande Chromium-installatie worden gebruikt. `--http-only` bij `browser-start.cjs` slaat uitsluitend het file://-gedeelte over voor beheerde browsers die directe lokale navigatie blokkeren. GitHub Actions voert de volledige test uit.
 
-De 130 Node-tests omvatten de bestaande game en 18 extra controles voor kansen, vijf questtypes, meerdere quests, idempotentie, deadlines, reload, inventaristransfers, gear-UID's, gescheiden personages, echte liggende modellen, vaste loot en voltooiing met exact één beloning. De volledige 3D-gameplaytest blijft het oorspronkelijke hoofdverhaal, de grot, classes, magie, uitrusting en opslag uitvoeren met de gewijzigde zichtbaarheid.
+De 143 Node-tests omvatten de bestaande game en extra controles voor kansen, vijf questtypes, meerdere quests, idempotentie, deadlines, reload, inventaristransfers, gear-UID's, gescheiden personages, echte liggende modellen, vaste loot en voltooiing met exact één beloning. De volledige 3D-gameplaytest blijft het oorspronkelijke hoofdverhaal, de grot, classes, magie, uitrusting en opslag uitvoeren met de gewijzigde zichtbaarheid.
 
-De nieuwe Chromium-test voert echte NPC-acties, WASD-beweging, combat, klikselectie, loot per item, Loot All, vijf tanden, tracker, questlog, inleveren en herladen uit. Zij controleert ook een dood vóór acceptatie, geen retroactieve questloot, dubbele clicks, twee onafhankelijke quests en respawn na voltooiing. De loot-RNG krijgt een vaste testseed; de productiekans blijft werkelijk 60%. Voor het overslaan van wachttijd roept alleen de test de echte encounterklok met 30 seconden aan. De Node-tests controleren daarnaast de precieze 29,99/30-seconden-grens. Er worden geen debug- of testbedieningen in de productiegame ingebouwd.
+De nieuwe Chromium-test voert echte NPC-acties, WASD-beweging, combat, klikselectie, loot per item, Loot All, tien tanden, tracker, questlog, inleveren en herladen uit. Zij controleert ook een dood vóór acceptatie, geen retroactieve questloot, dubbele clicks, twee onafhankelijke quests en respawn na voltooiing. De loot-RNG krijgt een vaste testseed; de productiekans blijft werkelijk 60%. Voor het overslaan van wachttijd roept alleen de test de echte encounterklok aan tot de opgeslagen, werkelijk gekozen deadline. De Node-tests controleren de grens vlak vóór en op die deadline, onafhankelijke timers, variatie, oude saves en onveranderde deadlines na looten/questacties/herladen. De tests met een vast 30-secondenprofiel blijven als compatibiliteitscontrole bestaan. Er worden geen debug- of testbedieningen in de productiegame ingebouwd.
+
+De terreincontrole is onderdeel van de volledige browsertest. Zie [oorzaak, geometrie en controlepunten](TERRAIN_FIX.md).

@@ -8,9 +8,8 @@ const box=(w,h,d,color,x,y,z,parent)=>mesh(new T.BoxGeometry(w,h,d),color,x,y,z,
 const cone=(r,h,color,x,y,z,n=7,parent)=>mesh(new T.ConeGeometry(r,h,n),color,x,y,z,parent);
 const sphere=(r,color,x,y,z,parent)=>mesh(new T.IcosahedronGeometry(r,0),color,x,y,z,parent);
 scene.add(new T.HemisphereLight('#e4eddb','#344d40',2.15));const sun=new T.DirectionalLight('#ffe0ae',2.6);sun.position.set(-25,48,25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-45,right:45,top:55,bottom:-55,near:1,far:125});sun.shadow.bias=-.001;sun.target.position.z=-16;scene.add(sun,sun.target);
-box(170,.5,190,'#77916a',0,-.35,-20);const path=box(5,.04,90,'#b2a27b',0,-.07,-15);box(25,.05,4,'#b2a27b',0,-.06,21);
-// Broad patches break up the flat meadow without obscuring combat.
-for(let i=0;i<35;i++){const x=Math.sin(i*93.2)*33,z=-58+(i*17.3%91);const p=mesh(new T.CircleGeometry(2+i%4,7),i%2?'#83986d':'#6f8c67',x,-.04,z);p.rotation.x=-Math.PI/2;}
+// Colour regions share one surface; overlapping decorative planes caused z-fighting.
+scene.add(EmberTerrain.create(T));
 let seed=47;const rand=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
 function tree(x,z,scale=1){const g=new T.Group();g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);box(.6,3,.6,'#665449',0,1.5,0,g);for(let j=0;j<3;j++){const crown=cone(2-j*.35,3.3-j*.3,['#486c53','#557b59','#6b8a61'][j],0,3.1+j*1.15,0,7,g);cameraMeshes.push(crown);}colliders.push({x,z,r:.8*scale});}
 for(let i=0;i<85;i++){let x=(rand()-.5)*95,z=rand()*115-73;if(Math.abs(x)<6||z>10&&Math.abs(x)<19)continue;if(RPG.explorationSpots.some(p=>Math.hypot(x-p.x,z-p.z)<3.2))continue;if(RPG.crystals.some(c=>Math.hypot(x-c.x,z-c.z)<4)||RPG.enemies.some(e=>Math.hypot(x-e.x,z-e.z)<4))continue;const size=.7+rand()*.65;if(globalThis.EmberAdventureData&&[...EmberAdventureData.extraEnemies,...Object.values(EmberAdventureData.npcs)].some(p=>Math.hypot(x-p.x,z-p.z)<3.5))continue;tree(x,z,size);}

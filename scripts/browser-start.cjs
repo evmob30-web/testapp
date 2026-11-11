@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const questLootBrowser=require('./browser-quest-loot.cjs');
+const terrainBrowser=require('./browser-terrain.cjs');
 async function currentState(page){return page.evaluate(()=>{const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));return roster?.slots[roster.active]?.state;});}
 async function continueHero(page,index=0){await page.locator('#play').click();await page.locator('#character-play-'+index).click();}
 async function observeForest(page){await page.addInitScript(()=>{
@@ -140,7 +141,7 @@ async function checkGrove(browser,errors){
  await page.screenshot({path:'/tmp/emberwild-model-play.png'});
  await page.waitForFunction(()=>window.__elinActor?.assets?.status==='ready');
  const forest=await page.evaluate(()=>({wolves:window.__wolves?.length,quiver:!!window.__elinActor.group.getObjectByName('ElinQuiver'),hidden:window.__wolves.every(w=>!w.group.visible)}));
- if(forest.wolves!==7||!forest.quiver||forest.hidden)errors.push('Forest actors/permanent visibility incorrect: '+JSON.stringify(forest));
+ if(forest.wolves!==10||!forest.quiver||forest.hidden)errors.push('Forest actors/permanent visibility incorrect: '+JSON.stringify(forest));
  // Execute all three melee stages in the actual WebGL game, without needing an enemy.
  for(let step=1;step<=3;step++){
    if(step>1)await page.waitForFunction(()=>document.getElementById('attack-cd').textContent==='Klaar',null,{timeout:25000});
@@ -347,6 +348,7 @@ async function checkGrove(browser,errors){
 
  await checkGrove(browser,errors);
  await questLootBrowser.run(browser,errors);
+ await terrainBrowser.run(browser,errors);
  console.log('HTTP game flow completed',JSON.stringify({errors}));
  if(!process.argv.includes('--http-only')){
  // The embedded assets must also work when index.html is opened directly, without HTTP.

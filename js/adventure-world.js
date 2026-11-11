@@ -13,8 +13,13 @@ function create(world){
  const hat=new T.Mesh(new T.SphereGeometry(.34,14,8,0,Math.PI*2,0,Math.PI/2),felt);hat.scale.set(1,.85,.94);hat.position.set(0,.28,0);rowan.joints.head.add(hat);
  const brim=new T.Mesh(new T.TorusGeometry(.32,.045,5,18),band);brim.scale.set(1.3,1,.7);brim.rotation.x=Math.PI/2;brim.position.y=.28;rowan.joints.head.add(brim);
  world.scene.add(rowan.group);const nameplate=label(npc.name,'#e8e3bd');nameplate.position.set(npc.x,3.55,npc.z);world.scene.add(nameplate);
- const indicator=new T.Group();indicator.name='RowanQuestIndicator';indicator.position.set(npc.x,4.35,npc.z);world.scene.add(indicator);
- const symbols=[label('!','#f1ca70',128),label('?','#a6aaa7',128),label('?','#f1ca70',128)];symbols.forEach(s=>indicator.add(s));world.registerNPC('rowan',rowan,nameplate,indicator,{yaw:-.35,forward:4.7,side:2,targetSide:1.15});
+ world.registerNPC('rowan',rowan,nameplate,null,{yaw:-.35,forward:4.7,side:2,targetSide:1.15});
+ const templates=[label('!','#f1ca70',128),label('?','#a6aaa7',128),label('?','#f1ca70',128)],indicators=new Map();
+ for(const [id,entry]of world.npcActors){
+  if(entry.questMarker){entry.questMarker.visible=false;entry.questMarker.removeFromParent();}const group=new T.Group();group.name=id==='rowan'?'RowanQuestIndicator':id+'QuestIndicator';group.userData.npcId=id;
+  const symbols=templates.map(template=>{const sprite=new T.Sprite(template.material);sprite.scale.copy(template.scale);group.add(sprite);return sprite;});world.scene.add(group);entry.questMarker=group;indicators.set(id,{group,symbols,actor:entry.actor});
+ }
+ const indicator=indicators.get('rowan').group;
  const ringGeometry=new T.RingGeometry(.34,.39,28),sparkGeometry=new T.OctahedronGeometry(.065),gold=new T.MeshBasicMaterial({color:'#e8c87b',transparent:true,opacity:.65,side:T.DoubleSide,depthWrite:false});
  function removeBody(id){
   const entry=bodies.get(id);if(!entry)return;entry.marker.removeFromParent();if(entry.fallback)entry.model.removeFromParent();else entry.enemy.visual.reset();bodies.delete(id);
@@ -44,10 +49,14 @@ function create(world){
    if(show){const entry=bodies.get(enemy.id);if(!entry||entry.instanceId!==current.instanceId){removeBody(enemy.id);makeBody(enemy,current,state);}}
    else removeBody(enemy.id);
   }
-  const statuses=data.quests.filter(q=>q.giver==='rowan'||q.turnIn==='rowan').map(q=>Q.status(state.journal,q.id)),code=statuses.includes('READY_TO_TURN_IN')?2:statuses.includes('NOT_STARTED')?0:statuses.includes('ACTIVE')?1:-1;
-  indicator.visible=state.area==='valley'&&!world.conversation&&code>=0;symbols.forEach((s,i)=>s.visible=i===code);indicator.userData.questStatus=code===2?'ready':code===1?'active':code===0?'available':'completed';nameplate.visible=state.area==='valley'&&!world.conversation;rowan.group.visible=state.area==='valley';
+  rowan.group.visible=state.area==='valley';nameplate.visible=state.area==='valley'&&!world.conversation;
+  for(const [id,entry]of indicators){
+   const status=Q.npcStatus(state.journal,id,root.RPG.npcQuestStatuses(state,id)),code=status==='READY_TO_TURN_IN'?2:status==='NOT_STARTED'?0:status==='ACTIVE'?1:-1;
+   entry.group.position.copy(entry.actor.group.position);entry.group.position.y+=4.35;entry.group.visible=(data.npcs[id]?.area||'valley')===state.area&&entry.actor.group.visible&&!world.conversation&&code>=0;entry.symbols.forEach((sprite,i)=>sprite.visible=i===code);entry.group.userData.questStatus=code===2?'ready':code===1?'active':code===0?'available':'completed';
+  }
  }
- function update(dt,time,state){reconcile(state);for(const entry of bodies.values()){entry.marker.rotation.y=time*.32;entry.marker.children.forEach((m,i)=>{if(i)m.position.y=.65+(i-1)*.14+Math.sin(time*2+i)*.09;});}indicator.position.y=4.35+Math.sin(time*1.8)*.09;}
+ function update(dt,time,state){reconcile(state);for(const entry of bodies.values()){entry.marker.rotation.y=time*.32;entry.marker.children.forEach((m,i)=>{if(i)m.position.y=.65+(i-1)*.14+Math.sin(time*2+i)*.09;});}for(const entry of indicators.values())entry.group.position.y+=Math.sin(time*1.8)*.09;}
+
  function nearest(state){let found=null,best=3.1;for(const [id,entry]of bodies){const p=entry.marker.position,d=Math.hypot(state.x-p.x,state.z-p.z);if(d<best){best=d;found=id;}}return found;}
  function pick(raycaster){let found=null,best=Infinity;for(const [id,entry]of bodies){entry.model.updateWorldMatrix(true,true);entry.marker.updateWorldMatrix(true,true);const hits=[...raycaster.intersectObject(entry.model,true),...raycaster.intersectObject(entry.marker,true)];for(const hit of hits)if(hit.distance<best){best=hit.distance;found=id;}}return found;}
  function wander(enemy,dt,state){
@@ -55,7 +64,7 @@ function create(world){
   if(d<.08)return true;const step=Math.min(d,dt*.65),nx=enemy.mesh.position.x+dx/d*step,nz=enemy.mesh.position.z+dz/d*step;
   if(!world.colliders.some(c=>Math.hypot(nx-c.x,nz-c.z)<c.r+.6)){enemy.mesh.position.x=nx;enemy.mesh.position.z=nz;enemy.mesh.rotation.y=root.EmberCombat.turnToward(enemy.mesh.rotation.y,Math.atan2(dx,dz),dt*2.1);}return true;
  }
- return {rowan,indicator,nameplate,bodies,reconcile,update,reset,nearest,pick,wander};
+ return {rowan,indicator,indicators,nameplate,bodies,reconcile,update,reset,nearest,pick,wander};
 }
 root.EmberAdventureWorld={create};
 })(typeof window==='undefined'?globalThis:window);

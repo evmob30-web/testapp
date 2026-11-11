@@ -29,7 +29,7 @@ function create({quests=[],items={}}={}){
    const old=record(record(data.quests)[id]);if(!['ACTIVE','READY_TO_TURN_IN','COMPLETED'].includes(old.status))continue;
    const entry={status:old.status==='COMPLETED'?'COMPLETED':'ACTIVE',objectives:{}};result.quests[id]=entry;
    for(const o of q.objectives){
-    const p=record(record(old.objectives)[o.id]);entry.objectives[o.id]={count:integer(p.count,0,o.count),seen:Array.isArray(p.seen)?[...new Set(p.seen.filter(v=>typeof v==='string'&&v.length<=160))].slice(0,o.count):[]};
+    const p=record(record(old.objectives)[o.id]);entry.objectives[o.id]={count:entry.status==='COMPLETED'?o.count:integer(p.count,0,o.count),seen:Array.isArray(p.seen)?[...new Set(p.seen.filter(v=>typeof v==='string'&&v.length<=160))].slice(0,o.count):[]};
     if(o.type==='QUEST_LOOT'&&entry.status!=='COMPLETED')result.questItems[binding(id,o.id)]=integer(record(data.questItems)[binding(id,o.id)],0,o.count);
    }refresh(result,id);
   }return result;
@@ -70,11 +70,20 @@ function create({quests=[],items={}}={}){
   for(const o of q.objectives){if(o.type==='COLLECT')s.inventory[o.itemId]-=o.count;if(o.type==='QUEST_LOOT')delete s.questItems[binding(qid,o.id)];}
   s.quests[qid].status='COMPLETED';for(const id of definitions.keys())refresh(s,id);return {xp:integer(q.rewards?.xp,0,99999),gold:integer(q.rewards?.gold,0,99999)};
  }
+ function npcQuests(s,npcId){
+  const priority=q=>{const current=status(s,q.id);return current==='READY_TO_TURN_IN'&&q.turnIn===npcId?0:current==='NOT_STARTED'?1:current==='COMPLETED'?3:2;};
+  return [...definitions.values()].filter(q=>q.giver===npcId||q.turnIn===npcId&&status(s,q.id)!=='NOT_STARTED').sort((a,b)=>priority(a)-priority(b));
+ }
+ function npcStatus(s,npcId,legacy=[]){
+  const states=[...legacy];for(const [id,q]of definitions){const current=status(s,id);if(current==='NOT_STARTED'&&q.giver===npcId)states.push(current);else if(current==='READY_TO_TURN_IN'&&q.turnIn===npcId)states.push(current);else if((current==='ACTIVE'||current==='READY_TO_TURN_IN')&&(q.giver===npcId||q.turnIn===npcId))states.push('ACTIVE');}
+  return states.includes('READY_TO_TURN_IN')?'READY_TO_TURN_IN':states.includes('NOT_STARTED')?'NOT_STARTED':states.includes('ACTIVE')?'ACTIVE':'COMPLETED';
+ }
+
  function inventory(s){
   const list=Object.entries(s.inventory).filter(([,n])=>n>0).map(([itemId,quantity])=>({itemId,quantity,quest:false}));
   for(const [qid,q]of definitions)for(const o of q.objectives){const quantity=s.questItems[binding(qid,o.id)]||0;if(quantity>0)list.push({itemId:o.itemId,quantity,quest:true,questId:qid,objectiveId:o.id});}return list;
  }
- return {fresh,restore,accept,status,progress,notify,signal,eligible,questDrops,collectQuest,collectRegular,turnIn,inventory,definitions,items,binding};
+ return {fresh,restore,accept,status,progress,notify,signal,eligible,questDrops,collectQuest,collectRegular,turnIn,npcStatus,npcQuests,inventory,definitions,items,binding};
 }
 root.EmberQuests={...create(root.EmberAdventureData),create};
 })(typeof window==='undefined'?globalThis:window);

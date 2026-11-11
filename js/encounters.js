@@ -3,11 +3,20 @@
 'use strict';
 const object=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{},number=(v,a,b)=>Number.isFinite(v)?Math.max(a,Math.min(b,v)):a;
 function create(data=root.EmberAdventureData,quests=root.EmberQuests){
- const spawnDefinitions=new Map();for(const spawn of data.spawns){if(!spawn.id||spawnDefinitions.has(spawn.id)||!spawn.enemyType||!Number.isFinite(spawn.stats?.hp)||spawn.stats.hp<=0||!Number.isFinite(spawn.respawnSeconds)||spawn.respawnSeconds<=0||!Number.isFinite(spawn.corpseSeconds)||spawn.corpseSeconds<0)throw Error('Invalid or duplicate spawn definition');spawnDefinitions.set(spawn.id,spawn);}
+ const spawnDefinitions=new Map();
+ function respawnRange(spawn){const value=spawn.respawnSeconds,r=Array.isArray(value)?value:[value,value];if(r.length!==2||!r.every(Number.isFinite)||r[0]<=0||r[1]<r[0]||r[1]>86400)throw Error('Invalid respawn range');return r;}
+ for(const spawn of data.spawns){if(!spawn.id||spawnDefinitions.has(spawn.id)||!spawn.enemyType||!Number.isFinite(spawn.stats?.hp)||spawn.stats.hp<=0||!Number.isFinite(spawn.corpseSeconds)||spawn.corpseSeconds<0)throw Error('Invalid or duplicate spawn definition');respawnRange(spawn);spawnDefinitions.set(spawn.id,spawn);}
+ const pickDelay=(range,u)=>range[0]===range[1]?range[0]:range.every(Number.isInteger)?range[0]+Math.floor(u*(range[1]-range[0]+1)):range[0]+u*(range[1]-range[0]);
+ function timerRandom(state){state.respawnSeed=(Math.imul(state.respawnSeed,1664525)+1013904223)>>>0;return state.respawnSeed/4294967296;}
+ function migratedDelay(current,prior,spawn){
+  if(Number.isFinite(prior.respawnDelay)&&prior.respawnDelay>0&&prior.respawnDelay<=86400)return prior.respawnDelay;
+  const range=respawnRange(spawn),saved=prior.respawnAt-current.deadAt;if(Number.isFinite(saved)&&saved>=range[0]&&saved<=range[1])return saved;
+  let hash=2166136261;for(let i=0;i<current.instanceId.length;i++)hash=Math.imul(hash^current.instanceId.charCodeAt(i),16777619)>>>0;return pickDelay(range,hash/4294967296);
+ }
  const newWorld=()=>Date.now().toString(36)+Math.floor(Math.random()*0xffffff).toString(36);
  const identity=(state,spawn,generation)=>state.worldId+'/'+spawn.id+'/'+generation;
- function instance(state,spawn,generation=1){return {instanceId:identity(state,spawn,generation),spawnId:spawn.id,enemyType:spawn.enemyType,generation,status:'alive',hp:spawn.stats.hp,x:spawn.x,z:spawn.z,deadAt:0,respawnAt:0,corpse:null};}
- function fresh(){const state={version:1,worldId:newWorld(),clock:0,seed:Math.floor(Math.random()*0x7ffffffe)+1,spawns:{}};for(const spawn of spawnDefinitions.values())state.spawns[spawn.id]=instance(state,spawn);return state;}
+ function instance(state,spawn,generation=1){return {instanceId:identity(state,spawn,generation),spawnId:spawn.id,enemyType:spawn.enemyType,generation,status:'alive',hp:spawn.stats.hp,x:spawn.x,z:spawn.z,deadAt:0,respawnDelay:0,respawnAt:0,corpse:null};}
+ function fresh(){const state={version:1,worldId:newWorld(),clock:0,seed:Math.floor(Math.random()*0x7ffffffe)+1,spawns:{}};state.respawnSeed=(state.seed^0x9e3779b9)>>>0;for(const spawn of spawnDefinitions.values())state.spawns[spawn.id]=instance(state,spawn);return state;}
  function random(state){state.seed=(Math.imul(state.seed,1664525)+1013904223)>>>0;return state.seed/4294967296;}
  function hasChance(chance,roll){return chance===100||chance>0&&roll()<chance/100;}
  function normalizeLoot(raw,current,spawn){
@@ -32,13 +41,13 @@ function create(data=root.EmberAdventureData,quests=root.EmberQuests){
  function restore(raw){
   const state=fresh(),old=object(raw);if(old.version!==1)return state;
   if(typeof old.worldId==='string'&&/^[a-zA-Z0-9-]{1,40}$/.test(old.worldId))state.worldId=old.worldId;
-  state.clock=number(old.clock,0,1e9);state.seed=Number.isFinite(old.seed)?Math.floor(number(old.seed,0,4294967295)):state.seed;
+  state.clock=number(old.clock,0,1e9);state.seed=Number.isFinite(old.seed)?Math.floor(number(old.seed,0,4294967295)):state.seed;state.respawnSeed=Number.isFinite(old.respawnSeed)?Math.floor(number(old.respawnSeed,0,4294967295)):(state.seed^0x9e3779b9)>>>0;
   for(const spawn of spawnDefinitions.values()){
    const prior=object(object(old.spawns)[spawn.id]),generation=Math.floor(number(prior.generation,1,1e9)),current=instance(state,spawn,generation);state.spawns[spawn.id]=current;
    const x=number(prior.x,spawn.x-19,spawn.x+19),z=number(prior.z,spawn.z-19,spawn.z+19);if(Number.isFinite(prior.x)&&Number.isFinite(prior.z)){current.x=x;current.z=z;}
    current.hp=Number.isFinite(prior.hp)?number(prior.hp,1,spawn.stats.hp):spawn.stats.hp;
    if(prior.status==='dead'){
-    current.status='dead';current.hp=0;current.deadAt=number(prior.deadAt,0,state.clock);current.respawnAt=current.deadAt+spawn.respawnSeconds;
+    current.status='dead';current.hp=0;current.deadAt=number(prior.deadAt,0,state.clock);current.respawnDelay=migratedDelay(current,prior,spawn);current.respawnAt=current.deadAt+current.respawnDelay;
     if(prior.corpse&&state.clock<current.deadAt+spawn.corpseSeconds){const loot=normalizeLoot(object(prior.corpse).loot,current,spawn);if(loot.length)current.corpse={id:current.instanceId,expiresAt:current.deadAt+spawn.corpseSeconds,loot};}
    }
   }tick(state,0);return state;
@@ -53,7 +62,7 @@ function create(data=root.EmberAdventureData,quests=root.EmberQuests){
  }
  function defeat(state,journal,spawnId,{x,z,gear,roll}={}){
   const spawn=spawnDefinitions.get(spawnId),current=state.spawns[spawnId];if(!spawn||!current||current.status!=='alive')return null;
-  current.status='dead';current.hp=0;if(Number.isFinite(x)&&Number.isFinite(z)){current.x=x;current.z=z;}current.deadAt=state.clock;current.respawnAt=state.clock+spawn.respawnSeconds;
+  current.status='dead';current.hp=0;if(Number.isFinite(x)&&Number.isFinite(z)){current.x=x;current.z=z;}current.deadAt=state.clock;const range=respawnRange(spawn);current.respawnDelay=pickDelay(range,range[0]===range[1]?0:timerRandom(state));current.respawnAt=state.clock+current.respawnDelay;
   quests.notify(journal,{id:current.instanceId,type:'KILL',enemyType:spawn.enemyType});
   const next=roll||(()=>random(state)),loot=[];
   for(const rule of data.lootTables[spawn.stats.lootTable]||[]){
@@ -82,7 +91,7 @@ function create(data=root.EmberAdventureData,quests=root.EmberQuests){
   for(const e of enemies){const current=state.spawns[e.id];if(!current||current.status!=='alive')continue;current.hp=Math.max(1,e.hp);current.x=e.mesh.position.x;current.z=e.mesh.position.z;}
  }
  function maxGearUID(state){let uid=0;for(const e of Object.values(state.spawns))for(const row of e.corpse?.loot||[])if(row.kind==='equipment')uid=Math.max(uid,row.gear.uid);return uid;}
- return {fresh,restore,random,tick,defeat,available,claim,snapshot,maxGearUID,spawnDefinitions};
+ return {fresh,restore,random,tick,defeat,available,claim,snapshot,maxGearUID,spawnDefinitions,respawnRange};
 }
 root.EmberEncounters={...create(),create};
 })(typeof window==='undefined'?globalThis:window);

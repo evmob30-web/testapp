@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 require('../js/core.js');require('../js/loot.js');require('../js/adventure-data.js');require('../js/quest-system.js');require('../js/encounters.js');
-const data=EmberAdventureData,Q=EmberQuests,E=EmberEncounters,id='gray-east-1';
+const data=EmberAdventureData,Q=EmberQuests,E=EmberEncounters.create({...EmberAdventureData,spawns:EmberAdventureData.spawns.map(s=>({...s,respawnSeconds:30}))},EmberQuests),id='gray-east-1';
 const setup=()=>({journal:Q.fresh(),encounters:E.fresh()});
 const death=(s,spawn=id,roll=()=>0)=>E.defeat(s.encounters,s.journal,spawn,{roll});
 test('wolves exist without quests and drop only regular loot; each spawn has independent identity and health',()=>{
@@ -32,7 +32,7 @@ test('all five objective types work together and talk/interact/kill events are i
  assert.deepEqual(q.turnIn(s,'mixed','elin'),{xp:30,gold:7});assert.equal(s.inventory.wolf_pelt,0);assert.equal(q.turnIn(s,'mixed','elin'),null);assert.equal(q.status(q.restore(s),'mixed'),'COMPLETED');
 });
 test('two active quests use the same wolf independently, and kill progress is separate from picked-up items',()=>{
- const quests=[...data.quests,{id:'hunt',giver:'rowan',turnIn:'rowan',objectives:[{id:'kills',type:'KILL',enemyType:'gray_wolf',count:8}],rewards:{xp:10,gold:5}}],q=Q.create({...data,quests}),e=E.create(data,q),journal=q.fresh(),encounters=e.fresh();
+ const quests=[...data.quests,{id:'hunt',giver:'rowan',turnIn:'rowan',objectives:[{id:'kills',type:'KILL',enemyType:'gray_wolf',count:8}],rewards:{xp:10,gold:5}}],q=Q.create({...data,quests}),e=EmberEncounters.create(data,q),journal=q.fresh(),encounters=e.fresh();
  q.accept(journal,'wolf_plague','rowan');q.accept(journal,'hunt','rowan');const corpse=e.defeat(encounters,journal,id,{roll:()=>0});assert.equal(q.progress(journal,'hunt','kills'),1);assert.equal(q.progress(journal,'wolf_plague','teeth'),0);
  const tooth=corpse.corpse.loot.find(i=>i.kind==='quest');e.claim(encounters,journal,id,tooth.id);assert.equal(q.progress(journal,'hunt','kills'),1);assert.equal(q.progress(journal,'wolf_plague','teeth'),1);
 });
@@ -56,7 +56,7 @@ test('accepting a quest after a kill cannot add quest loot to that existing corp
 });
 test('the complete Rowan quest pays 250 XP and 50 gold once and wolves keep respawning after turn-in',()=>{
  const s=setup(),player=RPG.fresh();Q.accept(s.journal,'wolf_plague','rowan');
- for(let i=0;i<5;i++){
+ for(let i=0;i<data.quests[0].objectives[0].count;i++){
   death(s);const item=E.available(s.encounters,s.journal,id).find(i=>i.kind==='quest');assert.ok(item);assert.ok(E.claim(s.encounters,s.journal,id,item.id).ok);E.tick(s.encounters,30);
  }
  assert.equal(Q.status(s.journal,'wolf_plague'),'READY_TO_TURN_IN');assert.deepEqual(Q.questDrops(s.journal,'gray_wolf',()=>0),[]);
@@ -65,7 +65,7 @@ test('the complete Rowan quest pays 250 XP and 50 gold once and wolves keep resp
 });
 test('invalid saved quest loot and regular tables cannot turn a quest item into regular inventory',()=>{
  const s=setup();assert.equal(Q.collectRegular(s.journal,'wolf_tooth',99),0);
- const broken={...data,lootTables:{...data.lootTables,wolf:[{itemId:'wolf_tooth',chance:100,min:1,max:1}]}},e=E.create(broken,Q),encounters=e.fresh();assert.equal(e.defeat(encounters,s.journal,id,{roll:()=>0}).corpse,null);
+ const broken={...data,lootTables:{...data.lootTables,wolf:[{itemId:'wolf_tooth',chance:100,min:1,max:1}]}},e=EmberEncounters.create(broken,Q),encounters=e.fresh();assert.equal(e.defeat(encounters,s.journal,id,{roll:()=>0}).corpse,null);
  Q.accept(s.journal,'wolf_plague','rowan');death(s);const corpse=s.encounters.spawns[id].corpse,tooth=corpse.loot.find(i=>i.kind==='quest');corpse.loot.push({...tooth,id:tooth.id+'0',questId:'fake'});const restored=E.restore(s.encounters);assert.equal(restored.spawns[id].corpse.loot.filter(i=>i.kind==='quest').length,1);
 });
 test('full material stacks and equipment rejection retain uncollected loot',()=>{

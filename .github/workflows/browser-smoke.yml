@@ -8,6 +8,7 @@ on:
       - 'index.html'
       - 'scripts/browser-start.cjs'
       - 'scripts/browser-quest-loot.cjs'
+      - 'scripts/browser-terrain.cjs'
       - '.github/workflows/browser-smoke.yml'
 jobs:
   browser:
