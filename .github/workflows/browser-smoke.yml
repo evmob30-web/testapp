@@ -10,6 +10,7 @@ on:
       - 'scripts/browser-quest-loot.cjs'
       - 'scripts/browser-terrain.cjs'
       - 'scripts/browser-wolves.cjs'
+      - 'scripts/browser-markers.cjs'
       - '.github/workflows/browser-smoke.yml'
 jobs:
   browser:

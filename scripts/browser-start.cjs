@@ -2,6 +2,7 @@ const { chromium } = require('playwright');
 const questLootBrowser=require('./browser-quest-loot.cjs');
 const terrainBrowser=require('./browser-terrain.cjs');
 const wolfBrowser=require('./browser-wolves.cjs');
+const markerBrowser=require('./browser-markers.cjs');
 async function currentState(page){return page.evaluate(()=>{const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));return roster?.slots[roster.active]?.state;});}
 async function continueHero(page,index=0){await page.locator('#play').click();await page.locator('#character-play-'+index).click();}
 async function observeForest(page){await page.addInitScript(()=>{
@@ -351,6 +352,7 @@ async function checkGrove(browser,errors){
  await questLootBrowser.run(browser,errors);
  await terrainBrowser.run(browser,errors);
  await wolfBrowser.run(browser,errors);
+ await markerBrowser.run(browser,errors);
  console.log('HTTP game flow completed',JSON.stringify({errors}));
  if(!process.argv.includes('--http-only')){
  // The embedded assets must also work when index.html is opened directly, without HTTP.

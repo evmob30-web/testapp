@@ -7,6 +7,8 @@ Ga naar **Jager Rowan**, ten oosten van het kampvuur. **De wolvenplaag** vraagt 
 
 Een originele singleplayer-actie-RPG in 3D: de Schemervallei met een dorp, bos en ruïne, plus de Wortelgrotten met drie verbonden kamers. Versie 1.10 bevat vernieuwde Bosgeesten en een vernieuwde Wortelmoeder, een volledig vernieuwde Doornwachter, vernieuwde Bram, Mira en Tovin, een vernieuwde Elin, geanimeerde schemerwolven, drie personageslots met eigen voortgang, drie classes, een character creator, zichtbare pantseruitrusting, zwaardcombo’s, tactische vijanden en willekeurige buit met zeldzaamheden. De speler gebruikt twee originele GLB-modellen met heroïsche lichaamsverhoudingen, een gevormd gezicht, gebeeldhouwde haarlokken, gelaagde bepantsering en schilderachtige materialen op een vervormbaar skelet. Alle personages, modellen en verhalen zijn eigen werk. Three.js verzorgt WebGL; er worden geen Warcraft-assets gebruikt.
 
+Quest-NPC's hebben grote, gefacetteerde gouden symbolen met een donkere rand en zachte gloed. De symbolen blijven op afstand leesbaar en hangen boven hun naamplaatje. Een lopende opdracht toont een zilvergrijs vraagteken; inleveren een gouden vraagteken. [Vormgeving en zichtbaarheid](docs/QUEST_MARKERS.md).
+
 ## Starten
 
 Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. De game is bedoeld voor toetsenbord en muis op een laptop of desktop; er is nog geen mobiele besturing.
@@ -191,6 +193,7 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 - `js/thorn-guardian.js`: gedetailleerde Doornwachter, wortelstappen, slagen, instorting en gedeelde schorsdeeltjes.
 - `js/grove-creatures.js`: gewogen modellen, materialen en animaties van de Bosgeest en Wortelmoeder.
 - `js/adventure-data.js`, `js/quest-system.js`, `js/encounters.js`: contentdefinities, persoonlijke quests/inventaris en onafhankelijke enemy-/loot-/respawnlogica.
+- `js/quest-markers.js`: originele gouden/zilveren questsymbolen met contrastrand, gloed en leesbare schermgrootte op afstand.
 - `js/adventure-world.js`, `js/adventure-ui.js`: Rowan, lichamen, indicatoren, questlog/tracker en lootvenster.
 - `js/terrain.js`: aansluitende gras- en padvlakken zonder overlappende grondpolygonen.
 - `js/world.js`: procedurele vallei, modellen, animaties en gevechtseffecten.
@@ -205,6 +208,7 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 - `vendor/three.min.js`, `vendor/GLTFLoader.js`: Three.js 0.160.1 en de officiële GLTFLoader, MIT-licentie in `vendor/THREE-LICENSE.txt`.
 - `tests/`: Node.js-tests, inclusief quest/loot-idempotentie, respawns en compatibele personageopslag.
 - `scripts/browser-quest-loot.cjs`: volledig Rowan-traject, echte lichaamselectie, onafhankelijke quests en herladen.
+- `scripts/browser-markers.cjs`: leesbaarheid van alle questsymbolen dichtbij/veraf, in mist en bij camera-/vensterwijzigingen.
 - `scripts/browser-wolves.cjs`: beide wolventypes, grondcontact, vierfasige stap, draf en echte AI-beweging.
 - `scripts/browser-terrain.cjs`: acht camerahoeken, gerenderde kleurcontroles en echt lopen naar de grot.
 - `scripts/browser-start.cjs`: Playwright-smoketest voor starten, character creator, combo’s, pantser, loot en opslagherstel.
@@ -214,7 +218,7 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-De huidige testsuite bevat 146 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questitemafscherming, permanente vijandzichtbaarheid, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
+De huidige testsuite bevat 150 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questitemafscherming, permanente vijandzichtbaarheid, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert Playwright en gebruikt de aanwezige Chrome-/Chromium-browser, of installeert Chromium als die ontbreekt; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 
