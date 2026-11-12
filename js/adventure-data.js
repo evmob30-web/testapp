@@ -17,7 +17,9 @@ const enemyDefinitions={
  spore_guard:{respawnCategory:'strong',name:'Sporenwachter',level:4,hp:110,damage:14,speed:1.9,xp:35,gold:[14,14],lootTable:'spirit',wanderRadius:0,respawnSeconds:respawnProfiles.strong,corpseSeconds:25},
  root_mother:{name:'Wortelmoeder',level:7,hp:820,damage:36,speed:2.1,xp:150,gold:[65,65],lootTable:'boss',wanderRadius:0,respawnSeconds:600,corpseSeconds:25}
 };
-const lootTables={
+enemyDefinitions.arcane_echo={name:'Vael, de Gebroken Vonk',level:3,hp:520,damage:26,speed:0,xp:0,gold:[0,0],lootTable:'none',wanderRadius:0,respawnSeconds:3600,corpseSeconds:0};
+const arcaneTrial={questId:'mage_trial',spawnId:'arcane-vael',x:-26,z:3,radius:5.5,leash:9};
+const lootTables={none:[],
  wolf:[{itemId:'gold',chance:100,quantity:'gold'},{itemId:'wolf_pelt',chance:100,min:1,max:1}],
  spirit:[{itemId:'gold',chance:100,quantity:'gold'},{itemId:'forest_spore',chance:65,min:1,max:2}],
  root:[{itemId:'gold',chance:100,quantity:'gold'}],
@@ -31,6 +33,7 @@ const extraSpawns=[
  {id:'gray-east-5',enemyType:'gray_wolf',x:29,z:-28},
  {id:'gray-east-6',enemyType:'gray_wolf',x:18,z:-24}
 ];
+extraSpawns.push({id:arcaneTrial.spawnId,enemyType:'arcane_echo',x:arcaneTrial.x,z:arcaneTrial.z,arcaneTrial:true,boss:true});
 const extraEnemies=extraSpawns.map(spawn=>{const type=enemyDefinitions[spawn.enemyType];return {...spawn,name:type.name,hp:type.hp,damage:type.damage,speed:type.speed};});
 const npcs={rowan:{id:'rowan',name:'Jager Rowan',speaker:'Rowan · Jager',x:12,z:9,area:'valley'},lyra:{id:'lyra',name:'Magistra Lyra',speaker:'Lyra · Magistra',x:-20,z:27,area:'valley'}};
 const quests=[{
@@ -43,10 +46,11 @@ quests.push(
  {id:'mage_ward',title:'De beschermende kring',classId:'mage',minLevel:2,requires:['mage_spark'],giver:'lyra',turnIn:'lyra',description:'Vang een oefenpuls op met je Magische barrière. Ga in de blauwe kring naast Lyra staan en gebruik 3.',offerText:'Magische barrière kost 20 mana, duurt 5 seconden en herstelt na 14 seconden. De kring geeft elke 3 seconden een veilige lichtpuls. Zonder barrière verlies je hier geen levens. Deze les helpt je naar niveau 3 en Blink.',progressText:'Ga in de blauw-paarse kring ten westen van Lyra staan. Druk op 3 en vang een puls op voordat de barrière verdwijnt.',completedText:'Een sterke verdediging. Nu leer je afstand overbruggen.',objectives:[{id:'blocked',type:'INTERACT',objectId:'mage-barrier',count:1,label:'Oefenpuls opgevangen met barrière'}],rewards:{xp:120,gold:15}},
  {id:'mage_step',title:'Een stap tussen sterren',classId:'mage',minLevel:3,requires:['mage_ward'],giver:'lyra',turnIn:'lyra',description:'Gebruik Blink om van de gouden startrune naar de blauwe eindrune te gaan.',offerText:'Ga op de gouden rune ten westen van Lyra staan, richt je personage naar de blauwe rune en druk op 4. Met een ingedrukte looptoets bepaalt die toets je richting. Blink kost 18 mana en herstelt na 8 seconden.',progressText:'Begin op de gouden rune en Blink naar de blauwe rune. Lopen naar de eindrune telt niet. Je kunt niet door bomen, muren of gesloten deuren heen.',completedText:'Je eerste magieopleiding is voltooid. Neem je nieuwe spreuken mee op avontuur!',objectives:[{id:'blinked',type:'INTERACT',objectId:'mage-blink',count:1,label:'Van startrune naar eindrune geblinkt'}],rewards:{xp:90,gold:25}}
 );
-const trainingClearings=Object.values(mageTraining);
+quests.push({id:'mage_trial',title:'De Gebroken Vonk',classId:'mage',minLevel:3,requires:['mage_step'],giver:'lyra',turnIn:'lyra',description:'Een losgeslagen magische echo verstoort de open plek ten westen van Lindehaard. Versla Vael en keer terug naar Lyra om zijn staf te herstellen.',offerText:'Volg vanaf het oefenkristal de westelijke bosrand naar het noorden. Vael wacht in de runenkring. Zijn sterrenlans heeft een vastgelegde richting: gebruik barrière of stap opzij. Verlaat de oranje breukkring met Blink of door te lopen. Val aan wanneer hij herstelt. Na de overwinning ontvang je de Sterrenweversstaf: +12 spreukschade.',progressText:'Vael staat in de runenkring ten noorden van het oefenkristal. Gebruik 3 tegen de sterrenlans en 4 om uit een breukkring te komen. Loop ver van de kring weg om het gevecht opnieuw te beginnen.',completedText:'De echo is tot rust gekomen. Je Sterrenweversstaf is hersteld en kan via I worden uitgerust. Je opleiding is nu in de praktijk bewezen.',objectives:[{id:'vael',type:'KILL',enemyType:'arcane_echo',count:1,label:'Vael verslagen'}],rewards:{xp:180,gold:40,staff:'starweaver'}});
+const trainingClearings=[...Object.values(mageTraining),{x:arcaneTrial.x,z:arcaneTrial.z,clearance:7.5}];
 const typeOf=e=>e.enemyType||(e.rootBoss?'root_mother':e.boss?'thorn_guardian':e.area==='roots'?(e.spirit?'spore_guard':'root_guard'):e.spirit?'forest_spirit':'shadow_wolf');
 const spawns=[...root.RPG.enemies,...root.RPG.dungeonEnemies.map(e=>({...e,area:'roots'})),...extraEnemies].map(e=>{
  const type=typeOf(e),definition=enemyDefinitions[type];return {id:e.id,enemyType:type,area:e.area||'valley',x:e.x,z:e.z,respawnSeconds:e.respawnSeconds??definition.respawnSeconds,corpseSeconds:e.corpseSeconds??definition.corpseSeconds,stats:{...definition,...(e.hp?{hp:e.hp}:{}),...(e.damage?{damage:e.damage}:{}),...(e.name?{name:e.name}:{})}};
 });
-root.EmberAdventureData={items,respawnProfiles,enemyDefinitions,lootTables,spawns,extraSpawns,extraEnemies,npcs,quests,mageTraining,trainingClearings,typeOf};
+root.EmberAdventureData={items,respawnProfiles,enemyDefinitions,lootTables,spawns,extraSpawns,extraEnemies,npcs,quests,mageTraining,trainingClearings,arcaneTrial,typeOf};
 })(typeof window==='undefined'?globalThis:window);

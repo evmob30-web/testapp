@@ -71,7 +71,7 @@ function create({quests=[],items={}}={}){
  function turnIn(s,qid,npc,context){
   const q=definitions.get(qid);refresh(s,qid);if(!q||q.turnIn!==npc||status(s,qid)!=='READY_TO_TURN_IN'||!belongs(q,context))return null;
   for(const o of q.objectives){if(o.type==='COLLECT')s.inventory[o.itemId]-=o.count;if(o.type==='QUEST_LOOT')delete s.questItems[binding(qid,o.id)];}
-  s.quests[qid].status='COMPLETED';for(const id of definitions.keys())refresh(s,id);return {xp:integer(q.rewards?.xp,0,99999),gold:integer(q.rewards?.gold,0,99999)};
+  s.quests[qid].status='COMPLETED';for(const id of definitions.keys())refresh(s,id);return {xp:integer(q.rewards?.xp,0,99999),gold:integer(q.rewards?.gold,0,99999),...(q.rewards?.staff?{staff:q.rewards.staff}:{})};
  }
  function npcQuests(s,npcId,context){
   const priority=q=>{const current=status(s,q.id);return current==='READY_TO_TURN_IN'&&q.turnIn===npcId?0:current==='NOT_STARTED'?1:current==='COMPLETED'?3:2;};

@@ -1,7 +1,7 @@
-# Emberwild — Magiëropleiding · reviewbranch
+# Emberwild — De Gebroken Vonk · reviewbranch
 
 
-Deze branch **`feature/quest-loot-system`** breidt de bestaande game uit met **Magische barrière op niveau 2**, **Blink op niveau 3** en **drie lessen bij Magistra Lyra**. Beoordeel de nieuwe Pull Request voordat je deze uitbreiding met `main` samenvoegt. [Magieopleiding, spreukregels en controles](docs/MAGE_TRAINING.md). Het bestaande quest-, corpse-loot- en respawnsysteem blijft beschikbaar. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
+Deze branch **`feature/quest-loot-system`** voegt **De Gebroken Vonk** toe: een vervolgquest na Lyra’s drie magielessen, met de originele miniboss **Vael** en de uitrustbare **Sterrenweversstaf (+12 spreukschade)**. [Quest, aanvallen, beloning en controles](docs/ARCANE_TRIAL.md). Magische barrière op niveau 2 en Blink op niveau 3 zijn onderdeel van de bestaande opleiding. Beoordeel de nieuwe Pull Request voordat je deze uitbreiding met `main` samenvoegt. [Magieopleiding, spreukregels en controles](docs/MAGE_TRAINING.md). Het bestaande quest-, corpse-loot- en respawnsysteem blijft beschikbaar. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
 
 Ga naar **Jager Rowan**, ten oosten van het kampvuur. **De wolvenplaag** vraagt tien wolventanden van de al rondlopende grijze wolven (60% dropkans). Open een lichaam met een klik of **E**, pak een item of **Alles verzamelen**, volg de quest met **J** en lever bij Rowan in voor eenmalig **250 XP en 50 goud**. Dieren keren onafhankelijk na **120–180 seconden speeltijd** terug; monsters en eindbazen gebruiken hun eigen instelbare bereik. De wachttijd wordt eenmaal bij de dood gekozen. Opdrachtstatus, materiaal/questinventaris, vaste loot en resterende respawntijd worden per personage opgeslagen. Menu's, gesprekken en offline tijd pauzeren deze klok. De NPC-symbolen volgen direct de actuele queststatus. Het terrein is hersteld met één gesloten oppervlak; de oorspronkelijke groene vlakken en het gele pad blijven behouden. [Oorzaak en terreincontroles](docs/TERRAIN_FIX.md).
 
@@ -124,6 +124,18 @@ Praat met **Magistra Lyra in het zuidwesten van Lindehaard**, links achter de hu
 Elke les toont uitsluitend zijn eigen geaccepteerde oefenobjecten. Beloningen krijg je eenmaal per personage. Je kunt de spreuken ook via andere quests of gevechten vrijspelen; bestaande Magiërs van niveau 2/3 krijgen ze vanzelf. Bescherming en resterende afkoeltijden worden per personage bewaard op dezelfde speeltijdklok als respawns. Menu’s, gesprekken en offline tijd verbruiken die tijd niet. Bij een nederlaag vervalt je actieve barrière; de afkoeltijd blijft behouden.
 
 Een directe Vonkbol botst met bomen, grotwanden, oefendoelen en vijanden. Verborgen questonderdelen kunnen geen schade krijgen. Magie telt niet mee voor de boogtraining: neem Elins training aan en gebruik daarvoor geladen pijlen. Met **F** wissel je tussen staf, zwaard en de vrijgespeelde boog. In I kun je ook rechtstreeks je staf of boog uitrusten.
+
+## Vervolgquest — De Gebroken Vonk
+
+Na **Een stap tussen sterren** biedt Lyra **De Gebroken Vonk** aan voor Magiërs vanaf niveau 3. Accepteer de opdracht en volg vanaf het oefenkristal de westelijke bosrand naar het noorden. Vael wacht in een runenkring op de open plek. De tegenstander en zijn arena verschijnen uitsluitend tijdens deze geaccepteerde opdracht.
+
+- **Sterrenlans:** een baan met pijlen toont 1,15 seconde vooraf waar hij schiet. Gebruik **3** voor een barrière of stap opzij. De richting volgt je niet meer nadat de waarschuwing begint.
+- **Breukkring:** een oranje cirkel markeert je positie 1,65 seconde vooraf. Gebruik **4** om uit de cirkel te Blinken of loop op tijd weg.
+- **Herstel:** na iedere aanval heeft Vael een rustmoment. Gebruik dat om Vonkbollen te schieten, mana te herstellen of een levensdrank te gebruiken.
+
+Een nederlaag of ver terugtrekken herstelt Vaels gezondheid en verwijdert zijn lopende aanvallen. De geaccepteerde quest blijft staan. Pauze bevriest het gevecht; herladen bewaart zijn gezondheid en geeft een korte aanlooptijd voor nieuwe aanvallen.
+
+Keer na de overwinning terug naar Lyra voor eenmalig **180 XP, 40 goud en de Sterrenweversstaf**. Deze wordt meteen uitgerust. In **I** kun je tussen je basisstaf en de nieuwe staf kiezen. De Sterrenweversstaf heeft een gouden maankroon met lichtgevende kristallen en geeft **+12 spreukschade** bovenop je bestaande bonussen. Beide staven blijven beschikbaar, ook als je reistas vol is. De tegenstander geeft geen extra willekeurige buit en keert na het voltooien niet terug.
 
 ## Boogtraining
 

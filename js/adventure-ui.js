@@ -12,7 +12,7 @@ function create(doc,callbacks){
  function card(state,q,compact=false){
   const section=el('section',undefined,'journal-card'),status=Q.status(state.journal,q.id);append(section,el(compact?'h4':'h3',q.title));if(!compact)section.appendChild(el('p',q.description));section.appendChild(objectives(state,q));
   if(status==='READY_TO_TURN_IN')section.appendChild(el('p','Quest voltooid! Keer terug naar '+(D.npcs[q.turnIn]?.name||q.turnIn)+'.','quest-ready'));
-  if(!compact){section.appendChild(el('p',(q.rewards?.xp||0)+' XP · '+(q.rewards?.gold||0)+' goud','quest-rewards'));if(status==='COMPLETED')section.appendChild(el('p','Voltooid · Beloning ontvangen','quest-ready'));}return section;
+  if(!compact){section.appendChild(el('p',(q.rewards?.xp||0)+' XP · '+(q.rewards?.gold||0)+' goud','quest-rewards'));if(q.rewards?.staff)section.appendChild(el('p',root.RPG.staffs[q.rewards.staff].name+' · +'+root.RPG.staffs[q.rewards.staff].bonus+' spreukschade','quest-rewards'));if(status==='COMPLETED')section.appendChild(el('p','Voltooid · Beloning ontvangen','quest-ready'));}return section;
  }
  function render(state){
   const next=JSON.stringify([state.classId,state.level,state.journal,state.quest,state.kills,state.crystals,state.dungeon,state.area,state.caveKey,state.gateOpen,state.amulet]);if(signature===next)return;signature=next;
