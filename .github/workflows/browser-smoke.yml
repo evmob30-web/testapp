@@ -11,6 +11,8 @@ on:
       - 'scripts/browser-terrain.cjs'
       - 'scripts/browser-wolves.cjs'
       - 'scripts/browser-markers.cjs'
+      - 'scripts/browser-mage-training.cjs'
+      - 'style.css'
       - '.github/workflows/browser-smoke.yml'
 jobs:
   browser:

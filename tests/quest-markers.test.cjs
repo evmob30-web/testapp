@@ -13,7 +13,7 @@ test('marker projection adapts to camera orbit, FOV and resized viewports',()=>{
 });
 test('original outlined art is cached across NPCs and remains bright through fog and scene exposure',()=>{
  const a=markers.create(T),b=markers.create(T);assert.equal(canvases.length,3);assert.equal(a.symbols.length,3);
- for(let i=0;i<3;i++){const sprite=a.symbols[i],material=sprite.material;assert.strictEqual(material,b.symbols[i].material);assert.equal(material.map.image.width,256);assert.equal(material.map.image.height,384);assert.equal(material.map.colorSpace,T.SRGBColorSpace);assert.equal(material.fog,false);assert.equal(material.toneMapped,false);assert.equal(material.depthWrite,false);assert.equal(material.depthTest,false);assert.equal(sprite.center.y,0);assert.ok(sprite.renderOrder>0);}
+ for(let i=0;i<3;i++){const sprite=a.symbols[i],material=sprite.material;assert.strictEqual(material,b.symbols[i].material);assert.equal(material.map.image.width,256);assert.equal(material.map.image.height,384);assert.equal(material.map.colorSpace,T.SRGBColorSpace);assert.equal(material.fog,false);assert.equal(material.toneMapped,false);assert.equal(material.depthWrite,false);assert.equal(material.depthTest,false);assert.equal(sprite.center.y,0);assert.equal(sprite.frustumCulled,false,'bottom-anchored icons use GPU clipping instead of a centered bounding sphere');assert.ok(sprite.renderOrder>0);}
  assert.notStrictEqual(a.symbols[1].material,a.symbols[2].material,'active silver and ready gold stay distinct');
 });
 test('screen sizing and subtle movement never accumulate position drift or move into the nameplate',()=>{

@@ -15,11 +15,11 @@ function create(doc,callbacks){
   if(!compact){section.appendChild(el('p',(q.rewards?.xp||0)+' XP · '+(q.rewards?.gold||0)+' goud','quest-rewards'));if(status==='COMPLETED')section.appendChild(el('p','Voltooid · Beloning ontvangen','quest-ready'));}return section;
  }
  function render(state){
-  const next=JSON.stringify([state.journal,state.quest,state.kills,state.crystals,state.dungeon,state.area,state.caveKey,state.gateOpen,state.amulet]);if(signature===next)return;signature=next;
+  const next=JSON.stringify([state.classId,state.level,state.journal,state.quest,state.kills,state.crystals,state.dungeon,state.area,state.caveKey,state.gateOpen,state.amulet]);if(signature===next)return;signature=next;
   const active=D.quests.filter(q=>['ACTIVE','READY_TO_TURN_IN'].includes(Q.status(state.journal,q.id))),complete=D.quests.filter(q=>Q.status(state.journal,q.id)==='COMPLETED');
   $('extra-quest-tracker').replaceChildren();$('extra-quest-tracker').hidden=!active.length;for(const q of active)$('extra-quest-tracker').appendChild(card(state,q,true));
   $('journal-active').replaceChildren();$('journal-completed').replaceChildren();for(const q of active)$('journal-active').appendChild(card(state,q));for(const q of complete)$('journal-completed').appendChild(card(state,q));
-  if(!active.length)$('journal-active').appendChild(el('p','Nog geen extra opdrachten. Jager Rowan wacht ten oosten van het kampvuur.','journal-empty'));if(!complete.length)$('journal-completed').appendChild(el('p','Je voltooide opdrachten verschijnen hier.','journal-empty'));
+  if(!active.length)$('journal-active').appendChild(el('p',state.classId==='mage'?'Magistra Lyra wacht in het zuidwesten van Lindehaard. Jager Rowan staat ten oosten van het kampvuur.':'Nog geen extra opdrachten. Jager Rowan wacht ten oosten van het kampvuur.','journal-empty'));if(!complete.length)$('journal-completed').appendChild(el('p','Je voltooide opdrachten verschijnen hier.','journal-empty'));
   const story=root.RPG.questText(state);$('journal-story').textContent=story[0]+' — '+story[1];
   $('adventure-bag').replaceChildren();for(const entry of Q.inventory(state.journal)){const item=D.items[entry.itemId],row=el('div',undefined,'material-row');append(row,el('span',item.icon,'item-symbol'),el('span',item.name+(entry.quest?' · Questitem':'')),el('strong','×'+entry.quantity));$('adventure-bag').appendChild(row);}if(!Q.inventory(state.journal).length)$('adventure-bag').appendChild(el('p','Nog geen materialen of questitems.','journal-empty'));
  }
@@ -32,8 +32,8 @@ function create(doc,callbacks){
    append(button,el('span',item.icon,'item-symbol'),words,el('b','×'+entry.quantity));button.onclick=()=>callbacks.lootOne(spawnId,entry.id);$('corpse-loot-list').appendChild(button);
   });return rows.length;
  }
- function offers(npcId,selected,journal){
-  const list=Q.npcQuests(journal,npcId);$('npc-quest-options').replaceChildren();$('npc-quest-options').hidden=list.length<2;for(const q of list){const button=el('button',q.title,'quiet');button.type='button';button.setAttribute('aria-pressed',String(q.id===selected));button.onclick=()=>callbacks.showQuest(npcId,q.id);$('npc-quest-options').appendChild(button);}
+ function offers(npcId,selected,journal,context){
+  const list=Q.npcQuests(journal,npcId,context);$('npc-quest-options').replaceChildren();$('npc-quest-options').hidden=list.length<2;for(const q of list){const button=el('button',q.title,'quiet');button.type='button';button.setAttribute('aria-pressed',String(q.id===selected));button.onclick=()=>callbacks.showQuest(npcId,q.id);$('npc-quest-options').appendChild(button);}
  }
  $('quest-button').onclick=callbacks.openLog;$('quest-log-close').onclick=callbacks.closeLog;$('corpse-loot-close').onclick=callbacks.closeLoot;$('loot-all').onclick=callbacks.lootAll;
  return {render,renderLoot,offers,reset(){signature='';}};
