@@ -87,6 +87,8 @@ async function checkGrove(browser,errors){
  });
  // Observe the real production controllers without adding game-only test APIs.
  await page.addInitScript(()=>{
+  Object.defineProperty(window,'EmberAppearance',{configurable:true,set(api){const create=api.createPreview;api.createPreview=(...args)=>window.__modelPreview=create(...args);Object.defineProperty(window,'EmberAppearance',{value:api,writable:true,configurable:true});}});
+  Object.defineProperty(window,'EmberWorld',{configurable:true,set(api){const create=api.createWorld;api.createWorld=(...args)=>window.__modelWorld=create(...args);Object.defineProperty(window,'EmberWorld',{value:api,writable:true,configurable:true});}});
   Object.defineProperty(window,'EmberModelAssets',{configurable:true,set(api){
    const attach=api.attach;api.attach=(...args)=>{const controller=attach(...args);if(!args[1].group.userData.npc)(window.__modelInstances??=[]).push({controller,rig:args[1]});return controller;};
    Object.defineProperty(window,'EmberModelAssets',{value:api,writable:true,configurable:true});
@@ -103,21 +105,22 @@ async function checkGrove(browser,errors){
  for(const skin of ['classic','flame_guardian'])for(const style of ['short','long','braid']){
   await page.locator('#appearance-skin').selectOption(skin);await page.locator('#appearance-hairStyle').selectOption(style);
   const count=await page.evaluate(selected=>{
-   const rig=window.__modelInstances[1].rig,group=rig.joints.head.getObjectByName('appearance_hair_'+selected);
+   const rig=window.__modelPreview.rig,group=rig.joints.head.getObjectByName('appearance_hair_'+selected);
    return group?.visible&&group.children.filter(m=>m.isMesh).length;
   },style);
   if(count!==1)errors.push('Hairstyle is not visible/batched: '+skin+'/'+style);
  }
  await page.locator('#class-ranger').click();await page.locator('#appearance-skin').selectOption('classic');
- const rangerColor=await page.evaluate(()=>window.__modelInstances[1].controller.models.getObjectByName('classic_fabric').material.color.getHexString());
+ const rangerColor=await page.evaluate(()=>window.__modelPreview.assets.models.getObjectByName('classic_fabric').material.color.getHexString());
  if(rangerColor!=='637e64')errors.push('Ranger preview uses the wrong class colors');
  await page.waitForFunction(()=>{
-  const rig=window.__modelInstances[1].rig,bow=rig.joints.hand_l.getObjectByName('WoodlandBow'),held=bow?.getObjectByName('NockedArrow');
+  const rig=window.__modelPreview.rig,bow=rig.joints.hand_l.getObjectByName('WoodlandBow'),held=bow?.getObjectByName('NockedArrow');
   if(!bow?.visible||!held||held.visible||rig.blade.visible)return false;
   const wrist=rig.group.worldToLocal(rig.joints.hand_r.getWorldPosition(new THREE.Vector3())),shoulder=rig.group.worldToLocal(rig.joints.upper_arm_r.getWorldPosition(new THREE.Vector3()));
   return wrist.y<shoulder.y-1&&Math.abs(wrist.x-shoulder.x)<.08&&rig.palmWorld('l').distanceTo(bow.getWorldPosition(new THREE.Vector3()))<.001;
  },null,{timeout:25000});
 
+ await page.locator('#class-mage').click();await page.waitForFunction(()=>window.__modelPreview?.mageView?.staff.visible,null,{timeout:25000});
  await page.locator('#class-guardian').click();
  await page.locator('#appearance-skin').selectOption('flame_guardian');
  await page.locator('#appearance-hairStyle').selectOption('braid');
@@ -138,9 +141,10 @@ async function checkGrove(browser,errors){
  await page.locator('#class-start').click();
  const initialAudio=await page.evaluate(()=>window.__audioProbe);if(initialAudio.buffers||initialAudio.notes)errors.push('Game startup produced background audio: '+JSON.stringify(initialAudio));
  const importedLook=await page.evaluate(()=>{
-  const {controller}=window.__modelInstances[0];const skin=controller.models.getObjectByName('flame_skin');return skin?.material.color.getHexString();
+  const controller=window.__modelWorld.modelAssets;const skin=controller.models.getObjectByName('flame_skin');return skin?.material.color.getHexString();
  });
  if(importedLook!=='b77a56')errors.push('Saved skin tone did not reach the imported game model');
+ if(process.argv.includes('--preview-only')){console.log('Character preview and gameplay model selection',JSON.stringify({assetState,errors}));await page.close();await browser.close();if(errors.length)process.exit(1);return;}
  await page.locator('#world').hover();await page.mouse.wheel(0,-400);await page.waitForTimeout(300);
  await page.screenshot({path:'/tmp/emberwild-model-play.png'});
  await page.waitForFunction(()=>window.__elinActor?.assets?.status==='ready');
@@ -227,22 +231,23 @@ async function checkGrove(browser,errors){
  const magePage=await browser.newPage({viewport:{width:960,height:700}});const mageErrors=[];
  magePage.on('pageerror',e=>mageErrors.push(e.message));magePage.on('console',m=>{if(m.type()==='error')mageErrors.push(m.text());});
  await magePage.addInitScript(()=>{
+  Object.defineProperty(window,'EmberWorld',{configurable:true,set(api){const create=api.createWorld;api.createWorld=(...args)=>window.__mageGameWorld=create(...args);Object.defineProperty(window,'EmberWorld',{value:api,writable:true,configurable:true});}});
+  Object.defineProperty(window,'EmberAppearance',{configurable:true,set(api){const create=api.createPreview;api.createPreview=(...args)=>window.__mageCreator=create(...args);Object.defineProperty(window,'EmberAppearance',{value:api,writable:true,configurable:true});}});
   Object.defineProperty(window,'EmberMage',{configurable:true,set(api){
-   const attach=api.attach;api.attach=(...args)=>{const view=attach(...args);(window.__mageViews??=[]).push(view);return view;};
    const bolt=api.bolt;api.bolt=(...args)=>{window.__mageBolts=(window.__mageBolts||0)+1;return window.__lastMageBolt=bolt(...args);};
    Object.defineProperty(window,'EmberMage',{value:api,writable:true,configurable:true});
   }});
  });
  await magePage.goto(process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/',{waitUntil:'load'});
  await magePage.locator('#play').click();await magePage.locator('#character-create-0').click();await magePage.locator('#class-mage').click();
- await magePage.waitForFunction(()=>document.getElementById('creator-canvas').dataset.characterModel==='ready'&&window.__mageViews?.[1]?.staff.visible,null,{timeout:30000});
+ await magePage.waitForFunction(()=>document.getElementById('creator-canvas').dataset.characterModel==='ready'&&window.__mageCreator?.mageView?.staff.visible,null,{timeout:30000});
  await magePage.screenshot({path:'/tmp/emberwild-mage-creator.png'});
  await magePage.locator('#class-start').click();
  if(!await magePage.locator('#mana-wrap').isVisible())mageErrors.push('Mage mana bar missing');
  if(await magePage.locator('#attack-name').textContent()!=='Vonkbol'||await magePage.locator('#skill-name').textContent()!=='Vrieskring')mageErrors.push('Mage abilities missing');
  const mageStart=await currentState(magePage);
  if(mageStart?.classId!=='mage'||mageStart?.weapon!=='staff'||mageStart?.hp!==75)mageErrors.push('Mage start/save incorrect');
- const crystalOrigin=await magePage.evaluate(()=>{document.getElementById('attack').click();return window.__lastMageBolt.position.distanceTo(window.__mageViews[0].muzzle());});
+ const crystalOrigin=await magePage.evaluate(()=>{document.getElementById('attack').click();return window.__lastMageBolt.position.distanceTo(window.__mageGameWorld.mageView.muzzle());});
  if(crystalOrigin>.0001)mageErrors.push('Spell did not begin at the staff crystal: '+crystalOrigin);
  await magePage.waitForFunction(()=>window.__mageBolts===1);
  const afterBolt=Number((await magePage.locator('#mana-label').textContent()).split(' / ')[0]);
@@ -254,14 +259,14 @@ async function checkGrove(browser,errors){
  await magePage.keyboard.press('Escape');const pausedMana=await magePage.locator('#mana-label').textContent();
  await magePage.waitForTimeout(400);if(await magePage.locator('#mana-label').textContent()!==pausedMana)mageErrors.push('Mana changed while paused');
  await magePage.keyboard.press('Escape');await magePage.keyboard.press('f');
- if(await magePage.evaluate(()=>window.__mageViews[0].staff.visible))mageErrors.push('Staff did not hide after weapon switch');
- await magePage.keyboard.press('f');if(!await magePage.evaluate(()=>window.__mageViews[0].staff.visible))mageErrors.push('Staff did not return');
+ if(await magePage.evaluate(()=>window.__mageGameWorld.mageView.staff.visible))mageErrors.push('Staff did not hide after weapon switch');
+ await magePage.keyboard.press('f');if(!await magePage.evaluate(()=>window.__mageGameWorld.mageView.staff.visible))mageErrors.push('Staff did not return');
  await magePage.locator('#inventory-button').click();await magePage.locator('#customize').click();
  await magePage.locator('#appearance-hairColor').selectOption('silver');await magePage.locator('#class-start').click();
  const mageEdited=await currentState(magePage);
  if(mageEdited?.classId!=='mage'||mageEdited?.appearance?.hairColor!=='silver'||mageEdited?.quest!==mageStart?.quest)mageErrors.push('Mage appearance editing lost class/progress');
  await magePage.reload({waitUntil:'load'});await continueHero(magePage);
- await magePage.waitForFunction(()=>window.__mageViews?.[0]?.staff.visible);
+ await magePage.waitForFunction(()=>window.__mageGameWorld?.mageView?.staff.visible);
  const mageRestored=await currentState(magePage);
  if(mageRestored?.classId!=='mage'||mageRestored?.weapon!=='staff'||mageRestored?.appearance?.hairColor!=='silver')mageErrors.push('Mage restore failed');
  // Three real characters, cancelling a draft, switching, reloading and deletion.
@@ -280,7 +285,7 @@ async function checkGrove(browser,errors){
  await magePage.locator('#character-delete-0').click();await magePage.keyboard.press('Escape');
  if(await magePage.locator('#character-delete-confirm').isVisible())mageErrors.push('Escape did not cancel deletion');
  await magePage.locator('#character-play-0').click();
- if((await currentState(magePage)).appearance.hairColor!=='silver'||!await magePage.evaluate(()=>window.__mageViews[0].staff.visible))mageErrors.push('Mage appearance/staff was not restored after switching');
+ if((await currentState(magePage)).appearance.hairColor!=='silver'||!await magePage.evaluate(()=>window.__mageGameWorld.mageView.staff.visible))mageErrors.push('Mage appearance/staff was not restored after switching');
  await magePage.reload({waitUntil:'load'});await magePage.locator('#play').click();
  if(await magePage.locator('[id^="character-play-"]').count()!==3)mageErrors.push('Three heroes did not survive reload');
  await magePage.locator('#character-delete-2').click();await magePage.locator('#character-delete-accept').click();
