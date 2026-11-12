@@ -104,6 +104,11 @@ function attach(T,rig){
  const shell=new T.Mesh(new T.SphereGeometry(.88,16,10),wardMat);shell.scale.set(1,1.48,1);ward.add(shell);
  const wardRingMat=new T.MeshBasicMaterial({color:'#cfbbff',transparent:true,opacity:.65,depthWrite:false});
  const wardRing=new T.Mesh(new T.TorusGeometry(.88,.013,4,40),wardRingMat);wardRing.rotation.x=Math.PI/2;ward.add(wardRing);
+ const rewardCrown=new T.Group();rewardCrown.name='StarweaverCrown';staff.add(rewardCrown);
+ const crescent=mesh(rewardCrown,'starweaver_crescent',new T.TorusGeometry(.25,.028,6,32,Math.PI*1.55),gold,[0,.98,0]);crescent.rotation.z=-Math.PI*.27;
+ for(const side of [-1,1]){const wing=mesh(rewardCrown,'starweaver_wing',new T.OctahedronGeometry(.10),inlay,[side*.18,1.05,0]);wing.scale.set(.5,1.8,.65);wing.rotation.z=-side*.45;mesh(rewardCrown,'starweaver_spark',new T.OctahedronGeometry(.04),magic,[side*.27,.86,0]);}
+ function setStaff(id){const upgraded=id==='starweaver';rewardCrown.visible=upgraded;crown.visible=!upgraded;staff.userData.staffId=upgraded?'starweaver':'starter';gem.position.y=upgraded?1.0:.92;gem.scale.set(upgraded?.82:.72,upgraded?1.8:1.55,upgraded?.82:.72);magic.color.set(upgraded?'#b5efff':'#b8deff');magic.emissive.set(upgraded?'#4c9be0':'#6585ff');}
+ setStaff('starter');
  let enabled=false,weapon='staff',castTime=0,castDuration=.34,nova=false,wardActive=false,wardFlash=0;
  function setBarrier(amount){wardActive=amount>0;ward.visible=enabled&&wardActive;}
  function barrierHit(){wardFlash=.25;}
@@ -131,7 +136,7 @@ function attach(T,rig){
  }
  function muzzle(out=new T.Vector3()){rig.group.updateWorldMatrix(true,true);return gem.getWorldPosition(out);}
  setClass('guardian');
- return {staff,accents,gem,ward,setClass,setWeapon,setBarrier,barrierHit,cast,update,muzzle};
+ return {staff,accents,gem,ward,setClass,setWeapon,setStaff,setBarrier,barrierHit,cast,update,muzzle};
 }
 root.EmberMage={powers,freshPowers,restorePowers,barrierCapacity,tickPowers,powerStatus,barrier,absorb,endBarrier,blinkDestination,blink,isMage,spend,regenerate,chill,tickEnemy,movementScale,nearby,bolt,markChilled,attach};
 })(typeof window==='undefined'?globalThis:window);

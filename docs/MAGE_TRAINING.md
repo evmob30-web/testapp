@@ -4,7 +4,7 @@ Deze uitbreiding blijft op `feature/quest-loot-system`. Samenvoegen en publicere
 
 ## Spelersroute
 
-Maak een Magiër of speel verder met een bestaande. Magistra Lyra staat op (-20, 27), in het zuidwesten van het dorp. Drie opeenvolgende, zelfstandig te voltooien lessen laten een nieuwe Magiër niveau 2 en 3 bereiken. Een bestaande Magiër kan dezelfde eenmalige quests volgen; spreuken hangen van het niveau af, niet van het voltooien van de opleiding. Andere classes zien geen Mage-quests of nieuwe actieknoppen.
+Maak een Magiër of speel verder met een bestaande. Magistra Lyra staat op (-20, 27), in het zuidwesten van het dorp. Drie opeenvolgende, zelfstandig te voltooien lessen laten een nieuwe Magiër niveau 2 en 3 bereiken. Na deze opleiding biedt Lyra [De Gebroken Vonk](ARCANE_TRIAL.md) aan. Een bestaande Magiër kan dezelfde eenmalige quests volgen; spreuken hangen van het niveau af, niet van het voltooien van de opleiding. Andere classes zien geen Mage-quests of nieuwe actieknoppen.
 
 | Les | Daadwerkelijke actie | Vereiste | Beloning |
 | --- | --- | --- | --- |

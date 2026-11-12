@@ -44,7 +44,7 @@ function create(world){
   for(const enemy of world.enemies){
    const spawn=E.spawnDefinitions.get(enemy.id),current=state.encounters.spawns[enemy.id];if(!spawn||!current)continue;
    if(force||enemy.instanceId!==current.instanceId){removeBody(enemy.id);bind(enemy,current,spawn);}
-   enemy.dead=current.status==='dead';enemy.mesh.visible=!enemy.dead&&spawn.area===state.area;
+   enemy.dead=current.status==='dead';enemy.mesh.visible=!enemy.dead&&spawn.area===state.area&&root.RPG.enemyVisible(state,enemy);
    const loot=E.available(state.encounters,state.journal,enemy.id),show=enemy.dead&&loot.length>0&&spawn.area===state.area;
    if(show){const entry=bodies.get(enemy.id);if(!entry||entry.instanceId!==current.instanceId){removeBody(enemy.id);makeBody(enemy,current,state);}}
    else removeBody(enemy.id);

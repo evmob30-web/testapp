@@ -40,7 +40,7 @@ function create(world){
  function setArea(area){const inside=area==='roots';group.visible=inside;entrance.visible=!inside;for(const n of forestNodes)n.visible=!inside;scene.background=inside?new T.Color('#263637'):baseColor;scene.fog=inside?new T.FogExp2('#263637',.022):baseFog;if(hemisphere)hemisphere.intensity=inside?1.3:2.15;if(sun)sun.intensity=inside?.65:2.6;}
  function sync(s){const unlocked=RPG.questVisibility(s).dungeon,inside=s.area==='roots'&&unlocked;group.visible=inside;entrance.visible=s.area==='valley'&&unlocked;gate.visible=inside&&!s.gateOpen;key.visible=inside&&!s.caveKey;amulet.visible=inside&&s.kills.includes('rootboss')&&!s.amulet;halo.visible=amulet.visible;portal.material.emissiveIntensity=s.dungeon>0?1.5:.35;}
  function update(dt,time,s){key.rotation.y=time;amulet.rotation.y=time*.8;amulet.position.y=2+Math.sin(time*2)*.12;halo.position.y=amulet.position.y;halo.rotation.z=time*.3;}
- setArea('valley');return {group,gate,key,amulet,entrance,enemies,rooms,setArea,sync,update};
+ setArea('valley');return {group,gate,key,amulet,entrance,exit,enemies,rooms,setArea,sync,update};
 }
 root.EmberDungeon={rooms,canStand,move,create};
 })(typeof window==='undefined'?globalThis:window);

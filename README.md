@@ -1,7 +1,9 @@
-# Emberwild — Magiëropleiding · reviewbranch
+# Emberwild — mobiel en De Gebroken Vonk · reviewbranch
 
 
-Deze branch **`feature/quest-loot-system`** breidt de bestaande game uit met **Magische barrière op niveau 2**, **Blink op niveau 3** en **drie lessen bij Magistra Lyra**. Beoordeel de nieuwe Pull Request voordat je deze uitbreiding met `main` samenvoegt. [Magieopleiding, spreukregels en controles](docs/MAGE_TRAINING.md). Het bestaande quest-, corpse-loot- en respawnsysteem blijft beschikbaar. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
+Deze branch **`feature/quest-loot-system`** voegt volledige touchbesturing toe: een joystick, cameravegen, actieknoppen en automatisch naar NPC’s, vijanden, lichamen en questobjecten lopen. Pc-besturing blijft beschikbaar. [Besturing, navigatie, tests en apparaatbeperkingen](docs/MOBILE_CONTROLS.md).
+
+Daarnaast bevat deze reviewbranch **De Gebroken Vonk**: een vervolgquest na Lyra’s drie magielessen, met de originele miniboss **Vael** en de uitrustbare **Sterrenweversstaf (+12 spreukschade)**. [Quest, aanvallen, beloning en controles](docs/ARCANE_TRIAL.md). Magische barrière op niveau 2 en Blink op niveau 3 zijn onderdeel van de bestaande opleiding. Beoordeel de Pull Request voordat je deze uitbreiding met `main` samenvoegt. [Magieopleiding, spreukregels en controles](docs/MAGE_TRAINING.md). Het bestaande quest-, corpse-loot- en respawnsysteem blijft beschikbaar. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
 
 Ga naar **Jager Rowan**, ten oosten van het kampvuur. **De wolvenplaag** vraagt tien wolventanden van de al rondlopende grijze wolven (60% dropkans). Open een lichaam met een klik of **E**, pak een item of **Alles verzamelen**, volg de quest met **J** en lever bij Rowan in voor eenmalig **250 XP en 50 goud**. Dieren keren onafhankelijk na **120–180 seconden speeltijd** terug; monsters en eindbazen gebruiken hun eigen instelbare bereik. De wachttijd wordt eenmaal bij de dood gekozen. Opdrachtstatus, materiaal/questinventaris, vaste loot en resterende respawntijd worden per personage opgeslagen. Menu's, gesprekken en offline tijd pauzeren deze klok. De NPC-symbolen volgen direct de actuele queststatus. Het terrein is hersteld met één gesloten oppervlak; de oorspronkelijke groene vlakken en het gele pad blijven behouden. [Oorzaak en terreincontroles](docs/TERRAIN_FIX.md).
 
@@ -11,7 +13,7 @@ Quest-NPC's hebben grote, gefacetteerde gouden symbolen met een donkere rand en 
 
 ## Starten
 
-Open `index.html` in een recente desktopbrowser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. De game is bedoeld voor toetsenbord en muis op een laptop of desktop; er is nog geen mobiele besturing.
+Open `index.html` in een recente browser met WebGL/hardwareversnelling. Geen installatie, backend, account, externe API of buildstap nodig. Three.js wordt lokaal meegeleverd. Ook geschikt voor GitHub Pages op een subpad. Op smartphones en tablets verschijnt automatisch de touchinterface; landscape wordt aanbevolen. Onder **Pauze → Besturing** kun je wisselen tussen automatisch, touch en toetsenbord/muis. Op mobiele apparaten open je een statisch gehoste kopie, bijvoorbeeld via GitHub Pages. De bestaande productiepagina volgt `main`; deze reviewbranch wordt niet automatisch daar gepubliceerd.
 
 ## Bosgeest en Wortelmoeder — versie 1.10
 
@@ -104,6 +106,12 @@ Een volle plek wordt nooit door een nieuwe held vervangen. **Verwijderen** opent
 | I | Inventaris en uitrusting |
 | Esc | Pauze / menu sluiten |
 
+## Mobiel en tablet
+
+Beweeg met de joystick linksonder, veeg rechts om de camera te draaien en gebruik de actieknoppen rechtsonder. Tik op een NPC of een lootbaar lichaam om er automatisch naartoe te lopen en binnen bereik het gesprek of de buit te openen. Tik op een levende vijand om hem te selecteren en daarna op de aanvalsknop; buiten bereik benadert je personage eerst een geldige aanvalspositie. Handmatige joystickinput stopt automatisch lopen direct. Bij een boog houd je de aanval vast om te laden en laat je los om te schieten.
+
+De bovenste knoppen openen kaart, pauze, quests en inventaris. **Gebruik**, **Buit** en **Doelwit** helpen bij kleine of lastig aantikbare objecten. Op touch heten levensdrank en ontwijkrol kort **Drank** en **Rol**. Er is geen sprongfunctie. De bestaande grote questsymbolen blijven aanklikbaar. [Volledige uitleg en uitgevoerde mobiele controles](docs/MOBILE_CONTROLS.md).
+
 ## Magiër — spreuken en opleiding
 
 Kies **Magiër** wanneer je een personage in een lege plek maakt. Je begint met 75 gezondheid, een zichtbare kristalstaf en 100 mana. De bestaande kapsels, kleuren en beide cosmetische outfits blijven beschikbaar. Classes kun je alleen bij een nieuw avontuur kiezen; uiterlijk aanpassen via I behoudt je class. De nieuwe Magiër krijgt eigen voortgang; de andere personages blijven bewaard.
@@ -124,6 +132,18 @@ Praat met **Magistra Lyra in het zuidwesten van Lindehaard**, links achter de hu
 Elke les toont uitsluitend zijn eigen geaccepteerde oefenobjecten. Beloningen krijg je eenmaal per personage. Je kunt de spreuken ook via andere quests of gevechten vrijspelen; bestaande Magiërs van niveau 2/3 krijgen ze vanzelf. Bescherming en resterende afkoeltijden worden per personage bewaard op dezelfde speeltijdklok als respawns. Menu’s, gesprekken en offline tijd verbruiken die tijd niet. Bij een nederlaag vervalt je actieve barrière; de afkoeltijd blijft behouden.
 
 Een directe Vonkbol botst met bomen, grotwanden, oefendoelen en vijanden. Verborgen questonderdelen kunnen geen schade krijgen. Magie telt niet mee voor de boogtraining: neem Elins training aan en gebruik daarvoor geladen pijlen. Met **F** wissel je tussen staf, zwaard en de vrijgespeelde boog. In I kun je ook rechtstreeks je staf of boog uitrusten.
+
+## Vervolgquest — De Gebroken Vonk
+
+Na **Een stap tussen sterren** biedt Lyra **De Gebroken Vonk** aan voor Magiërs vanaf niveau 3. Accepteer de opdracht en volg vanaf het oefenkristal de westelijke bosrand naar het noorden. Vael wacht in een runenkring op de open plek. De tegenstander en zijn arena verschijnen uitsluitend tijdens deze geaccepteerde opdracht.
+
+- **Sterrenlans:** een baan met pijlen toont 1,15 seconde vooraf waar hij schiet. Gebruik **3** voor een barrière of stap opzij. De richting volgt je niet meer nadat de waarschuwing begint.
+- **Breukkring:** een oranje cirkel markeert je positie 1,65 seconde vooraf. Gebruik **4** om uit de cirkel te Blinken of loop op tijd weg.
+- **Herstel:** na iedere aanval heeft Vael een rustmoment. Gebruik dat om Vonkbollen te schieten, mana te herstellen of een levensdrank te gebruiken.
+
+Een nederlaag of ver terugtrekken herstelt Vaels gezondheid en verwijdert zijn lopende aanvallen. De geaccepteerde quest blijft staan. Pauze bevriest het gevecht; herladen bewaart zijn gezondheid en geeft een korte aanlooptijd voor nieuwe aanvallen.
+
+Keer na de overwinning terug naar Lyra voor eenmalig **180 XP, 40 goud en de Sterrenweversstaf**. Deze wordt meteen uitgerust. In **I** kun je tussen je basisstaf en de nieuwe staf kiezen. De Sterrenweversstaf heeft een gouden maankroon met lichtgevende kristallen en geeft **+12 spreukschade** bovenop je bestaande bonussen. Beide staven blijven beschikbaar, ook als je reistas vol is. De tegenstander geeft geen extra willekeurige buit en keert na het voltooien niet terug.
 
 ## Boogtraining
 
@@ -187,7 +207,11 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 
 ## Bestanden
 
-- `index.html`, `style.css`: interface en menu's.
+- `index.html`, `style.css`: interface en menu's, inclusief responsive touchweergave en safe areas.
+- `js/touch-controls.js`: capabilitydetectie, besturingsinstelling, joystick en onafhankelijke Pointer Events.
+- `js/navigation.js`: gedeelde begrensde A*-routes en annuleerbare automatische opdrachten.
+- `js/interaction-targets.js`: selecteren en valideren van echte NPC’s, vijanden, lichamen en questobjecten.
+- `js/game.js`: koppeling van touch/navigatie aan de bestaande beweging, camera, acties en menu’s.
 - `js/core.js`: spelregels, opdrachten, uitrusting, beloningen en opslagvalidatie.
 - `js/character-rig.js`: gedeeld personageskelet, heroïsche verhoudingen, zwaard, bevestigingspunten en procedurele animaties.
 - `js/hero-art.js`: originele geometrie voor gebogen pantserplaten, drie kapsels en de tien verzamelde uitrustingsstukken; gedeeld door de game en modelgenerator.
@@ -224,14 +248,18 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 - `scripts/browser-markers.cjs`: leesbaarheid van alle questsymbolen dichtbij/veraf, in mist en bij camera-/vensterwijzigingen.
 - `scripts/browser-wolves.cjs`: beide wolventypes, grondcontact, vierfasige stap, draf en echte AI-beweging.
 - `scripts/browser-terrain.cjs`: acht camerahoeken, gerenderde kleurcontroles en echt lopen naar de grot.
-- `scripts/browser-start.cjs`: Playwright-smoketest voor starten, character creator, combo’s, pantser, loot en opslagherstel.
+- `scripts/browser-start.cjs`: volledige Playwright-controle voor pc en mobiel; `--mobile-only` voert alleen de mobiele scenario’s uit.
+- `scripts/browser-mobile.cjs`, `scripts/browser-mobile-profiles.cjs`: native Chromium-multitouch, volledig Rowan-traject, telefoon/tablet, classes, kerker en onderbrekingen.
+- `scripts/browser-mobile-webkit.cjs`: aanvullende WebKit-controles met iPhone-/iPad-profielen; zie de beperkingen in de mobiele documentatie.
 - `.github/workflows/`: automatische Node.js- en browsercontroles in GitHub Actions.
 
 ## Controle
 
 Met Node.js 18+: `node --test tests/*.cjs`.
 
-De huidige testsuite bevat 150 tests. Die controleren quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questitemafscherming, permanente vijandzichtbaarheid, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
+De testsuite controleert quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questitemafscherming, permanente vijandzichtbaarheid, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
+
+De nieuwe tests controleren daarnaast navigatie, touchdetectie, multitouch en doelvalidatie. De browsercontrole doorloopt een volledige quest met touch en bewaart ook telefoon- en tabletscreenshots. Fysieke mobiele apparaten zijn nog niet getest; [testdekking en beperkingen](docs/MOBILE_CONTROLS.md).
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert Playwright en gebruikt de aanwezige Chrome-/Chromium-browser, of installeert Chromium als die ontbreekt; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 

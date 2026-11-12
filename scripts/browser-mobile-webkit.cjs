@@ -1,0 +1,25 @@
+/* WebKit uses native touchscreen taps; drag paths use Pointer Events because Playwright's
+ * public WebKit touchscreen API only exposes taps. Android tests cover native multitouch. */
+const {webkit,devices}=require('playwright'),driver=require('./browser-mobile.cjs');
+const url=()=>process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/';
+async function inputFor(page){return {
+ async down(id,x,y){await page.evaluate(({id,x,y})=>{const node=document.elementFromPoint(x,y);(window.__wkPointers??=new Map()).set(id,node);node.dispatchEvent(new PointerEvent('pointerdown',{pointerId:id,pointerType:'touch',clientX:x,clientY:y,bubbles:true,cancelable:true}));},{id,x,y});},
+ async move(id,x,y){await page.evaluate(({id,x,y})=>__wkPointers.get(id).dispatchEvent(new PointerEvent('pointermove',{pointerId:id,pointerType:'touch',clientX:x,clientY:y,bubbles:true,cancelable:true})),{id,x,y});},
+ async up(id){await page.evaluate(id=>{const node=__wkPointers.get(id);node.dispatchEvent(new PointerEvent('pointerup',{pointerId:id,pointerType:'touch',bubbles:true,cancelable:true}));__wkPointers.delete(id);},id);},
+ async tap(x,y){await page.touchscreen.tap(x,y);},
+ async element(id){await page.locator('#'+id).evaluate(e=>e.scrollIntoView({block:'center'}));const b=await page.locator('#'+id).boundingBox();if(!b)throw Error('Missing WebKit touch control '+id);const x=b.x+b.width/2,y=b.y+b.height/2;if(!await page.evaluate(p=>!!document.elementFromPoint(p.x,p.y)?.closest('#'+p.id),{x,y,id}))throw Error('Covered WebKit control '+id);await page.touchscreen.tap(x,y);await driver.advance(page,3);}
+};}
+async function run(browser,errors){
+ for(const [name,profile]of [['iPhone', {...devices['iPhone 13'],viewport:{width:390,height:844},screen:{width:390,height:844}}],['iPad',{...devices['iPad (gen 7) landscape'],viewport:{width:1024,height:768},screen:{width:1024,height:768}}]]){
+  const context=await browser.newContext({...profile,hasTouch:true,isMobile:true,deviceScaleFactor:1}),page=await context.newPage();page.on('pageerror',e=>errors.push('WebKit '+name+': '+e.message));page.on('console',m=>{if(m.type()==='error')errors.push('WebKit '+name+': '+m.text());});
+  try{
+   await driver.observe(page,{version:1,classId:'mage',level:3,hp:115,mana:110,x:0,z:22,potions:3,encounters:{version:1,worldId:'webkit-mobile',clock:0,seed:94,spawns:{}}});await page.goto(url(),{waitUntil:'load'});await page.waitForFunction(()=>window.__mobileNavigation);const input=await inputFor(page);await driver.advance(page,1);await input.element('play');await input.element('character-play-0');await driver.advance(page,25);
+   if(await page.evaluate(()=>document.documentElement.dataset.controls)!=='touch')throw Error('WebKit did not detect mobile input');await page.evaluate(async()=>{await __mobileWorld.modelAssets.ready;await Promise.all([...__mobileWorld.npcActors.values()].map(e=>e.actor.ready));});
+   const b=await page.locator('#joystick').boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2,before=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));await input.down(3,x,y);await input.move(3,x+32,y-24);await driver.advance(page,12);await input.up(3);await driver.advance(page,1);const stopped=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));await driver.advance(page,8);if(await page.evaluate(p=>Math.hypot(__mobileState.x-p.x,__mobileState.z-p.z)>.001,stopped)||Math.hypot(stopped.x-before.x,stopped.z-before.z)<.7)throw Error('WebKit Pointer Event joystick/stop failed');
+   await driver.orient(page,input,'npc:rowan');await driver.select(page,input,'npc:rowan');await driver.settle(page);if(await page.locator('#dialog').isHidden())throw Error('WebKit native NPC tap did not navigate/open a conversation');await input.element('dialog-action');if(await page.evaluate(()=>EmberQuests.status(__mobileState.journal,'wolf_plague'))!=='ACTIVE')throw Error('WebKit native quest acceptance failed');await input.element('barrier');if(await page.evaluate(()=>__mobileState.magePowers.barrierAmount)!==51)throw Error('WebKit native spell control failed');
+   await input.element('inventory-button');await input.element('inventory-close');await input.element('quest-button');await input.element('quest-log-close');await page.screenshot({path:'/tmp/emberwild-mobile-webkit-'+name.toLowerCase()+'.png'});console.log('WebKit '+name+': responsive WebGL game, Pointer Event joystick, native taps, NPC route, quest, spell and menus passed');
+  }catch(error){await page.screenshot({path:'/tmp/emberwild-mobile-webkit-failure.png'}).catch(()=>{});throw error;}finally{await context.close();}
+ }
+}
+module.exports={run};
+if(require.main===module)(async()=>{const browser=await webkit.launch({headless:true,...(process.env.EMBERWILD_WEBKIT_PATH?{executablePath:process.env.EMBERWILD_WEBKIT_PATH}:{})}),errors=[];try{await run(browser,errors);console.log(JSON.stringify({errors}));if(errors.length)process.exitCode=1;}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});
