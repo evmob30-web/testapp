@@ -13,11 +13,13 @@ on:
       - 'scripts/browser-markers.cjs'
       - 'scripts/browser-mage-training.cjs'
       - 'scripts/browser-arcane-trial.cjs'
+      - 'scripts/browser-mobile*.cjs'
       - 'style.css'
       - '.github/workflows/browser-smoke.yml'
 jobs:
   browser:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

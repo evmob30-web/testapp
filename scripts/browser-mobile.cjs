@@ -1,0 +1,71 @@
+const {chromium,devices}=require('playwright');
+const url=()=>process.env.EMBERWILD_BASE_URL||'http://127.0.0.1:8765/';
+async function observe(page,fixture){
+ await page.addInitScript(fixture=>{
+  window.requestAnimationFrame=callback=>{window.__mobileFrame=callback;return 0;};let ms=0;
+  window.__advance=(frames=1,draw=true)=>{for(let i=0;i<frames;i++){window.__skipMobileDraw=!draw||i<frames-1;__mobileFrame(ms+=1000/30);}window.__skipMobileDraw=false;};
+  Object.defineProperty(window,'EmberWorld',{configurable:true,set(api){const Renderer=THREE.WebGLRenderer;THREE.WebGLRenderer=class extends Renderer{constructor(...args){super(...args);const render=this.render;this.render=(scene,camera)=>{if(scene===window.__mobileWorld?.scene)window.__mobileCamera=camera;if(window.__skipMobileDraw){scene.updateMatrixWorld();camera.updateMatrixWorld();return;}return render.call(this,scene,camera);};}};const create=api.createWorld;api.createWorld=(...args)=>window.__mobileWorld=create(...args);Object.defineProperty(window,'EmberWorld',{value:api,writable:true,configurable:true});}});
+  Object.defineProperty(window,'EmberAdventureWorld',{configurable:true,set(api){const create=api.create;api.create=(...args)=>{const view=create(...args),reconcile=view.reconcile;view.reconcile=(state,...rest)=>{window.__mobileState=state;return reconcile(state,...rest);};return window.__mobileAdventure=view;};Object.defineProperty(window,'EmberAdventureWorld',{value:api,writable:true,configurable:true});}});
+  Object.defineProperty(window,'EmberInteractionTargets',{configurable:true,set(api){const create=api.create;api.create=(...args)=>window.__mobileTargets=create(...args);Object.defineProperty(window,'EmberInteractionTargets',{value:api,writable:true,configurable:true});}});
+  Object.defineProperty(window,'EmberNavigation',{configurable:true,set(api){const create=api.createController;api.createController=(...args)=>window.__mobileNavigation=create(...args);Object.defineProperty(window,'EmberNavigation',{value:api,writable:true,configurable:true});}});
+  if(fixture&&!sessionStorage.getItem('mobile-fixture')){sessionStorage.setItem('mobile-fixture','1');localStorage.setItem('emberwild-characters-v1',JSON.stringify({version:1,active:0,slots:[{name:'Touchheld',state:fixture},null,null]}));}
+ },fixture);
+}
+async function fingers(page){const session=await page.context().newCDPSession(page),points=new Map();return {
+ async down(id,x,y){points.set(id,{id,x,y,radiusX:5,radiusY:5,force:1});await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[...points.values()]});},
+ async move(id,x,y){if(!points.has(id))throw Error('Unknown test finger');points.set(id,{...points.get(id),x,y});await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[...points.values()]});},
+ async up(id){points.delete(id);await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[...points.values()]});},
+ async tap(x,y){await this.down(99,x,y);await this.up(99);},
+ async element(id){await page.locator('#'+id).evaluate(e=>e.scrollIntoView({block:'center'}));const b=await page.locator('#'+id).boundingBox();if(!b)throw Error('No touch target: '+id);const p={x:b.x+b.width/2,y:b.y+b.height/2};const hit=await page.evaluate(({x,y,id})=>document.elementFromPoint(x,y)?.closest('#'+id)?.id,{...p,id});if(hit!==id)throw Error('Touch target covered: '+id+' '+JSON.stringify(p));await this.tap(p.x,p.y);await page.evaluate(()=>__advance(2));}
+};}
+async function advance(page,n=1){await page.evaluate(n=>__advance(n),n);}
+async function targetPoint(page,key){return page.evaluate(key=>{
+ const t=__mobileTargets.resolve({key});if(!t)throw Error('Unavailable target '+key);const positions=[];for(const object of t.objects()){if(object)positions.push(new THREE.Box3().setFromObject(object).getCenter(new THREE.Vector3()));}
+ for(const height of [1.4,2.2,.4,.18,.7,3,4.1,4.6])for(const offset of [0,-.28,.28])positions.push(new THREE.Vector3(t.position.x+offset,height,t.position.z));
+ for(const v of positions){v.project(__mobileCamera);const x=(v.x+1)*innerWidth/2,y=(1-v.y)*innerHeight/2;if(x<5||x>innerWidth-5||y<52||y>innerHeight-10||document.elementFromPoint(x,y)?.id!=='world')continue;const picked=__mobileTargets.pick(x,y,__mobileCamera,document.getElementById('world').getBoundingClientRect());if(picked?.key===key)return {x,y};}
+ throw Error('No exposed touch pixel for '+key+' '+JSON.stringify({position:t.position,player:[__mobileState.x,__mobileState.z],camera:__mobileCamera.position.toArray()}));
+ },key);}
+async function select(page,input,key){const p=await targetPoint(page,key);await input.tap(p.x,p.y);await advance(page,2);}
+async function orient(page,input,key){
+ for(let attempt=0;attempt<6;attempt++){
+  const delta=await page.evaluate(key=>{const t=__mobileTargets.resolve({key});if(!t)throw Error('Missing target '+key);const p=__mobileState,yaw=Math.atan2(__mobileCamera.position.x-p.x,__mobileCamera.position.z-p.z),goal=Math.atan2(p.x-t.position.x,p.z-t.position.z);return Math.atan2(Math.sin(goal-yaw),Math.cos(goal-yaw));},key);
+  if(Math.abs(delta)<.05)return;const b=await page.evaluate(()=>({w:innerWidth,h:innerHeight})),dx=Math.max(-Math.min(210,b.w*.30),Math.min(Math.min(210,b.w*.30),-delta/.005)),x=b.w*.65,y=b.h*.48;await input.down(80,x,y);for(let i=1;i<=5;i++)await input.move(80,x+dx*i/5,y);await input.up(80);await advance(page,18);
+ }
+}
+async function settle(page,max=1200){await page.evaluate(max=>{for(let i=0;i<max&&__mobileNavigation.order;i++){const before={x:__mobileState.x,z:__mobileState.z};__advance(1,false);const d=Math.hypot(__mobileState.x-before.x,__mobileState.z-before.z);if(d>.5)throw Error('Automatic movement teleported');if(__mobileWorld.colliders.some(c=>Math.hypot(__mobileState.x-c.x,__mobileState.z-c.z)<c.r+.545))throw Error('Automatic route crossed a solid collider');}__advance(3);},max);}
+async function run(browser,errors){
+ const context=await browser.newContext({...devices['Pixel 7'],viewport:{width:915,height:412},screen:{width:915,height:412},isMobile:true,hasTouch:true,deviceScaleFactor:2}),page=await context.newPage();page.on('pageerror',e=>errors.push('Mobile: '+e.message));page.on('console',m=>{if(m.type()==='error')errors.push('Mobile: '+m.text());});
+ await observe(page,{version:1,classId:'guardian',level:8,hp:240,x:0,z:22,potions:20,encounters:{version:1,worldId:'mobile-android',clock:0,seed:94,spawns:{}}});
+ try{
+  await page.goto(url(),{waitUntil:'load'});await page.waitForFunction(()=>window.__mobileNavigation);const input=await fingers(page);await advance(page,1);await input.element('play');await input.element('character-play-0');await advance(page,20);
+  await page.evaluate(async()=>{await __mobileWorld.modelAssets.ready;await Promise.all([...__mobileWorld.npcActors.values()].map(e=>e.actor.ready));});
+  const layout=await page.evaluate(()=>({controls:document.documentElement.dataset.controls,device:document.documentElement.dataset.touchDevice,joystick:document.getElementById('joystick').getBoundingClientRect().toJSON(),skills:document.getElementById('skill-bar').getBoundingClientRect().toJSON(),width:innerWidth,height:innerHeight,errors:document.getElementById('fatal').hidden}));if(layout.controls!=='touch'||layout.joystick.width<90)throw Error('Automatic mobile interface missing: '+JSON.stringify(layout));
+  await page.screenshot({path:'/tmp/emberwild-mobile-landscape.png'});
+  const b=await page.locator('#joystick').boundingBox(),cx=b.x+b.width/2,cy=b.y+b.height/2;const before=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const p=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));await input.down(1,cx,cy);await input.move(1,cx+dx*38,cy+dz*38);await advance(page,3);await input.up(1);const q=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));if(dx&&Math.sign(q.x-p.x)!==Math.sign(dx)||dz&&Math.sign(q.z-p.z)!==Math.sign(dz))throw Error('Native joystick direction failed');}await input.down(1,cx,cy);await input.move(1,cx+35,cy-25);await advance(page,20);await input.down(2,560,195);await input.move(2,620,205);await advance(page,10);await input.up(2);await input.up(1);await advance(page,2);const stopped=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));await advance(page,12);const after=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));if(Math.hypot(stopped.x-before.x,stopped.z-before.z)<1||Math.hypot(after.x-stopped.x,after.z-stopped.z)>.001)throw Error('Joystick did not move/stop reliably');
+  console.log('Mobile: automatic detection, real multitouch joystick/camera and immediate stop passed');
+  await page.screenshot({path:'/tmp/emberwild-mobile-multitouch.png'});
+  await orient(page,input,'npc:rowan');await select(page,input,'npc:rowan');await advance(page,4);await input.down(1,cx,cy);const interrupted=await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z}));await advance(page,12);if(await page.evaluate(p=>Math.hypot(__mobileState.x-p.x,__mobileState.z-p.z)>.001||!!__mobileNavigation.order,interrupted))throw Error('Manual joystick did not cancel the route immediately');await input.up(1);
+  await select(page,input,'npc:rowan');
+  await page.evaluate(()=>{for(let i=0;i<1200&&document.getElementById('dialog').hidden;i++)__advance(1,false);__advance(2);});
+  if(await page.locator('#dialog').isHidden())throw Error('Tap-to-NPC did not arrive: '+JSON.stringify(await page.evaluate(()=>({x:__mobileState.x,z:__mobileState.z,state:__mobileNavigation.state,order:__mobileNavigation.order,toast:document.getElementById('toast').textContent}))));
+  await page.screenshot({path:'/tmp/emberwild-mobile-npc-dialog.png'});await input.element('dialog-action');await advance(page,2);
+  if(await page.evaluate(()=>EmberQuests.status(__mobileState.journal,'wolf_plague'))!=='ACTIVE')throw Error('Quest acceptance by touch failed');console.log('Mobile: real NPC tap, route, arrival dialogue and quest acceptance passed');
+  for(let kill=0;kill<24;kill++){
+   const progress=await page.evaluate(()=>EmberQuests.progress(__mobileState.journal,'wolf_plague','teeth'));if(progress>=10)break;
+   if(kill){await page.evaluate(()=>{const e=__mobileState.encounters.spawns['gray-east-1'];EmberEncounters.tick(__mobileState.encounters,Math.max(0,e.respawnAt-__mobileState.encounters.clock)+.1);});await advance(page,2);}
+   await orient(page,input,'enemy:gray-east-1');await select(page,input,'enemy:gray-east-1');const before=await page.evaluate(()=>__mobileState.encounters.spawns['gray-east-1'].hp);if(before!==55)throw Error('Unexpected wolf fixture health');await input.element('attack');await settle(page);await advance(page,24);
+   if(await page.evaluate(()=>__mobileState.encounters.spawns['gray-east-1'].status)!=='dead')throw Error('Auto approach/real attack did not defeat the wolf: '+JSON.stringify(await page.evaluate(()=>({nav:__mobileNavigation.state,hp:__mobileState.encounters.spawns['gray-east-1'].hp,toast:document.getElementById('toast').textContent}))));
+   // The first corpse is deliberately approached from outside loot range using real joystick input.
+   if(kill===0){await input.down(1,cx,cy);await input.move(1,cx,cy+38);await advance(page,23);await input.up(1);await advance(page,2);}
+   await orient(page,input,'corpse:gray-east-1');await select(page,input,'corpse:gray-east-1');await settle(page);if(await page.locator('#corpse-loot').isHidden())throw Error('Corpse tap did not open loot');
+   const questRow=page.locator('#corpse-loot-list [data-kind="quest"]');if(await questRow.count()){const id=await questRow.first().getAttribute('id');await input.element(id);if(await page.evaluate(()=>EmberQuests.progress(__mobileState.journal,'wolf_plague','teeth'))!==progress+1)throw Error('Individual touch loot did not immediately update quest');const tracker=await page.locator('#extra-quest-tracker').textContent();if(!tracker.includes((progress+1)+' / 10'))throw Error('Quest tracker did not update after touch loot');}
+   if(!await page.locator('#corpse-loot').isHidden())await input.element('loot-all');if(!await page.locator('#corpse-loot').isHidden())throw Error('Loot all did not finish');console.log('Mobile: actual wolf/loot iteration '+(kill+1));
+   const hp=await page.evaluate(()=>__mobileState.hp);if(hp<130)await input.element('heal');
+  }
+  if(await page.evaluate(()=>EmberQuests.status(__mobileState.journal,'wolf_plague'))!=='READY_TO_TURN_IN')throw Error('Mobile hunt did not collect ten quest teeth');
+  await orient(page,input,'npc:rowan');await select(page,input,'npc:rowan');await settle(page);if(await page.locator('#dialog').isHidden())throw Error('Quest turn-in route failed');await page.screenshot({path:'/tmp/emberwild-mobile-quest-turn-in.png'});const gold=await page.evaluate(()=>__mobileState.gold);await input.element('dialog-action');if(await page.evaluate(()=>EmberQuests.status(__mobileState.journal,'wolf_plague'))!=='COMPLETED')throw Error('Touch quest turn-in failed');if(await page.evaluate(()=>__mobileState.gold)!==gold+50)throw Error('Touch reward amount incorrect');
+  await input.element('inventory-button');await page.screenshot({path:'/tmp/emberwild-mobile-inventory.png'});await input.element('inventory-close');console.log('Mobile: complete real enemy approach/attack, corpse approach, individual/all loot, tracker and quest turn-in passed');
+ }catch(error){await page.screenshot({path:'/tmp/emberwild-mobile-failure.png'}).catch(()=>{});throw error;}finally{await context.close();}
+}
+module.exports={run,observe,fingers,advance,targetPoint,select,orient,settle};
+if(require.main===module)(async()=>{const browser=await chromium.launch({headless:true,executablePath:process.env.EMBERWILD_CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox','--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage']}),errors=[];try{await run(browser,errors);console.log(JSON.stringify({errors}));if(errors.length)process.exitCode=1;}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});

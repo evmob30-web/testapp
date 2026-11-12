@@ -5,6 +5,8 @@ const wolfBrowser=require('./browser-wolves.cjs');
 const markerBrowser=require('./browser-markers.cjs');
 const mageTrainingBrowser=require('./browser-mage-training.cjs');
 const arcaneTrialBrowser=require('./browser-arcane-trial.cjs');
+const mobileBrowser=require('./browser-mobile.cjs');
+const mobileProfilesBrowser=require('./browser-mobile-profiles.cjs');
 async function currentState(page){return page.evaluate(()=>{const roster=JSON.parse(localStorage.getItem('emberwild-characters-v1'));return roster?.slots[roster.active]?.state;});}
 async function continueHero(page,index=0){await page.locator('#play').click();await page.locator('#character-play-'+index).click();}
 async function observeForest(page){await page.addInitScript(()=>{
@@ -75,6 +77,7 @@ async function checkGrove(browser,errors){
 }
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.EMBERWILD_CHROMIUM_PATH?{executablePath:process.env.EMBERWILD_CHROMIUM_PATH}:{}),args:['--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
+ if(process.argv.includes('--mobile-only')){const errors=[];try{await mobileBrowser.run(browser,errors);await mobileProfilesBrowser.run(browser,errors);console.log('Mobile controls',JSON.stringify({errors}));if(errors.length)process.exitCode=1;}finally{await browser.close();}return;}
  if(process.argv.includes('--quest-loot-only')){const errors=[];await questLootBrowser.run(browser,errors);console.log('Quest/loot',JSON.stringify({errors}));await browser.close();if(errors.length)process.exit(1);return;}
  if(process.argv.includes('--grove-only')){const errors=[];await checkGrove(browser,errors);console.log('Grove creatures',JSON.stringify({errors}));await browser.close();if(errors.length)process.exit(1);return;}
  const page=await browser.newPage({viewport:{width:960,height:700}});
@@ -362,6 +365,8 @@ async function checkGrove(browser,errors){
  await markerBrowser.run(browser,errors);
  await mageTrainingBrowser.run(browser,errors);
  await arcaneTrialBrowser.run(browser,errors);
+ await mobileBrowser.run(browser,errors);
+ await mobileProfilesBrowser.run(browser,errors);
  console.log('HTTP game flow completed',JSON.stringify({errors}));
  if(!process.argv.includes('--http-only')){
  // The embedded assets must also work when index.html is opened directly, without HTTP.
