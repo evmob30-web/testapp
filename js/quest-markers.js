@@ -49,7 +49,7 @@ function dimensions(depth,fov,viewportHeight){
  return {height:pixels*Math.max(.1,depth)/focal,pixels};
 }
 function create(T){
- const group=new T.Group(),anchor=new T.Vector3(),view=new T.Vector3(),symbols=materials(T).map(material=>{const sprite=new T.Sprite(material);sprite.center.set(.5,0);sprite.scale.set(ASPECT,1,1);sprite.renderOrder=300;group.add(sprite);return sprite;});group.scale.setScalar(1.5);
+ const group=new T.Group(),anchor=new T.Vector3(),view=new T.Vector3(),symbols=materials(T).map(material=>{const sprite=new T.Sprite(material);sprite.center.set(.5,0);sprite.scale.set(ASPECT,1,1);sprite.renderOrder=300;sprite.frustumCulled=false;group.add(sprite);return sprite;});group.scale.setScalar(1.5);
  function place(position){anchor.copy(position);anchor.y+=3.9;group.position.copy(anchor);}
  function updateView(camera,viewportHeight,time=0){
   view.copy(anchor).applyMatrix4(camera.matrixWorldInverse);const depth=-view.z;group.position.copy(anchor);

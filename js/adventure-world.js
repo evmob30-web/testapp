@@ -51,7 +51,7 @@ function create(world){
   }
   rowan.group.visible=state.area==='valley';nameplate.visible=state.area==='valley'&&!world.conversation;
   for(const [id,entry]of indicators){
-   const status=Q.npcStatus(state.journal,id,root.RPG.npcQuestStatuses(state,id)),code=status==='READY_TO_TURN_IN'?2:status==='NOT_STARTED'?0:status==='ACTIVE'?1:-1;
+   const status=Q.npcStatus(state.journal,id,root.RPG.npcQuestStatuses(state,id),state),code=status==='READY_TO_TURN_IN'?2:status==='NOT_STARTED'?0:status==='ACTIVE'?1:-1;
    entry.marker.place(entry.actor.group.position);entry.group.visible=(data.npcs[id]?.area||'valley')===state.area&&entry.actor.group.visible&&!world.conversation&&code>=0;entry.symbols.forEach((sprite,i)=>sprite.visible=i===code);entry.group.userData.questStatus=code===2?'ready':code===1?'active':code===0?'available':'completed';
   }
  }

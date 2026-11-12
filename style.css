@@ -134,3 +134,8 @@ header #sound{font-size:10px}#equip{color:#bde9d2;border:1px solid #a1cbb670;bor
 #npc-quest-options{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}#npc-quest-options[hidden]{display:none}
 @media(max-width:1000px){header .tag{display:none}header{gap:8px}#quest-button{font-size:11px}.quest{max-height:calc(100vh - 240px)}}
 @media(max-width:700px){.quest-log-panel{max-height:80vh}.loot-actions{flex-wrap:wrap}header>button{padding:8px;font-size:10px}.extra-quest-tracker .journal-card{padding:5px 0}.objective-list li{font-size:11px}}
+
+/* Six spell slots for mages, with readable level locks and shield feedback. */
+#barrier-status{display:block;color:#c4dcff;margin-top:5px}.skills button:disabled{cursor:default;opacity:.65}.skills button[data-locked="true"]{border-color:#9a91ac55;background:#242b31e6}.skills[data-class="mage"]{gap:6px}.skills[data-class="mage"] button{width:106px;min-height:78px}.skills[data-class="mage"] #barrier{color:#cddfff}.skills[data-class="mage"] #blink{color:#d8c9ff}
+@media(max-width:850px){.skills[data-class="mage"]{gap:4px}.skills[data-class="mage"] button{width:94px;padding:8px 4px;font-size:10px;min-height:70px}}
+@media(max-width:620px){#hud[data-class="mage"] .map{bottom:176px}.skills[data-class="mage"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:calc(100% - 24px);bottom:32px;gap:4px}.skills[data-class="mage"] button{width:auto;min-height:54px;padding:5px 3px}.skills[data-class="mage"] kbd{margin-bottom:2px}.skills[data-class="mage"] small{margin-top:2px}}

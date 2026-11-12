@@ -1,7 +1,7 @@
-# Emberwild — Quest-, loot- en respawnsysteem · reviewbranch
+# Emberwild — Magiëropleiding · reviewbranch
 
 
-Deze branch **`feature/quest-loot-system`** voegt een geïntegreerd quest-, corpse-loot- en respawnsysteem toe bovenop versie 1.10. `main` en de live game worden niet aangepast: beoordeel eerst de Pull Request. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
+Deze branch **`feature/quest-loot-system`** breidt de bestaande game uit met **Magische barrière op niveau 2**, **Blink op niveau 3** en **drie lessen bij Magistra Lyra**. Beoordeel de nieuwe Pull Request voordat je deze uitbreiding met `main` samenvoegt. [Magieopleiding, spreukregels en controles](docs/MAGE_TRAINING.md). Het bestaande quest-, corpse-loot- en respawnsysteem blijft beschikbaar. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
 
 Ga naar **Jager Rowan**, ten oosten van het kampvuur. **De wolvenplaag** vraagt tien wolventanden van de al rondlopende grijze wolven (60% dropkans). Open een lichaam met een klik of **E**, pak een item of **Alles verzamelen**, volg de quest met **J** en lever bij Rowan in voor eenmalig **250 XP en 50 goud**. Dieren keren onafhankelijk na **120–180 seconden speeltijd** terug; monsters en eindbazen gebruiken hun eigen instelbare bereik. De wachttijd wordt eenmaal bij de dood gekozen. Opdrachtstatus, materiaal/questinventaris, vaste loot en resterende respawntijd worden per personage opgeslagen. Menu's, gesprekken en offline tijd pauzeren deze klok. De NPC-symbolen volgen direct de actuele queststatus. Het terrein is hersteld met één gesloten oppervlak; de oorspronkelijke groene vlakken en het gele pad blijven behouden. [Oorzaak en terreincontroles](docs/TERRAIN_FIX.md).
 
@@ -95,6 +95,8 @@ Een volle plek wordt nooit door een nieuwe held vervangen. **Verwijderen** opent
 | 1 / linkermuisknop | Zwaard: slaan; boog: vasthouden en loslaten; staf: direct een Vonkbol schieten in de richting van de muis |
 | Muis bewegen met boog | Richten met het vizier |
 | F | Beschikbare wapens wisselen; Magiër: staf → zwaard → boog (na boogtraining) → staf |
+| 3 | Magische barrière voor Magiërs vanaf niveau 2 |
+| 4 | Blink voor Magiërs vanaf niveau 3; looprichting of de richting waarin je personage kijkt |
 | 2 | Classvaardigheid: Vonkflits (Wachter), Vonkpijl (Woudloper) of Vrieskring (Magiër) |
 | Spatie | Voorwaartse ontwijkrol in je bewegingsrichting; 0,38 s bescherming, afkoeltijd afhankelijk van class |
 | Q | Levensdrank; herstelt tot 70 gezondheid |
@@ -102,13 +104,24 @@ Een volle plek wordt nooit door een nieuwe held vervangen. **Verwijderen** opent
 | I | Inventaris en uitrusting |
 | Esc | Pauze / menu sluiten |
 
-## Magiër — Vonkbol, mana en Vrieskring
+## Magiër — spreuken en opleiding
 
 Kies **Magiër** wanneer je een personage in een lege plek maakt. Je begint met 75 gezondheid, een zichtbare kristalstaf en 100 mana. De bestaande kapsels, kleuren en beide cosmetische outfits blijven beschikbaar. Classes kun je alleen bij een nieuw avontuur kiezen; uiterlijk aanpassen via I behoudt je class. De nieuwe Magiër krijgt eigen voortgang; de andere personages blijven bewaard.
 
 - **Vonkbol — 1 / linksklik:** richt met de muis en schiet direct een magisch projectiel. Kost 8 mana, heeft 0,65 seconde afkoeltijd en een bereik van circa 24 speleenheden. Basisschade is 32 en groeit met level, sterrenlicht, pantserbonussen en Hartamulet. De zwaardbonus van Doornlicht telt voor je zwaard.
 - **Vrieskring — 2:** een ijsring treft zichtbare vijanden binnen 4,8 speleenheden voor 75% van je spreukschade. Kost 24 mana en heeft 8 seconden afkoeltijd. Gewone vijanden bewegen 3 seconden op 45% snelheid; eindbazen 1,5 seconde op 72% snelheid. Aanvalsaankondigingen blijven actief. De ring treft niet door muren of andere vaste obstakels.
 - **Mana:** herstelt met 7 per spelseconde, bij een herstelplek met nog eens 20 per seconde. Pauze en menu's stoppen herstel en spreuken. Een level erbij, sterrenlicht, Woudzegen en terugkeer na een nederlaag vullen mana aan. Maximale mana groeit met 5 per level. Huidige mana wordt opgeslagen en begrensd hersteld.
+
+- **Magische barrière — 3, vanaf niveau 2:** kost 20 mana en duurt maximaal 5 seconden. Vangt `42 + 3 × niveau` schade op nadat je pantser is meegerekend. Overtollige schade gaat naar je gezondheid. Afkoeltijd: 14 seconden vanaf het uitspreken. Tijdens een ontwijkrol verbruik je geen bescherming. Je ziet de overgebleven bescherming en tijd bij je levensbalk.
+- **Blink — 4, vanaf niveau 3:** kost 18 mana en verplaatst je maximaal 6,5 speleenheden in je looprichting. Zonder looptoets gebruik je de richting waarin je personage kijkt. De hele route wordt gecontroleerd op bomen, gebouwen, grotwanden, gesloten deuren en wereldgrenzen. Is er minder dan 0,75 eenheid ruimte, dan kost de poging geen mana of afkoeltijd. Afkoeltijd: 8 seconden.
+
+Praat met **Magistra Lyra in het zuidwesten van Lindehaard**, links achter de huizen. Haar opleiding is alleen beschikbaar voor Magiërs:
+
+1. **Een vonk onder controle:** accepteer de les en raak het oefenkristal ten noordwesten van Lyra drie keer met een Vonkbol. Lever in voor 60 XP en 10 goud; een nieuwe Magiër bereikt niveau 2.
+2. **De beschermende kring:** accepteer de volgende les, ga in de blauwe kring ten westen van Lyra staan en gebruik 3 om een oefenpuls op te vangen. Zonder barrière zijn oefenpulsen onschadelijk. Beloning: 120 XP en 15 goud; een nieuwe Magiër bereikt niveau 3.
+3. **Een stap tussen sterren:** accepteer de laatste les, ga op de gouden startrune staan, kijk naar de blauwe eindrune en gebruik 4. Je kunt ook W ingedrukt houden tijdens Blink. Lopen naar de eindrune telt niet. Beloning: 90 XP en 25 goud.
+
+Elke les toont uitsluitend zijn eigen geaccepteerde oefenobjecten. Beloningen krijg je eenmaal per personage. Je kunt de spreuken ook via andere quests of gevechten vrijspelen; bestaande Magiërs van niveau 2/3 krijgen ze vanzelf. Bescherming en resterende afkoeltijden worden per personage bewaard op dezelfde speeltijdklok als respawns. Menu’s, gesprekken en offline tijd verbruiken die tijd niet. Bij een nederlaag vervalt je actieve barrière; de afkoeltijd blijft behouden.
 
 Een directe Vonkbol botst met bomen, grotwanden, oefendoelen en vijanden. Verborgen questonderdelen kunnen geen schade krijgen. Magie telt niet mee voor de boogtraining: neem Elins training aan en gebruik daarvoor geladen pijlen. Met **F** wissel je tussen staf, zwaard en de vrijgespeelde boog. In I kun je ook rechtstreeks je staf of boog uitrusten.
 
@@ -301,7 +314,7 @@ Voor de browser-smoketest kan optioneel `EMBERWILD_CHROMIUM_PATH` naar een besta
 
 Op een beheerde testmachine die `file://`-navigatie blokkeert kan `node scripts/browser-start.cjs --http-only` alleen de HTTP-controles uitvoeren. GitHub Actions gebruikt altijd de volledige test, inclusief rechtstreeks openen.
 
-De browsercontrole omvat ook een afzonderlijk Magiër-avontuur: class/preview, staf en manabalk, beide spreuken, pauze, wapens wisselen, uiterlijk aanpassen en opslagherstel. Voor een lokale HTTP-server op een andere poort kan `EMBERWILD_BASE_URL` worden ingesteld; GitHub Actions gebruikt standaard `http://127.0.0.1:8765/` en blijft rechtstreeks openen mee testen.
+De browsercontrole omvat ook een afzonderlijk Magiër-avontuur: class/preview, staf en manabalk, alle spreuken, Lyra’s drie lessen, schadeopvang, veilige Blink-botsingen, pauze, wapens wisselen, uiterlijk aanpassen en opslagherstel. Voor een lokale HTTP-server op een andere poort kan `EMBERWILD_BASE_URL` worden ingesteld; GitHub Actions gebruikt standaard `http://127.0.0.1:8765/` en blijft rechtstreeks openen mee testen.
 
 De browsercontrole voor versie 1.7 maakt drie echte personages, controleert annuleren, wisselen, naam en uiterlijk, opslag na herladen en verwijderen. Een afzonderlijke context migreert een oude save met uitrusting en controleert dat een verwijderde oude held niet opnieuw wordt geïmporteerd.
 
