@@ -190,19 +190,19 @@ function create(T){
  const previous=new T.Vector3(),position=new T.Vector3(),velocity=new T.Vector3(),target=new T.Vector3(),pole=new T.Vector3(),origin=new T.Vector3(),direction=new T.Vector3(),bend=new T.Vector3(),mid=new T.Vector3(),resolved=new T.Vector3(),local=new T.Vector3(),q=new T.Quaternion(),worldQ=new T.Quaternion();
  const deathAnchor=new T.Group();deathAnchor.name='DoornwachterDefeat';
  const deathStart=bones.map(()=>({p:new T.Vector3(),q:new T.Quaternion(),s:new T.Vector3()})),deathFeet=legs.map(()=>new T.Vector3());
- let initialized=false,elapsed=0,phase=.25,locomotion=0,strike=0,recoil=0,recoilSide=1,dying=false,deathTime=0,wasMoving=false,fading=false;
+ let initialized=false,elapsed=0,phase=.25,locomotion=0,strike=0,recoil=0,recoilSide=1,dying=false,held=false,deathTime=0,wasMoving=false,fading=false;
  const motion={speed:0,locomotion:0,warning:0,strike:0,recoil:0,defeat:0,contacts:[true,true],state:'idle'};
  function reset(){
-  if(model.parent!==group){group.add(model);deathAnchor.removeFromParent();}dying=false;deathTime=0;initialized=false;locomotion=strike=recoil=0;elapsed=0;phase=.25;wasMoving=false;
+  if(model.parent!==group){group.add(model);deathAnchor.removeFromParent();}dying=false;held=false;deathTime=0;initialized=false;locomotion=strike=recoil=0;elapsed=0;phase=.25;wasMoving=false;
   model.position.set(0,0,0);model.rotation.set(0,0,0);model.visible=true;
   for(const m of Object.values(materials)){m.opacity=1;if(fading){m.transparent=false;m.depthWrite=true;m.needsUpdate=true;}}fading=false;
   for(const leg of legs)leg.stance=null;motion.defeat=motion.warning=motion.strike=motion.recoil=motion.locomotion=motion.speed=0;motion.state='idle';
  }
  function attack(){strike=.68;}
  function hit(dx=0,dz=1){if(dying)return;recoil=.28;recoilSide=Math.sign(dx*Math.cos(group.rotation.y)-dz*Math.sin(group.rotation.y))||1;}
- function defeat(scene){
+ function defeat(scene,options={}){
   if(dying||!scene)return;group.updateMatrixWorld(true);bones.forEach((b,i)=>{deathStart[i].p.copy(b.position);deathStart[i].q.copy(b.quaternion);deathStart[i].s.copy(b.scale);});legs.forEach((leg,i)=>leg.foot.getWorldPosition(deathFeet[i]));
-  deathAnchor.position.copy(group.position);deathAnchor.quaternion.copy(group.quaternion);deathAnchor.scale.copy(group.scale);scene.add(deathAnchor);deathAnchor.add(model);dying=true;deathTime=0;strike=recoil=0;motion.state='defeat';
+  deathAnchor.position.copy(group.position);deathAnchor.quaternion.copy(group.quaternion);deathAnchor.scale.copy(group.scale);scene.add(deathAnchor);deathAnchor.add(model);dying=true;held=options.hold===true;deathTime=0;strike=recoil=0;motion.state='defeat';
  }
  function rest(leg){return target.set(leg.side*.62,.18,.05).applyMatrix4(group.matrixWorld);}
  function solve(leg,arm=false){
@@ -232,7 +232,7 @@ function create(T){
   materials.wood.emissive.setRGB(hurt*.28,hurt*.11,hurt*.025);materials.bark.emissive.copy(materials.wood.emissive);
  }
  function updateDeath(dt){
-  deathTime+=dt;const collapse=smooth(deathTime/1.5);pose(0,0,0);motion.state='defeat';motion.defeat=collapse;
+  deathTime=Math.min(deathTime+dt,held?1.55:Infinity);const collapse=smooth(deathTime/1.5);pose(0,0,0);motion.state='defeat';motion.defeat=collapse;
   J.hips.position.y=2.215-collapse*1.13;J.hips.rotation.x=collapse*.12;J.spine.rotation.x=.02+collapse*.38;J.chest.rotation.x=collapse*.30;J.head.rotation.x=collapse*.32;J.jaw.rotation.x=.04+collapse*.12;
   group.updateWorldMatrix(true,false);group.getWorldQuaternion(worldQ);model.updateMatrixWorld(true);
   for(const leg of legs){leg.target.copy(rest(leg));solve(leg);}
@@ -241,8 +241,8 @@ function create(T){
   if(transition<1)bones.forEach((b,i)=>{target.copy(b.position);b.position.copy(deathStart[i].p).lerp(target,transition);q.copy(b.quaternion);b.quaternion.copy(deathStart[i].q).slerp(q,transition);target.copy(b.scale);b.scale.copy(deathStart[i].s).lerp(target,transition);});
   model.updateMatrixWorld(true);legs.forEach((leg,i)=>{target.copy(rest(leg));leg.target.copy(deathFeet[i]).lerp(target,transition);solve(leg);});
   materials.ember.emissiveIntensity=Math.max(0,1-deathTime/1.7)*1.2;
-  if(deathTime>1.65){if(!fading){for(const m of Object.values(materials)){m.transparent=true;m.depthWrite=false;m.needsUpdate=true;}fading=true;}for(const m of Object.values(materials))m.opacity=clamp(1-(deathTime-1.65)/1.05);}
-  if(deathTime>=2.7){model.visible=false;group.add(model);deathAnchor.removeFromParent();dying=false;}
+  if(!held&&deathTime>1.65){if(!fading){for(const m of Object.values(materials)){m.transparent=true;m.depthWrite=false;m.needsUpdate=true;}fading=true;}for(const m of Object.values(materials))m.opacity=clamp(1-(deathTime-1.65)/1.05);}
+  if(!held&&deathTime>=2.7){model.visible=false;group.add(model);deathAnchor.removeFromParent();dying=false;}
  }
  function update(dt,e={}){
   dt=clamp(Number.isFinite(dt)?dt:0,0,.05);elapsed+=dt;if(dying){updateDeath(dt);return;}

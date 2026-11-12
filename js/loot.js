@@ -79,7 +79,7 @@ function chooseWeighted(entries,random){
  for(const [key,w] of entries){n-=w;if(n<0)return key;}
  return entries.at(-1)[0];
 }
-function roll(state,enemy,random=Math.random){
+function generate(state,enemy,random=Math.random){
  clean(state);
  if(state.lootDrops.length>=maxDrops||state.lootSequence>=1000000)return null;
  const chance=enemy.boss?1:enemy.spirit?.78:.57;
@@ -90,8 +90,10 @@ function roll(state,enemy,random=Math.random){
  const id=Object.keys(bases)[Math.floor(Math.max(0,Math.min(.999999,random()))*Object.keys(bases).length)];
  const affix=Object.keys(affixes)[Math.floor(Math.max(0,Math.min(.999999,random()))*Object.keys(affixes).length)];
  const drop={uid:++state.lootSequence,base:id,rarity:rarityName,affix,x:enemy.mesh.position.x,z:enemy.mesh.position.z,area:state.area};
- state.lootDrops.push(drop);return drop;
+ return drop;
 }
+function roll(state,enemy,random=Math.random){const drop=generate(state,enemy,random);if(drop)state.lootDrops.push(drop);return drop;}
+function receive(state,raw){clean(state);const item=readItem(raw);if(!item||state.lootBag.length>=maxInventory||[...state.lootBag,...state.lootDrops].some(i=>i.uid===item.uid))return null;state.lootBag.push(item);state.lootSequence=Math.max(state.lootSequence,item.uid);return item;}
 function pickup(state,uid){
  clean(state);
  if(state.lootBag.length>=maxInventory)return null;
@@ -124,5 +126,5 @@ function comparison(state,item){
  const existing=current?itemStats(current):root.EmberEquipment?.items?.[state.armorEquipped?.[next.slot]]||{hp:0,power:0,bow:0,guard:0};
  return {next,difference:{hp:next.hp-(existing.hp||0),power:next.power-(existing.power||0),bow:next.bow-(existing.bow||0),guard:next.guard-(existing.guard||0)}};
 }
-root.EmberLoot={rarity,affixes,bases,slots,maxInventory,clean,readItem,itemStats,equippedItem,bonuses,roll,pickup,equip,sell,comparison};
+root.EmberLoot={rarity,affixes,bases,slots,maxInventory,clean,readItem,itemStats,equippedItem,bonuses,generate,receive,roll,pickup,equip,sell,comparison};
 })(typeof window==='undefined'?globalThis:window);

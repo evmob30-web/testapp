@@ -31,10 +31,10 @@ test('mage bow training and staff return share the existing equipment validation
  assert.equal(RPG.setWeapon(s,'staff'),true);for(const t of RPG.bowTargets)assert.equal(RPG.practiceHit(s,t.id,1.2),true);assert.equal(RPG.finishBow(s),true);
  assert.equal(RPG.restore(JSON.stringify(s)).weapon,'staff');assert.equal(RPG.restore(JSON.stringify(s)).bowQuest,2);
 });
-test('frost selects only accepted nearby enemies with clear line of sight and expires on bosses too',()=>{
+test('frost selects living nearby enemies regardless of quests with clear line of sight and expires on bosses too',()=>{
  const s=RPG.fresh('mage'),make=(id,x,z,boss=false)=>({id,boss,mesh:{visible:true,position:{x,z}}});s.x=s.z=0;
  const w=make('w1',2,0),far=make('w2',10,0),boss=make('boss',1,0,true);
- assert.equal(mage.nearby(s,[w,far,boss],4.8).length,0);s.quest=1;assert.equal(mage.nearby(s,[w,far,boss],4.8).length,1);assert.equal(mage.nearby(s,[w],4.8,()=>false).length,0);w.mesh.visible=false;assert.equal(mage.nearby(s,[w],4.8).length,0);w.mesh.visible=true;
+ assert.equal(mage.nearby(s,[w,far,boss],4.8).length,2);s.quest=1;assert.equal(mage.nearby(s,[w,far,boss],4.8).length,2);w.dead=true;assert.equal(mage.nearby(s,[w],4.8).length,0);w.dead=false;assert.equal(mage.nearby(s,[w],4.8,()=>false).length,0);w.mesh.visible=false;assert.equal(mage.nearby(s,[w],4.8).length,0);w.mesh.visible=true;
  mage.chill(w);assert.equal(mage.movementScale(w),.45);mage.tickEnemy(w,3.1);assert.equal(mage.movementScale(w),1);
  mage.chill(boss);assert.equal(boss.chill,1.5);assert.equal(mage.movementScale(boss),.72);mage.tickEnemy(boss,2);assert.equal(boss.chill,0);
 });
