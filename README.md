@@ -1,9 +1,9 @@
-# Emberwild — mobiel en De Gebroken Vonk · reviewbranch
+# Emberwild — questnavigatie · reviewbranch
 
 
-Deze branch **`feature/quest-loot-system`** voegt volledige touchbesturing toe: een joystick, cameravegen, actieknoppen en automatisch naar NPC’s, vijanden, lichamen en questobjecten lopen. Pc-besturing blijft beschikbaar. [Besturing, navigatie, tests en apparaatbeperkingen](docs/MOBILE_CONTROLS.md).
+Deze branch **`feature/quest-loot-system`** voegt questnavigatie toe: kies een actieve opdracht via **Quests → Volgen**, gebruik het camera-afhankelijke kompas met afstand en herken de gouden markering bij het huidige doel. Verzamelen, verslaan en inleveren werken het doel automatisch bij. Alleen aangenomen opdrachten krijgen aanwijzingen. Keuze en zichtbaarheid worden per personage bewaard. [Bediening, ondersteunde quests en controles](docs/QUEST_NAVIGATION.md).
 
-Daarnaast bevat deze reviewbranch **De Gebroken Vonk**: een vervolgquest na Lyra’s drie magielessen, met de originele miniboss **Vael** en de uitrustbare **Sterrenweversstaf (+12 spreukschade)**. [Quest, aanvallen, beloning en controles](docs/ARCANE_TRIAL.md). Magische barrière op niveau 2 en Blink op niveau 3 zijn onderdeel van de bestaande opleiding. Beoordeel de Pull Request voordat je deze uitbreiding met `main` samenvoegt. [Magieopleiding, spreukregels en controles](docs/MAGE_TRAINING.md). Het bestaande quest-, corpse-loot- en respawnsysteem blijft beschikbaar. [Volledige uitleg, bestandsverdeling, data-configuratie, opslagregels en testinstructies](docs/QUEST_LOOT_SYSTEM.md).
+De bestaande mobiele besturing met joystick, cameravegen, actieknoppen en automatisch benaderen blijft beschikbaar naast toetsenbord/muis. [Mobiele besturing en apparaatbeperkingen](docs/MOBILE_CONTROLS.md). De game bevat ook **De Gebroken Vonk**, Lyra’s vervolgquest met miniboss Vael en de uitrustbare **Sterrenweversstaf (+12 spreukschade)**. [Quest en beloning](docs/ARCANE_TRIAL.md) · [Magieopleiding](docs/MAGE_TRAINING.md) · [Quest-, loot- en respawnsysteem](docs/QUEST_LOOT_SYSTEM.md).
 
 Ga naar **Jager Rowan**, ten oosten van het kampvuur. **De wolvenplaag** vraagt tien wolventanden van de al rondlopende grijze wolven (60% dropkans). Open een lichaam met een klik of **E**, pak een item of **Alles verzamelen**, volg de quest met **J** en lever bij Rowan in voor eenmalig **250 XP en 50 goud**. Dieren keren onafhankelijk na **120–180 seconden speeltijd** terug; monsters en eindbazen gebruiken hun eigen instelbare bereik. De wachttijd wordt eenmaal bij de dood gekozen. Opdrachtstatus, materiaal/questinventaris, vaste loot en resterende respawntijd worden per personage opgeslagen. Menu's, gesprekken en offline tijd pauzeren deze klok. De NPC-symbolen volgen direct de actuele queststatus. Het terrein is hersteld met één gesloten oppervlak; de oorspronkelijke groene vlakken en het gele pad blijven behouden. [Oorzaak en terreincontroles](docs/TERRAIN_FIX.md).
 
@@ -105,6 +105,10 @@ Een volle plek wordt nooit door een nieuwe held vervangen. **Verwijderen** opent
 | E | Praten, verzamelen, deur openen of gebied betreden/verlaten |
 | I | Inventaris en uitrusting |
 | Esc | Pauze / menu sluiten |
+
+## Een quest volgen
+
+Open **Quests** of druk **J** en kies **Volgen** bij een actieve opdracht. Het kompas toont richting, afstand en je huidige doel; aantikken opent het questlog. Een gouden grondmarkering staat bij de bestemming. Als je klaar bent om in te leveren, wijst hij naar de juiste NPC. In de grot wordt zo nodig eerst de uitgang aangegeven. Zet **Toon kompas en doelmarkering** uit om de aanwijzer te verbergen. [Alle ondersteunde opdrachten en testinstructies](docs/QUEST_NAVIGATION.md).
 
 ## Mobiel en tablet
 
@@ -208,6 +212,7 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 ## Bestanden
 
 - `index.html`, `style.css`: interface en menu's, inclusief responsive touchweergave en safe areas.
+- `js/quest-guide.js`, `js/quest-guide-view.js`: actieve questselectie, geldige volgende doelen, kompas en één herbruikbare wereldmarkering.
 - `js/touch-controls.js`: capabilitydetectie, besturingsinstelling, joystick en onafhankelijke Pointer Events.
 - `js/navigation.js`: gedeelde begrensde A*-routes en annuleerbare automatische opdrachten.
 - `js/interaction-targets.js`: selecteren en valideren van echte NPC’s, vijanden, lichamen en questobjecten.
@@ -249,6 +254,7 @@ Geluidseffecten worden via Web Audio gemaakt na een gebruikersactie, bijvoorbeel
 - `scripts/browser-wolves.cjs`: beide wolventypes, grondcontact, vierfasige stap, draf en echte AI-beweging.
 - `scripts/browser-terrain.cjs`: acht camerahoeken, gerenderde kleurcontroles en echt lopen naar de grot.
 - `scripts/browser-start.cjs`: volledige Playwright-controle voor pc en mobiel; `--mobile-only` voert alleen de mobiele scenario’s uit.
+- `scripts/browser-quest-guide.cjs`: echte questselectie, kristal verzamelen, terugkeerdoel, opslag en schermindeling; afzonderlijk via `node scripts/browser-start.cjs --quest-guide-only`.
 - `scripts/browser-mobile.cjs`, `scripts/browser-mobile-profiles.cjs`: native Chromium-multitouch, volledig Rowan-traject, telefoon/tablet, classes, kerker en onderbrekingen.
 - `scripts/browser-mobile-webkit.cjs`: aanvullende WebKit-controles met iPhone-/iPad-profielen; zie de beperkingen in de mobiele documentatie.
 - `.github/workflows/`: automatische Node.js- en browsercontroles in GitHub Actions.
@@ -259,7 +265,7 @@ Met Node.js 18+: `node --test tests/*.cjs`.
 
 De testsuite controleert quests en gebiedswissels, classkeuze, oude en nieuwe opslag, boogschieten, rollen, projectielbotsingen, questitemafscherming, permanente vijandzichtbaarheid, audio en beide eindbazen. Aanvullende tests controleren het gedeelde skelet, Flame Guardian, uiterlijkkeuzes, pantserbonussen, de drie zwaardcombo’s, tactische vijand-AI en willekeurige loot. Aanvullende bewegingscontroles meten voetcontact bij verschillende tijdstappen, draaien, blokkeringen, teleports, rolrichting, boog/pees/handposities en de stafmonding. De gameplaytest controleert het slagmoment, annuleren en projectielen bij een dichtbij gelegen muur of vijand. De modeltests controleren de GLB-bestanden, gewichten, werkelijke vervorming, grondcontact, proporties, gedeelde kapselgeometrie, afzonderlijke previewmaterialen en het reservemodel bij laadproblemen. Tien opslagtests controleren migratie met behouden reservekopie, onafhankelijke classes/voortgang, drie-plekkenlimiet, annuleren, verwijderen, volle/geblokkeerde opslag, corrupte gegevens, namen en verouderde tabbladen. De integratietest doorloopt de echte Three.js-wereld met gesimuleerde invoer en wisselt daarna tussen alle drie de personages.
 
-De nieuwe tests controleren daarnaast navigatie, touchdetectie, multitouch en doelvalidatie. De browsercontrole doorloopt een volledige quest met touch en bewaart ook telefoon- en tabletscreenshots. Fysieke mobiele apparaten zijn nog niet getest; [testdekking en beperkingen](docs/MOBILE_CONTROLS.md).
+De nieuwe tests controleren daarnaast navigatie, touchdetectie, multitouch, doelvalidatie en questbegeleiding. De questcontroles doorlopen de hoofdopdracht, boogtraining, Tovin, Rowan, Lyra en de kerker, plus onafhankelijke opgeslagen volgkeuzes per personage. De browsercontrole doorloopt een volledige quest met touch en bewaart ook telefoon- en tabletscreenshots. Fysieke mobiele apparaten zijn nog niet getest; [testdekking en beperkingen](docs/MOBILE_CONTROLS.md).
 
 De Node.js-integratietest vervangt DOM en WebGL-renderer en controleert geen uiteindelijke pixels of hardwareprestaties. De aparte Playwright-smoketest gebruikt wel een echte Chromium-browser en controleert het echte laden van beide GLB-modellen, de creator, preview, combo-HUD, pantser, lootinteracties en opslag na herladen. Screenshots worden als workflow-artifact bewaard. De workflow installeert Playwright en gebruikt de aanwezige Chrome-/Chromium-browser, of installeert Chromium als die ontbreekt; lokaal moet ook een HTTP-server op `127.0.0.1:8765` draaien. Vloertegels in de grot worden in twee InstancedMesh-batches getekend om het aantal tekenaanroepen klein te houden.
 

@@ -1,6 +1,6 @@
 # Mobiele besturing en automatische interactie
 
-Emberwild gebruikt dezelfde Three.js-wereld, personages, animaties, opslag, botsingen en gevechtsfuncties op pc, telefoon en tablet. Deze uitbreiding staat op `feature/quest-loot-system`. `main` en de productiepagina worden niet rechtstreeks aangepast.
+Emberwild gebruikt dezelfde Three.js-wereld, personages, animaties, opslag, botsingen en gevechtsfuncties op pc, telefoon en tablet. Questnavigatie bouwt hierop voort; zie [een actieve quest volgen](QUEST_NAVIGATION.md).
 
 ## Spelen
 
