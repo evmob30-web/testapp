@@ -8,6 +8,7 @@ on:
       - 'index.html'
       - 'scripts/browser-start.cjs'
       - 'scripts/browser-quest-loot.cjs'
+      - 'scripts/browser-quest-guide.cjs'
       - 'scripts/browser-terrain.cjs'
       - 'scripts/browser-wolves.cjs'
       - 'scripts/browser-markers.cjs'
